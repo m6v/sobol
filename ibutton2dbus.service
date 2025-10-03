@@ -1,0 +1,13 @@
+[Unit]
+Description=Emulator of iButton reader
+After=xserver.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/m6v/Workspace/sobol
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/python3 /home/m6v/Workspace/sobol/ibutton2dbus.py
+# Restart=always
+
+[Install]
+WantedBy=multi-user.target

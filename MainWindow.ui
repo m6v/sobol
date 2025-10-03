@@ -60,7 +60,7 @@
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="auth_id_page">
       <property name="styleSheet">
@@ -217,6 +217,9 @@
                   <width>200</width>
                   <height>0</height>
                  </size>
+                </property>
+                <property name="echoMode">
+                 <enum>QLineEdit::Normal</enum>
                 </property>
                </widget>
               </item>

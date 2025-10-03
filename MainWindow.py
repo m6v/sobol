@@ -7,20 +7,27 @@ import sys
 import libvirt
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.Qt import QMainWindow, QAction, QMessageBox, QRect, QPushButton, QIcon, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QTimer
+from PyQt5.Qt import QMainWindow, QMessageBox, QRect, QPushButton, QIcon, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QTimer, QLineEdit
 from PyQt5.QtCore import Qt, QUrl, pyqtSignal
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 
+from pydbus import SessionBus
+from gi.repository import GLib
+loop = GLib.MainLoop()
+dbus_filter = "/com/example/MyService"
+bus = SessionBus()
+
 
 INITIAL_DIR = CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-# Если установлена переменная окружения _MEIPASS, то запуск происходит из временного каталога,
-# созданного при распаковке бандла. В этом случае путь к исходному каталогу взять из sys.executable
+# Если установлена переменная окружения _MEIPASS, программа запущена
+# из временного каталога, созданного при распаковке бандла
 if hasattr(sys, "_MEIPASS"):
+    # Путь к временному каталогу взять из sys.executable
     INITIAL_DIR = os.path.dirname(sys.executable)
 
 configfile = os.path.join(INITIAL_DIR, 'config.ini')
 
-# Если понадобится логирование в файл, добавить параметр filename='app.log'
+# Для логирования в файл, добавить filename='app.log' иначе лог в консоль
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
 # Время, отводимое на вход в систему
@@ -29,7 +36,7 @@ REMAINING_TIME = 120
 
 class MainWindow(QMainWindow):
     # Сигнал "предъявления" iButton
-    ibutton_present = pyqtSignal(int)
+    ibutton_present = pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -107,7 +114,6 @@ class MainWindow(QMainWindow):
                    "Диагностика платы": "icons/diagnostic.png",
                    "Служебные операции": "icons/service_operations.png"
                    }
-
         verticalSpacer = QSpacerItem(20, 15, QSizePolicy.Fixed)
         sidebar_layout.addItem(verticalSpacer)
         for i, item in enumerate(buttons.items()):
@@ -116,7 +122,6 @@ class MainWindow(QMainWindow):
             sidebar_layout.addWidget(button)
             # Связать событие нажания кнопки с обработчиком, передавая в обработчик номер кнопки
             button.clicked.connect(functools.partial(self.menu_action_triggered, i))
-
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Preferred, QSizePolicy.Expanding)
         sidebar_layout.addItem(verticalSpacer)
         # Вставить созданный менеджер компоновки в нулевую позицию mainHorizontalLayout
@@ -141,17 +146,9 @@ class MainWindow(QMainWindow):
             uic.loadUi(os.path.join(CURRENT_DIR, form), self.__dict__[panel])
             self.stackedWidget.addWidget(self.__dict__[panel])
 
-        # Init QSystemTrayIcon
-        self.tray_icon = QtWidgets.QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon("icons/ibutton.png"))
-        self.tray_icon.show()
+        # Register the default event implementation
+        libvirt.virEventRegisterDefaultImpl()
 
-        tray_menu = QtWidgets.QMenu()
-        for i in range(10):
-            action = QAction("iButton: #%s" % i, self)
-            action.triggered.connect(functools.partial(self.ibutton_action_triggered, i))
-            tray_menu.addAction(action)
-        
         # Открыть соединение с локальным гипервизором
         self.conn = libvirt.open(None)
         if self.conn is None:
@@ -159,46 +156,66 @@ class MainWindow(QMainWindow):
         else:
             logging.info("Подключение к libvirt успешно")
         self.vm_name = "arm-abi"
+        
+        # Зарегистрировать функцию обратного вызова для обработки событий от libvirt для всех доменов
+        self.conn.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE, self.domain_event_callback, None)
+        # Проверить нужна команда или нет?!
+        libvirt.virEventRunDefaultImpl()
 
         self.webEngineView = QWebEngineView()
         self.main_stacked_widget.addWidget(self.webEngineView)
         url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
         self.webEngineView.load(url)
+        
+        # Установка свойства в форме почему-то не работает?!
+        self.passwd_line_edit.setEchoMode(QLineEdit.Password)
 
         # Связать сигнал и слоты
         self.enter_push_button.clicked.connect(self.check_passwd)
+        self.passwd_line_edit.returnPressed.connect(self.check_passwd)
         self.go_settings_push_button.clicked.connect(functools.partial(self.main_stacked_widget.setCurrentIndex, 3))
         self.load_sys_push_button.clicked.connect(self.load_sys)
         self.sys_load_panel.load_sys_push_button.clicked.connect(self.load_sys)
 
-        self.tray_icon.setContextMenu(tray_menu)
-
-        # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи
-        self.accounts = {0: "Aa123456", 1: "12345678"}
+        # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи (пароль, имя и др.)
+        self.accounts = {"0": "Aa123456", "1": "12345678"}
+        # Идентификатор считанной iButton
+        self.auth_id = ""
 
         # Оставшееся до входа в систему время, отображаемое в первых двух окнах
         self.remaining_time = REMAINING_TIME
         self.timer = QTimer()
         self.timer.timeout.connect(self.decrease_remaining_time)
-        self.timer.start(1000)
-
-        self.auth_id = 0
-        # Показать нулевую страницу и ждать "прикладывания" iButton
-        self.ibutton_present[int].connect(self.wait_auth_id)
-        self.main_stacked_widget.setCurrentIndex(0)
+        
+        # Подписаться на получение сигналов с шины bus и
+        # установить функцию обратного вызова для обработки сигнала
+        bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
+        
+        # Получить список ВМ
+        vms = self.conn.listAllDomains() # Получает список всех ВМ
+        for vm in vms:
+            logging.info("State of %s: %s" % (vm.name(), vm.state()))
+            if vm.name() == self.vm_name and vm.state()[0] == 1:
+                # ВМ уже запущена, поэтому открываем панели с ее интерфейсом
+                logging.info("%s is running" % self.vm_name)
+                self.main_stacked_widget.setCurrentIndex(4)
+                break
+            else:
+                # Показать нулевую страницу и ждать "прикладывания" iButton
+                logging.info("%s is't running" % self.vm_name)
+                self.main_stacked_widget.setCurrentIndex(0)
+                self.ibutton_present[str].connect(self.wait_auth_id)
+                self.timer.start(1000)
 
     def menu_action_triggered(self, index):
         self.stackedWidget.setCurrentIndex(index)
         # При необходимости скрыть панель меню вызвать метод self.sidebar_widget.hide()
 
-    def ibutton_action_triggered(self, index):
-        self.ibutton_present.emit(index)
-
     def decrease_remaining_time(self):
         self.remaining_time -= 1
         if self.remaining_time == 0:
             self.remaining_time = REMAINING_TIME
-            self.ibutton_present[int].connect(self.wait_auth_id)
+            self.ibutton_present[str].connect(self.wait_auth_id)
             self.main_stacked_widget.setCurrentIndex(0)
         else:
             # TODO Перевести секунды в минуты и секунды
@@ -206,12 +223,18 @@ class MainWindow(QMainWindow):
             self.remaining_time_label_2.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
 
     def wait_auth_id(self, auth_id):
-        logging.info("iButton %i is presented" % auth_id)
+        logging.info("iButton %s is presented" % auth_id)
         self.auth_id = auth_id
         # Отключаем обработчик "прикладывания" iButton
-        self.ibutton_present[int].disconnect()
-        self.id_label.setText("iButton %i" % self.auth_id)
+        self.ibutton_present[str].disconnect()
+        self.id_label.setText("iButton %s" % self.auth_id)
         self.main_stacked_widget.setCurrentIndex(1)
+
+    def cb_server_signal_emission(self, *args):
+        '''Функция обратного вызова для обработки сигнала с dBus'''
+        logging.info("Recieve message: %s", args)
+        id = args[4][0].split(":")[1]
+        self.ibutton_present.emit(id)
 
     def check_passwd(self):
         '''Проверка пароля'''
@@ -224,7 +247,7 @@ class MainWindow(QMainWindow):
             logging.info("Present unregistered iButton:", e)
         # Если введен неправильный пароль, перейти в нулевое окно
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QMessageBox.Ok)
-        self.ibutton_present[int].connect(self.wait_auth_id)
+        self.ibutton_present[str].connect(self.wait_auth_id)
         self.main_stacked_widget.setCurrentIndex(0)
 
     def load_sys(self):
@@ -250,3 +273,12 @@ class MainWindow(QMainWindow):
         self.config.set("window", "state", str(int(self.windowState())))
         with open(configfile, "w") as file:
             self.config.write(file)
+        # Закрыть соединение с libvirt
+        self.conn.close()
+
+    def domain_event_callback(self, conn, dom, event, detail, opaque):
+        """Функция обратного вызова для обработки сообщений libvirt"""
+        domain_name = dom.name()
+        if event == libvirt.VIR_DOMAIN_SHUTOFF:
+            logging.info("VM '%s' has shut off" % domain_name)
+            self.close()
