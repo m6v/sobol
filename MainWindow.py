@@ -1,24 +1,15 @@
-import asyncio
-import binascii
 import configparser
 import functools
-import errno
-import json
 import logging
 import os
-import socket
-import subprocess
 import sys
-import time
-import traceback
 
 import libvirt
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.Qt import QMainWindow, QAction, QThread, QCursor, QMessageBox, QRect, QFile, QDialog, QPushButton, QIcon, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QTimer
+from PyQt5.Qt import QMainWindow, QAction, QMessageBox, QRect, QPushButton, QIcon, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QTimer
 from PyQt5.QtCore import Qt, QUrl, pyqtSignal
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-import QSwitchControl
 
 
 INITIAL_DIR = CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -29,30 +20,20 @@ if hasattr(sys, "_MEIPASS"):
 
 configfile = os.path.join(INITIAL_DIR, 'config.ini')
 
+# Если понадобится логирование в файл, добавить параметр filename='app.log'
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
 # Время, отводимое на вход в систему
 REMAINING_TIME = 120
 
-class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
-    def __init__(self, icon, parent=None):
-        QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
-        menu = QtWidgets.QMenu(parent)
-        exitAction = menu.addAction("Exit")
-        self.setContextMenu(menu)
-        menu.triggered.connect(self.exit)
 
-    def exit(self):
-        QtCore.QCoreApplication.exit()
-
-class MainWindow(QDialog):
-	    
-	# Сигнал "предъявления" iButton 
+class MainWindow(QMainWindow):
+    # Сигнал "предъявления" iButton
     ibutton_present = pyqtSignal(int)
-	
+
     def __init__(self):
         super().__init__()
-        uic.loadUi(os.path.join(CURRENT_DIR, 'MainWindow.ui'), self)
+        uic.loadUi(os.path.join(CURRENT_DIR, 'TestWindow.ui'), self)
 
         '''
         Вариант с загрузкой формы из файла ресурсов, создаваемого с помощью pyrcc5
@@ -63,10 +44,26 @@ class MainWindow(QDialog):
         Не требует распространения ui-файлов вместе с приложением (только файл ресурсов)
         '''
 
+        self.config = configparser.ConfigParser(allow_no_value=True)
+        # Установить чувствительность ключей к регистру
+        self.config.optionxform = str
+        self.config.read(configfile)
+
+        try:
+            # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
+            geometry = QRect(*map(int, self.config.get('window', 'geometry').split(';')))
+            # Восстановить геометрию главного окна
+            self.setGeometry(geometry)
+
+            state = int(self.config.get('window', 'state'))
+            self.restoreState(bytearray(state))
+        except configparser.NoOptionError as e:
+            logging.warning(e)
+
         # Create the sidebar widget
         self.sidebar_widget = QWidget()
         self.sidebar_widget.setFixedWidth(230)  # Set a fixed width for the sidebar
-        
+
         # Apply background image using QSS
         self.sidebar_widget.setStyleSheet("""
             QWidget {
@@ -86,13 +83,13 @@ class MainWindow(QDialog):
                 color: white;
            }
            QPushButton:hover {
-                background: #3D8A36; 
-           }            
+                background: #3D8A36;
+           }
            QPushButton:pressed {
                 background-color: #3D8A36;
            }
         """)
-        
+
         # Создать боковую панель с кнопками меню
         sidebar_layout = QVBoxLayout(self.sidebar_widget)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
@@ -109,8 +106,8 @@ class MainWindow(QDialog):
                    "Смена аутентификатора": "icons/auth_id_change.png",
                    "Диагностика платы": "icons/diagnostic.png",
                    "Служебные операции": "icons/service_operations.png"
-				  }
-				  
+                   }
+
         verticalSpacer = QSpacerItem(20, 15, QSizePolicy.Fixed)
         sidebar_layout.addItem(verticalSpacer)
         for i, item in enumerate(buttons.items()):
@@ -119,12 +116,12 @@ class MainWindow(QDialog):
             sidebar_layout.addWidget(button)
             # Связать событие нажания кнопки с обработчиком, передавая в обработчик номер кнопки
             button.clicked.connect(functools.partial(self.menu_action_triggered, i))
-            
+
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Preferred, QSizePolicy.Expanding)
-        sidebar_layout.addItem(verticalSpacer) 
+        sidebar_layout.addItem(verticalSpacer)
         # Вставить созданный менеджер компоновки в нулевую позицию mainHorizontalLayout
         self.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=Qt.AlignLeft)
-        
+
         # Динамически добавить панели в стек виджетов,
         # с последующим обращением к ним self.sys_load_panel и т.д.
         panels = {'sys_load_panel': 'panels/SysLoadPanel.ui',
@@ -138,46 +135,50 @@ class MainWindow(QDialog):
                   'auth_id_change_panel': 'panels/EmptyPanel.ui',
                   'diagnostic_panel': 'panels/DiagnosticPanel.ui',
                   'service_operations_panel': 'panels/ServiceOperationsPanel.ui'
-                 }
+                  }
         for panel, form in panels.items():
             self.__dict__[panel] = QWidget()
             uic.loadUi(os.path.join(CURRENT_DIR, form), self.__dict__[panel])
             self.stackedWidget.addWidget(self.__dict__[panel])
-            
+
         # Init QSystemTrayIcon
         self.tray_icon = QtWidgets.QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon("icons/ibutton.png"))
         self.tray_icon.show()
 
-        tray_menu = QtWidgets.QMenu()        
+        tray_menu = QtWidgets.QMenu()
         for i in range(10):
             action = QAction("iButton: #%s" % i, self)
             action.triggered.connect(functools.partial(self.ibutton_action_triggered, i))
             tray_menu.addAction(action)
-
-        self.conn = libvirt.open(None) # Открывает соединение с локальным гипервизором
+        
+        # Открыть соединение с локальным гипервизором
+        self.conn = libvirt.open(None)
         if self.conn is None:
-            print('Не удалось подключиться к Libvirt')
+            logging.warning("Не удалось подключиться к libvirt")
         else:
-            print('Подключение к Libvirt успешно')
+            logging.info("Подключение к libvirt успешно")
         self.vm_name = "arm-abi"
 
         self.webEngineView = QWebEngineView()
         self.main_stacked_widget.addWidget(self.webEngineView)
-        url = QUrl.fromUserInput('http://127.0.0.1:6080/vnc_lite.html?scale=true')
+        url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
         self.webEngineView.load(url)
-        
-        # Связать сигнал и слоты    
+
+        # Связать сигнал и слоты
         self.enter_push_button.clicked.connect(self.check_passwd)
-        
+        self.go_settings_push_button.clicked.connect(functools.partial(self.main_stacked_widget.setCurrentIndex, 3))
+        self.load_sys_push_button.clicked.connect(self.load_sys)
+        self.sys_load_panel.load_sys_push_button.clicked.connect(self.load_sys)
+
         self.tray_icon.setContextMenu(tray_menu)
 
         # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи
         self.accounts = {0: "Aa123456", 1: "12345678"}
-        
+
         # Оставшееся до входа в систему время, отображаемое в первых двух окнах
         self.remaining_time = REMAINING_TIME
-        self.timer = QTimer();
+        self.timer = QTimer()
         self.timer.timeout.connect(self.decrease_remaining_time)
         self.timer.start(1000)
 
@@ -185,11 +186,11 @@ class MainWindow(QDialog):
         # Показать нулевую страницу и ждать "прикладывания" iButton
         self.ibutton_present[int].connect(self.wait_auth_id)
         self.main_stacked_widget.setCurrentIndex(0)
-        
+
     def menu_action_triggered(self, index):
         self.stackedWidget.setCurrentIndex(index)
         # При необходимости скрыть панель меню вызвать метод self.sidebar_widget.hide()
-        
+
     def ibutton_action_triggered(self, index):
         self.ibutton_present.emit(index)
 
@@ -201,10 +202,11 @@ class MainWindow(QDialog):
             self.main_stacked_widget.setCurrentIndex(0)
         else:
             # TODO Перевести секунды в минуты и секунды
-            self.remaining_time_value_label.setText("%s сек." % self.remaining_time)
+            self.remaining_time_label_1.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
+            self.remaining_time_label_2.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
 
     def wait_auth_id(self, auth_id):
-        print('iButton %i present' % auth_id)
+        logging.info("iButton %i is presented" % auth_id)
         self.auth_id = auth_id
         # Отключаем обработчик "прикладывания" iButton
         self.ibutton_present[int].disconnect()
@@ -212,28 +214,39 @@ class MainWindow(QDialog):
         self.main_stacked_widget.setCurrentIndex(1)
 
     def check_passwd(self):
-        self.remaining_time = REMAINING_TIME
-        # Проверить пароль
+        '''Проверка пароля'''
         try:
+            # Если введен правильный пароль открыть панель выбора действия Загрузка ОС/Настройки
             if self.accounts[self.auth_id] == self.passwd_line_edit.text():
-                self.timer.stop()
-                
-                ######### ЗАПУСК ВМ ########
-                try:
-                    vm = self.conn.lookupByName(self.vm_name)
-                    if vm.state() != libvirt.VIR_DOMAIN_RUNNING:
-                        vm.create() # Запуск
-                        print(f"ВМ '{self.vm_name}' запущена")
-                except libvirt.libvirtError as e:
-                    print(f"Ошибка: {e}")
-                ############################
-                self.webEngineView.reload()
-                self.main_stacked_widget.setCurrentIndex(3)
-                
+                self.main_stacked_widget.setCurrentIndex(2)
                 return
         except KeyError as e:
-            print("Present unregistered iButton:", e)
-        # Если введен неправильный пароль,перейти в нулевое окно
-        QtWidgets.QMessageBox.warning(self, 'Quit', 'Неверный идентификатор или пароль ',  QMessageBox.Ok)
+            logging.info("Present unregistered iButton:", e)
+        # Если введен неправильный пароль, перейти в нулевое окно
+        QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QMessageBox.Ok)
         self.ibutton_present[int].connect(self.wait_auth_id)
         self.main_stacked_widget.setCurrentIndex(0)
+
+    def load_sys(self):
+        '''Запустить виртуальную машину self.vm_name'''
+        self.timer.stop()
+        try:
+            vm = self.conn.lookupByName(self.vm_name)
+            if vm.state() != libvirt.VIR_DOMAIN_RUNNING:
+                vm.create()  # Запуск
+                logging.info("ВМ %s запущена" % self.vm_name)
+        except libvirt.libvirtError as e:
+            logging.warning("Ошибка: %s" % e)
+
+        self.webEngineView.reload()
+        self.main_stacked_widget.setCurrentIndex(4)
+
+    def closeEvent(self, e):
+        '''Сохранить геометрию, состояние главного окна и пароль'''
+        # Получить кортеж с элементами QRect геометрии главного окна
+        geometry = self.geometry().getRect()
+        # Преобразовать элементы кортежа в строки и разделить символом ';'
+        self.config.set("window", "geometry", ";".join(map(str, geometry)))
+        self.config.set("window", "state", str(int(self.windowState())))
+        with open(configfile, "w") as file:
+            self.config.write(file)

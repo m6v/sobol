@@ -315,7 +315,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="sys_load_push_button">
+       <widget class="QPushButton" name="load_sys_push_button">
         <property name="text">
          <string>Загрузить ОС</string>
         </property>
