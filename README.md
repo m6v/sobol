@@ -6,6 +6,8 @@
 - websockify  6080 127.0.0.1:5901 --web /usr/share/novnc
 
 Зависимости:
+- python3-pyqt5 (если по дефолту не установлен)
+- python3-pyqt5.qtwebengine
 - python3-pydbus
 - python3-libvirt
 - novnc

@@ -1,5 +1,6 @@
 import configparser
 import functools
+import json
 import logging
 import os
 import sys
@@ -13,6 +14,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 from pydbus import SessionBus
 from gi.repository import GLib
+
 loop = GLib.MainLoop()
 dbus_filter = "/com/example/MyService"
 bus = SessionBus()
@@ -57,6 +59,11 @@ class MainWindow(QMainWindow):
         self.config.read(configfile)
 
         try:
+            # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи (пароль, имя и др.)
+            self.accounts = eval(self.config.get("general", "accounts"))
+            # Имя виртуальной машины
+            self.vm_name = self.config.get("general", "vm_name")
+
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
             geometry = QRect(*map(int, self.config.get('window', 'geometry').split(';')))
             # Восстановить геометрию главного окна
@@ -148,14 +155,14 @@ class MainWindow(QMainWindow):
 
         # Register the default event implementation
         libvirt.virEventRegisterDefaultImpl()
-
         # Открыть соединение с локальным гипервизором
         self.conn = libvirt.open(None)
         if self.conn is None:
             logging.warning("Не удалось подключиться к libvirt")
         else:
             logging.info("Подключение к libvirt успешно")
-        self.vm_name = "arm-abi"
+
+        self.dom = self.conn.lookupByName(self.vm_name)
         
         # Зарегистрировать функцию обратного вызова для обработки событий от libvirt для всех доменов
         self.conn.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE, self.domain_event_callback, None)
@@ -177,8 +184,6 @@ class MainWindow(QMainWindow):
         self.load_sys_push_button.clicked.connect(self.load_sys)
         self.sys_load_panel.load_sys_push_button.clicked.connect(self.load_sys)
 
-        # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи (пароль, имя и др.)
-        self.accounts = {"0": "Aa123456", "1": "12345678"}
         # Идентификатор считанной iButton
         self.auth_id = ""
 
@@ -190,22 +195,18 @@ class MainWindow(QMainWindow):
         # Подписаться на получение сигналов с шины bus и
         # установить функцию обратного вызова для обработки сигнала
         bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
-        
-        # Получить список ВМ
-        vms = self.conn.listAllDomains() # Получает список всех ВМ
-        for vm in vms:
-            logging.info("State of %s: %s" % (vm.name(), vm.state()))
-            if vm.name() == self.vm_name and vm.state()[0] == 1:
-                # ВМ уже запущена, поэтому открываем панели с ее интерфейсом
-                logging.info("%s is running" % self.vm_name)
-                self.main_stacked_widget.setCurrentIndex(4)
-                break
-            else:
-                # Показать нулевую страницу и ждать "прикладывания" iButton
-                logging.info("%s is't running" % self.vm_name)
-                self.main_stacked_widget.setCurrentIndex(0)
-                self.ibutton_present[str].connect(self.wait_auth_id)
-                self.timer.start(1000)
+
+        state, reason = self.dom.state()
+        if state == libvirt.VIR_DOMAIN_RUNNING:
+            # ВМ уже запущена, поэтому открываем панели с ее интерфейсом
+            logging.info("%s is running" % self.vm_name)
+            self.main_stacked_widget.setCurrentIndex(4)
+        else:
+            # ВМ не запущена, поэтому ждать "прикладывания" iButton
+            logging.info("%s is't running" % self.vm_name)
+            self.main_stacked_widget.setCurrentIndex(0)
+            self.ibutton_present[str].connect(self.wait_auth_id)
+            self.timer.start(1000)
 
     def menu_action_triggered(self, index):
         self.stackedWidget.setCurrentIndex(index)
@@ -228,6 +229,8 @@ class MainWindow(QMainWindow):
         # Отключаем обработчик "прикладывания" iButton
         self.ibutton_present[str].disconnect()
         self.id_label.setText("iButton %s" % self.auth_id)
+        # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
+        self.passwd_line_edit.setText("")
         self.main_stacked_widget.setCurrentIndex(1)
 
     def cb_server_signal_emission(self, *args):
@@ -240,7 +243,7 @@ class MainWindow(QMainWindow):
         '''Проверка пароля'''
         try:
             # Если введен правильный пароль открыть панель выбора действия Загрузка ОС/Настройки
-            if self.accounts[self.auth_id] == self.passwd_line_edit.text():
+            if self.accounts[self.auth_id]["passwd"] == self.passwd_line_edit.text():
                 self.main_stacked_widget.setCurrentIndex(2)
                 return
         except KeyError as e:
@@ -254,9 +257,8 @@ class MainWindow(QMainWindow):
         '''Запустить виртуальную машину self.vm_name'''
         self.timer.stop()
         try:
-            vm = self.conn.lookupByName(self.vm_name)
-            if vm.state() != libvirt.VIR_DOMAIN_RUNNING:
-                vm.create()  # Запуск
+            if self.dom.state() != libvirt.VIR_DOMAIN_RUNNING:
+                self.dom.create()
                 logging.info("ВМ %s запущена" % self.vm_name)
         except libvirt.libvirtError as e:
             logging.warning("Ошибка: %s" % e)
@@ -265,17 +267,28 @@ class MainWindow(QMainWindow):
         self.main_stacked_widget.setCurrentIndex(4)
 
     def closeEvent(self, e):
-        '''Сохранить геометрию, состояние главного окна и пароль'''
+        # Если ВМ запущена спросить о принудительном выключении
+        if self.dom.state() == libvirt.VIR_DOMAIN_RUNNING:
+            msg = QtWidgets.QMessageBox.question(self, "Выход", "Принудительно выключить виртуальную машину?",
+                                                 QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes,
+                                                 QtWidgets.QMessageBox.No)
+            if msg == QMessageBox.Yes:
+                self.dom.destroy()
+        # Закрыть соединение с libvirt
+        self.conn.close()
+
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.geometry().getRect()
         # Преобразовать элементы кортежа в строки и разделить символом ';'
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
         self.config.set("window", "state", str(int(self.windowState())))
+        # Сохранить учетные записи пользователей
+        self.config.set("general", "accounts", str(self.accounts))
+        
         with open(configfile, "w") as file:
             self.config.write(file)
-        # Закрыть соединение с libvirt
-        self.conn.close()
 
+        
     def domain_event_callback(self, conn, dom, event, detail, opaque):
         """Функция обратного вызова для обработки сообщений libvirt"""
         domain_name = dom.name()
