@@ -138,13 +138,13 @@ class MainWindow(QMainWindow):
         # с последующим обращением к ним self.sys_load_panel и т.д.
         panels = {'sys_load_panel': 'panels/SysLoadPanel.ui',
                   'work_mode_panel': 'panels/WorkModePanel.ui',
-                  'user_list_panel': 'panels/EmptyPanel.ui',
-                  'event_journal_panel': 'panels/EmptyPanel.ui',
+                  'user_list_panel': 'panels/UserListPanel.ui',
+                  'event_journal_panel': 'panels/JournalPanel.ui',
                   'common_parms_panel': 'panels/CommonParmsPanel.ui',
                   'passwd_parms_panel': 'panels/PasswdParmsPanel.ui',
                   'integrity_control_panel': 'panels/IntegrityControlPanel.ui',
-                  'passwd_change_panel': 'panels/EmptyPanel.ui',
-                  'auth_id_change_panel': 'panels/EmptyPanel.ui',
+                  'passwd_change_panel': 'panels/PasswdChangePanel.ui',
+                  'id_change_panel': 'panels/IdChangePanel.ui',
                   'diagnostic_panel': 'panels/DiagnosticPanel.ui',
                   'service_operations_panel': 'panels/ServiceOperationsPanel.ui'
                   }
