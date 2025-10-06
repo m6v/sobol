@@ -77,6 +77,7 @@ class MainWindow(QMainWindow):
         # Create the sidebar widget
         self.sidebar_widget = QWidget()
         self.sidebar_widget.setFixedWidth(230)  # Set a fixed width for the sidebar
+        self.sidebar_widget.setContentsMargins(0, 0, 0, 0)
 
         # Apply background image using QSS
         self.sidebar_widget.setStyleSheet("""
@@ -231,6 +232,7 @@ class MainWindow(QMainWindow):
         self.id_label.setText("iButton %s" % self.auth_id)
         # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
         self.passwd_line_edit.setText("")
+        self.passwd_line_edit.setFocus()
         self.main_stacked_widget.setCurrentIndex(1)
 
     def cb_server_signal_emission(self, *args):
@@ -242,20 +244,21 @@ class MainWindow(QMainWindow):
     def check_passwd(self):
         '''Проверка пароля'''
         try:
-            # Если введен правильный пароль открыть панель выбора действия Загрузка ОС/Настройки
+            # Если введен правильный пароль, остановить таймер и
+            # открыть панель выбора действия Загрузка ОС/Настройки
             if self.accounts[self.auth_id]["passwd"] == self.passwd_line_edit.text():
+                self.timer.stop()
                 self.main_stacked_widget.setCurrentIndex(2)
                 return
         except KeyError as e:
             logging.info("Present unregistered iButton:", e)
-        # Если введен неправильный пароль, перейти в нулевое окно
+        # Если введен неправильный пароль, перейти в начало
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QMessageBox.Ok)
         self.ibutton_present[str].connect(self.wait_auth_id)
         self.main_stacked_widget.setCurrentIndex(0)
 
     def load_sys(self):
         '''Запустить виртуальную машину self.vm_name'''
-        self.timer.stop()
         try:
             if self.dom.state() != libvirt.VIR_DOMAIN_RUNNING:
                 self.dom.create()

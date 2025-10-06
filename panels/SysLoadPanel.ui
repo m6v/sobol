@@ -15,141 +15,97 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">
-    <number>12</number>
+    <number>0</number>
    </property>
    <property name="topMargin">
-    <number>12</number>
+    <number>0</number>
    </property>
    <property name="rightMargin">
-    <number>12</number>
+    <number>0</number>
    </property>
    <property name="bottomMargin">
-    <number>12</number>
+    <number>0</number>
    </property>
+   <item>
+    <widget class="QLabel" name="sys_load_parms_label">
+     <property name="font">
+      <font>
+       <family>Monospace Regular</family>
+       <pointsize>12</pointsize>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">margin-left: 8px;</string>
+     </property>
+     <property name="text">
+      <string>Параметры загрузки ОС</string>
+     </property>
+    </widget>
+   </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
      <property name="leftMargin">
-      <number>0</number>
+      <number>12</number>
      </property>
-     <item row="2" column="2">
-      <widget class="QLabel" name="sys_volume_value">
-       <property name="text">
-        <string>HDD1[1] FAT 8 GB Removable</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
+     <item row="0" column="0">
       <widget class="QLabel" name="load_option_label">
        <property name="text">
         <string>Опция загрузки</string>
        </property>
       </widget>
      </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="port_control_label">
+     <item row="0" column="2">
+      <widget class="QLabel" name="load_option_value">
        <property name="text">
-        <string>Контроль порта подключения</string>
+        <string>UEFI OS</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="2">
-      <widget class="QLabel" name="serial_control_value">
-       <property name="text">
-        <string>AA11092300000457</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
+     <item row="1" column="0">
       <widget class="QLabel" name="sys_volume_label">
        <property name="text">
         <string>Том ОС</string>
        </property>
       </widget>
      </item>
-     <item row="8" column="2">
-      <widget class="QLabel" name="port_control_value">
+     <item row="1" column="2">
+      <widget class="QLabel" name="sys_volume_value">
        <property name="text">
-        <string>USB(0x4,0x0)</string>
+        <string>HDD1[1] FAT 8 GB Removable</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
-      <widget class="SwitchControl" name="serial_control_radio_button">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>45</width>
-         <height>20</height>
-        </size>
-       </property>
+     <item row="2" column="0">
+      <widget class="QLabel" name="sys_loader_label">
        <property name="text">
-        <string/>
+        <string>Загрузчик ОС</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="bootable_disk_label">
-       <property name="font">
-        <font>
-         <family>Monospace Regular</family>
-         <pointsize>12</pointsize>
-         <weight>50</weight>
-         <italic>false</italic>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>
-Параметры загрузочного диска</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="trusted_loader_label">
-       <property name="text">
-        <string>Доверенный загрузчик ОС на съемном носителе</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
+     <item row="2" column="2">
       <widget class="QLabel" name="sys_loader_value">
        <property name="text">
         <string>\EFI\BOOT\BOOTX64.EFI</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="2">
-      <widget class="QLabel" name="disk_madel_value">
-       <property name="text">
-        <string>USB FLASH DRIVE</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="SwitchControl" name="port_control_radio_button">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+     <item row="3" column="0">
+      <widget class="QLabel" name="trusted_loader_label">
        <property name="minimumSize">
         <size>
-         <width>45</width>
-         <height>20</height>
+         <width>400</width>
+         <height>0</height>
         </size>
        </property>
        <property name="text">
-        <string/>
+        <string>Доверенный загрузчик ОС на съемном носителе</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
+     <item row="3" column="1">
       <widget class="SwitchControl" name="radioButton">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -168,47 +124,113 @@
        </property>
       </widget>
      </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="bootable_disk_label">
+     <property name="font">
+      <font>
+       <family>Monospace Regular</family>
+       <pointsize>12</pointsize>
+       <weight>50</weight>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>
+Параметры загрузочного диска</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <property name="leftMargin">
+      <number>12</number>
+     </property>
      <item row="0" column="0">
-      <widget class="QLabel" name="sys_load_parms_label">
-       <property name="font">
-        <font>
-         <family>Monospace Regular</family>
-         <pointsize>12</pointsize>
-         <weight>50</weight>
-         <italic>false</italic>
-         <bold>false</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Параметры загрузки ОС</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="sys_loader_label">
-       <property name="text">
-        <string>Загрузчик ОС</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
       <widget class="QLabel" name="disk_madel_label">
        <property name="text">
         <string>Модель</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
+     <item row="0" column="2">
+      <widget class="QLabel" name="disk_madel_value">
+       <property name="text">
+        <string>USB FLASH DRIVE</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
       <widget class="QLabel" name="serial_control_label">
        <property name="text">
         <string>Контроль серийного номера</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="2">
-      <widget class="QLabel" name="load_option_value">
+     <item row="1" column="1">
+      <widget class="SwitchControl" name="serial_control_radio_button">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>45</width>
+         <height>20</height>
+        </size>
+       </property>
        <property name="text">
-        <string>UEFI OS</string>
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="serial_control_value">
+       <property name="text">
+        <string>AA11092300000457</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="port_control_label">
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Контроль порта подключения</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="SwitchControl" name="port_control_radio_button">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>45</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QLabel" name="port_control_value">
+       <property name="text">
+        <string>USB(0x4,0x0)</string>
        </property>
       </widget>
      </item>
@@ -230,9 +252,7 @@
    <item>
     <widget class="QLabel" name="reboot_for_select_sys_label">
      <property name="styleSheet">
-      <string notr="true">QWidget {
-                padding: 0px 0px 0px 12px;
-            }</string>
+      <string notr="true">padding: 0px 0px 0px 12px;</string>
      </property>
      <property name="text">
       <string>Для выбора ОС перезагрузите компьютер и настройте параметры загрузки ОС в UEFI/BIOS Setup</string>
@@ -258,25 +278,23 @@
    <item>
     <widget class="QWidget" name="widget" native="true">
      <property name="styleSheet">
-      <string notr="true">            QWidget {
-                background-color: #f5f5f5;
-            }</string>
+      <string notr="true">background-color: #f5f5f5;</string>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
        <number>0</number>
       </property>
       <property name="leftMargin">
-       <number>6</number>
+       <number>8</number>
       </property>
       <property name="topMargin">
-       <number>6</number>
+       <number>8</number>
       </property>
       <property name="rightMargin">
-       <number>6</number>
+       <number>8</number>
       </property>
       <property name="bottomMargin">
-       <number>6</number>
+       <number>8</number>
       </property>
       <item>
        <spacer name="horizontal_spacer_1">
