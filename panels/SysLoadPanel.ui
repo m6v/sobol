@@ -137,6 +137,9 @@
        <bold>false</bold>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">margin-left: 8px;</string>
+     </property>
      <property name="text">
       <string>
 Параметры загрузочного диска</string>
@@ -209,7 +212,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="SwitchControl" name="port_control_radio_button">
+      <widget class="Toggle" name="port_control_radio_button">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -224,6 +227,9 @@
        </property>
        <property name="text">
         <string/>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -349,6 +355,11 @@
    <class>SwitchControl</class>
    <extends>QRadioButton</extends>
    <header>QSwitchControl</header>
+  </customwidget>
+  <customwidget>
+   <class>Toggle</class>
+   <extends>QRadioButton</extends>
+   <header>toggle</header>
   </customwidget>
  </customwidgets>
  <resources/>

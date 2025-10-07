@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1093</width>
-    <height>1088</height>
+    <width>820</width>
+    <height>711</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,9 +33,9 @@
     <item>
      <widget class="QStackedWidget" name="main_stacked_widget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
-      <widget class="QWidget" name="auth_id_page">
+      <widget class="BackgroundedWidget" name="auth_id_page">
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <property name="spacing">
          <number>0</number>
@@ -130,7 +130,26 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="passwd_page">
+      <widget class="BackgroundedWidget" name="passwd_page">
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+    padding: 0.3em 0.3em 0.3em 0.3em;
+    border: 1px solid white;
+    background: #48a23f;
+    color: white;
+}
+
+QLabel {
+    padding: 0.3em 0.3em 0.3em 0.3em;
+    color: white;
+}
+
+QLineEdit {
+    padding: 0.3em 0.3em 0.3em 0.3em;
+     background: #3d8a36;
+     border: none;
+}</string>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="spacing">
          <number>0</number>
@@ -214,6 +233,22 @@
              </widget>
             </item>
             <item>
+             <spacer name="verticalSpacer_9">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
              <widget class="QPushButton" name="enter_push_button">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -277,7 +312,26 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="admin_action_page">
+      <widget class="BackgroundedWidget" name="admin_action_page">
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+    padding: 0.3em 0.3em 0.3em 0.3em;
+    border: 1px solid white;
+    background: #48a23f;
+    color: white;
+}
+
+QLabel {
+    padding: 0.3em 0.3em 0.3em 0.3em;
+    color: white;
+}
+
+QLineEdit {
+    padding: 0.3em 0.3em 0.3em 0.3em;
+     background: #3d8a36;
+     border: none;
+}</string>
+       </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="1">
          <spacer name="verticalSpacer_3">
@@ -687,6 +741,14 @@
    </layout>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>BackgroundedWidget</class>
+   <extends>QWidget</extends>
+   <header>BackgroundedWidget</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>passwd_line_edit</tabstop>
   <tabstop>enter_push_button</tabstop>

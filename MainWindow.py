@@ -8,9 +8,9 @@ import sys
 import libvirt
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.Qt import QMainWindow, QMessageBox, QRect, QPushButton, QIcon, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QTimer, QLineEdit
+from PyQt5.Qt import QMainWindow, QMessageBox, QRect, QPushButton, QIcon, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QTimer, QLineEdit, QImage, QSize, QPalette, QBrush
 from PyQt5.QtCore import Qt, QUrl, pyqtSignal
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+# from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 from pydbus import SessionBus
 from gi.repository import GLib
@@ -163,6 +163,7 @@ class MainWindow(QMainWindow):
         else:
             logging.info("Подключение к libvirt успешно")
 
+        '''
         self.dom = self.conn.lookupByName(self.vm_name)
         
         # Зарегистрировать функцию обратного вызова для обработки событий от libvirt для всех доменов
@@ -174,6 +175,7 @@ class MainWindow(QMainWindow):
         self.main_stacked_widget.addWidget(self.webEngineView)
         url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
         self.webEngineView.load(url)
+        '''
         
         # Установка свойства в форме почему-то не работает?!
         self.passwd_line_edit.setEchoMode(QLineEdit.Password)
@@ -197,7 +199,8 @@ class MainWindow(QMainWindow):
         # установить функцию обратного вызова для обработки сигнала
         bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
 
-        state, reason = self.dom.state()
+
+        # state, reason = self.dom.state()
         if state == libvirt.VIR_DOMAIN_RUNNING:
             # ВМ уже запущена, поэтому открываем панели с ее интерфейсом
             logging.info("%s is running" % self.vm_name)
