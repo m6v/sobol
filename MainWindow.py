@@ -26,8 +26,6 @@ if hasattr(sys, "_MEIPASS"):
     # Путь к временному каталогу взять из sys.executable
     INITIAL_DIR = os.path.dirname(sys.executable)
 
-configfile = os.path.join(INITIAL_DIR, 'config.ini')
-
 # Для логирования в файл, добавить filename='app.log' иначе лог в консоль
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -46,7 +44,7 @@ class MainWindow(QMainWindow):
     # Сигнал "предъявления" iButton
     ibutton_present = pyqtSignal(str)
 
-    def __init__(self):
+    def __init__(self, config_file):
         super().__init__()
         uic.loadUi(os.path.join(CURRENT_DIR, 'TestWindow.ui'), self)
 
@@ -58,11 +56,16 @@ class MainWindow(QMainWindow):
         stream.close()
         Не требует распространения ui-файлов вместе с приложением (только файл ресурсов)
         '''
+        # Если config_file отсутствует, добавляем к нему текущий путь в надежде, что найдется там
+        # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
+        if not os.path.isfile(config_file):
+            config_file = os.path.join(INITIAL_DIR, config_file)
 
+        self.config_file = os.path.join(INITIAL_DIR, config_file)
         self.config = configparser.ConfigParser(allow_no_value=True)
         # Установить чувствительность ключей к регистру
         self.config.optionxform = str
-        self.config.read(configfile)
+        self.config.read(self.config_file)
 
         try:
             # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи (пароль, имя и др.)
@@ -79,6 +82,9 @@ class MainWindow(QMainWindow):
             self.restoreState(bytearray(state))
         except configparser.NoOptionError as e:
             logging.warning(e)
+        except configparser.NoSectionError as e:
+            logging.error(e)
+            print("!")
 
         # Create the sidebar widget
         self.sidebar_widget = QWidget()
@@ -176,14 +182,12 @@ class MainWindow(QMainWindow):
         # Проверить нужна команда или нет?!
         libvirt.virEventRunDefaultImpl()
 
-        # На рабочем копьютере попатка использования QWebEngineView
+        # На рабочем копьютере попытка использования QWebEngineView
         # приводит к ошибке "Could not find QtWebEngineProcess"!
-        '''
         self.webEngineView = QWebEngineView()
         self.main_stacked_widget.addWidget(self.webEngineView)
         url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
         self.webEngineView.load(url)
-        '''
 
         # Установка свойства в форме почему-то не работает?!
         self.passwd_line_edit.setEchoMode(QLineEdit.Password)
@@ -279,10 +283,8 @@ class MainWindow(QMainWindow):
 
         # На рабочем копьютере попатка использования QWebEngineView
         # приводит к ошибке "Could not find QtWebEngineProcess"!
-        '''
         self.webEngineView.reload()
         self.main_stacked_widget.setCurrentIndex(VM_VIEW_PAGE)
-        '''
 
     def closeEvent(self, e):
         # Если ВМ запущена спросить о принудительном выключении
@@ -303,7 +305,7 @@ class MainWindow(QMainWindow):
         # Сохранить учетные записи пользователей
         self.config.set("general", "accounts", str(self.accounts))
         
-        with open(configfile, "w") as file:
+        with open(self.config_file, "w") as file:
             self.config.write(file)
 
     def domain_event_callback(self, conn, dom, event, detail, opaque):

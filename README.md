@@ -4,6 +4,7 @@
 До запуска программы запустить
 - ibutton2dbus (эмулятор чтения iButton, передающий идентификатор в сессионную dbus)
 - websockify  6080 127.0.0.1:5901 --web /usr/share/novnc
+NB! Не забыть в настройках ВМ добавить Display VNC с портом 5901
 
 ##
 Зависимости:
@@ -21,10 +22,10 @@ source sobol_env/bin/activate
 Перед установкой в вируальном окружении можно посмотреть какие версии пакетов предусмотрены для системы пытаться установить их
 В виртуальном окружении установить
 $python3 -m pip install PyQt5==5.15.7 (дефолтная версия PyQt5-5.15.11 при установке выдает ошибку)
-                                   PyQtWebEngine==5.14.0
-                                   libvirt-python==6.1.0 (предварительно в системе нужно поставить пакет libvirt-dev)
-                                   pydbus==0.6.0
-                                   PyGObject==3.36.0 (требует установки в системе libcairo2-dev, libgirepository1.0-dev)
+                        PyQtWebEngine==5.14.0
+                        libvirt-python==6.1.0 (предварительно в системе нужно поставить пакет libvirt-dev)
+                        pydbus==0.6.0
+                        PyGObject==3.36.0 (требует установки в системе libcairo2-dev, libgirepository1.0-dev)
 
 $pip list
 Package        Version

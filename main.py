@@ -6,6 +6,7 @@ __date__ = '2025-10-02'
 __copyright__ = 'Copyright © 2025 Sergey Maksimov'
 __licence__ = 'GNU Public Licence (GPL) v3'
 
+import argparse
 import configparser
 import os
 import sys
@@ -14,7 +15,11 @@ from PyQt5.Qt import QApplication
 from MainWindow import MainWindow
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Тренажер администратора безопасности')
+    parser.add_argument('config_file', help='Конфигурационный файл')
+    args = parser.parse_args()
+
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow(args.config_file)
     window.show()
     sys.exit(app.exec())
