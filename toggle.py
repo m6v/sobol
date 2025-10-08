@@ -8,75 +8,73 @@ from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtGui import QColor, QBrush, QPaintEvent, QPen, QPainter
 
 
-
 class Toggle(QCheckBox):
 
     _transparent_pen = QPen(Qt.transparent)
     _light_grey_pen = QPen(Qt.lightGray)
 
-    def __init__(self,
-        parent=None,
-        bar_color=Qt.gray,
-        checked_color="#3D8A36",
-        handle_color=Qt.white,
-        ):
+    def __init__(self, parent=None, bar_color=Qt.gray, checked_color="#48A23F", handle_color=Qt.white):
         super().__init__(parent)
 
         # Save our properties on the object via self,
         # so we can access them later in the paintEvent
         self._bar_brush = QBrush(bar_color)
-        self._bar_checked_brush = QBrush(QColor(checked_color).lighter())
+        self._bar_checked_brush = QBrush(QColor(checked_color)) # По дефолту был цвет QColor(checked_color).lighter()
 
         self._handle_brush = QBrush(handle_color)
         self._handle_checked_brush = QBrush(QColor(checked_color))
 
-        # Setup the rest of the widget
-
+        # Отсутпы относительно геометрии виджета
         self.setContentsMargins(8, 0, 8, 0)
         self._handle_position = 0
-
+        
+        self.setMaximumSize(70, 16777215)
+        
         self.stateChanged.connect(self.handle_state_change)
 
     def sizeHint(self):
-        return QSize(58, 45)
+        return QSize(70, 22) # Размер переключателя ШхВ (по дефолту 58, 45)
 
     def hitButton(self, pos: QPoint):
         return self.contentsRect().contains(pos)
 
     def paintEvent(self, e: QPaintEvent):
-
         contRect = self.contentsRect()
-        handleRadius = round(0.18 * contRect.height()) # Радиус ручки, изначально 24
+        handleRadius = round(0.35 * contRect.height()) # Коэффициент радиуса ручки, изначально 0.24
 
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
 
         p.setPen(self._transparent_pen)
+        # Задать размер прямоугольника
         barRect = QRectF(
             0, 0,
-            contRect.width() - handleRadius, 0.40 * contRect.height()
-        )
+            contRect.width() - handleRadius, 0.9 * contRect.height()
+        ) # Коэффициент высоты "направляющей" (по дефолту  0.40)
         barRect.moveCenter(contRect.center())
         rounding = barRect.height() / 2
 
         # the handle will move along this line
-        trailLength = contRect.width() - 2 * handleRadius
-        xPos = contRect.x() + handleRadius + trailLength * self._handle_position
+        trailLength = contRect.width() - 4 * handleRadius # По дефолту коэффициент 2 вместо 4
+        xPos = contRect.x() + 2 * handleRadius + trailLength * self._handle_position # По дефолту коэффициент 1 вместо 2
 
         if self.isChecked():
             p.setBrush(self._bar_checked_brush)
+            # Нарисовать прямоугольник со скругленными высотами
             p.drawRoundedRect(barRect, rounding, rounding)
-            p.setBrush(self._handle_checked_brush)
+            # Если нужно менять цвет ручки при включении, то выполняем
+            # p.setBrush(self._handle_checked_brush), иначе
+            p.setBrush(self._handle_brush)
 
         else:
             p.setBrush(self._bar_brush)
+            # Нарисовать прямоугольник со скругленными высотами
             p.drawRoundedRect(barRect, rounding, rounding)
             p.setPen(self._light_grey_pen)
             p.setBrush(self._handle_brush)
 
-        p.drawEllipse(
-            QPointF(xPos, barRect.center().y()),
-            handleRadius, handleRadius)
+        # Нарисовать ручку (круг) 
+        p.drawEllipse(QPointF(xPos, barRect.center().y()), handleRadius, handleRadius)
 
         p.end()
 
@@ -101,7 +99,6 @@ class Toggle(QCheckBox):
     def pulse_radius(self, pos):
         self._pulse_radius = pos
         self.update()
-
 
 
 class AnimatedToggle(Toggle):
@@ -167,7 +164,8 @@ class AnimatedToggle(Toggle):
                 self.isChecked() else self._pulse_unchecked_animation)
             p.drawEllipse(QPointF(xPos, barRect.center().y()),
                           self._pulse_radius, self._pulse_radius)
-
+        
+        # Нарисовать прямоугольник со скругленными высотами
         if self.isChecked():
             p.setBrush(self._bar_checked_brush)
             p.drawRoundedRect(barRect, rounding, rounding)
@@ -179,6 +177,7 @@ class AnimatedToggle(Toggle):
             p.setPen(self._light_grey_pen)
             p.setBrush(self._handle_brush)
 
+        # Нарисовать ручку (круг)
         p.drawEllipse(
             QPointF(xPos, barRect.center().y()),
             handleRadius, handleRadius)

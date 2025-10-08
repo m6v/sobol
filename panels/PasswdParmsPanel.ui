@@ -85,7 +85,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QRadioButton" name="radioButton">
+        <widget class="Toggle" name="radioButton">
          <property name="text">
           <string/>
          </property>
@@ -99,7 +99,7 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QRadioButton" name="radioButton_2">
+        <widget class="Toggle" name="radioButton_2">
          <property name="text">
           <string/>
          </property>
@@ -113,7 +113,7 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QRadioButton" name="radioButton_3">
+        <widget class="Toggle" name="radioButton_3">
          <property name="text">
           <string/>
          </property>
@@ -127,7 +127,7 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QRadioButton" name="radioButton_4">
+        <widget class="Toggle" name="radioButton_4">
          <property name="text">
           <string/>
          </property>
@@ -141,7 +141,7 @@
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QRadioButton" name="radioButton_5">
+        <widget class="Toggle" name="radioButton_5">
          <property name="text">
           <string/>
          </property>
@@ -155,7 +155,7 @@
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QRadioButton" name="radioButton_6">
+        <widget class="Toggle" name="radioButton_6">
          <property name="text">
           <string/>
          </property>
@@ -169,7 +169,7 @@
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="QRadioButton" name="radioButton_7">
+        <widget class="Toggle" name="radioButton_7">
          <property name="text">
           <string/>
          </property>
@@ -342,6 +342,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Toggle</class>
+   <extends>QRadioButton</extends>
+   <header>toggle</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

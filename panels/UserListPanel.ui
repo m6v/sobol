@@ -6,63 +6,123 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>975</width>
-    <height>600</height>
+    <width>769</width>
+    <height>633</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="add_user_push_button">
-       <property name="text">
-        <string>Добавить</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="del_user_push_button">
-       <property name="text">
-        <string>Удалить</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="del_all_users_push_button">
-       <property name="text">
-        <string>Удалить всех пользователей</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="shange_passwd_push_button">
-       <property name="text">
-        <string>Сменить пароль</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
+    <widget class="QWidget" name="widget_2" native="true">
+     <property name="styleSheet">
+      <string notr="true">QWidget {
+    background-color: #f5f5f5;
+}
+
+QPushButton {
+    border: none;
+    padding: 12px 12px 12px 12
+px;
+}
+
+QPushButton:hover {
+    background: #e0e0e0;
+}</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="leftMargin">
+       <number>8</number>
+      </property>
+      <property name="topMargin">
+       <number>8</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="add_user_push_button">
+        <property name="text">
+         <string>Добавить</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../icons/plus.png</normaloff>../icons/plus.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="del_user_push_button">
+        <property name="text">
+         <string>Удалить</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../icons/cross.png</normaloff>../icons/cross.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="del_all_users_push_button">
+        <property name="text">
+         <string>Удалить всех пользователей</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../icons/all_users.png</normaloff>../icons/all_users.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="change_passwd_push_button">
+        <property name="text">
+         <string>Сменить пароль</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>../icons/lock.png</normaloff>../icons/lock.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>265</width>
+          <height>22</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="rightMargin">
+        <number>8</number>
+       </property>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
@@ -165,9 +225,6 @@
               <property name="leftMargin">
                <number>12</number>
               </property>
-              <property name="topMargin">
-               <number>12</number>
-              </property>
               <item row="0" column="0">
                <widget class="QLabel" name="user_name_label">
                 <property name="text">
@@ -177,6 +234,12 @@
               </item>
               <item row="0" column="1">
                <widget class="QLabel" name="user_name_value">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>user</string>
                 </property>
@@ -191,6 +254,12 @@
               </item>
               <item row="1" column="1">
                <widget class="QLabel" name="user_id_value">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>iButton</string>
                 </property>
@@ -205,6 +274,12 @@
               </item>
               <item row="2" column="1">
                <widget class="QLabel" name="last_enter_value">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>00:00 00/00/00</string>
                 </property>
@@ -219,6 +294,12 @@
               </item>
               <item row="3" column="1">
                <widget class="QLabel" name="common_enter_value">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>0</string>
                 </property>
@@ -233,6 +314,12 @@
               </item>
               <item row="4" column="1">
                <widget class="QLabel" name="failed_enter_value">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>20</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>0</string>
                 </property>
@@ -294,7 +381,7 @@
                </widget>
               </item>
               <item row="7" column="1">
-               <widget class="QRadioButton" name="external_media_prohibition_radio_button">
+               <widget class="Toggle" name="external_media_prohibition_radio_button">
                 <property name="text">
                  <string/>
                 </property>
@@ -308,7 +395,7 @@
                </widget>
               </item>
               <item row="8" column="1">
-               <widget class="QRadioButton" name="change_passwd_prohibition_radio_button">
+               <widget class="Toggle" name="change_passwd_prohibition_label_2">
                 <property name="text">
                  <string/>
                 </property>
@@ -322,7 +409,7 @@
                </widget>
               </item>
               <item row="9" column="1">
-               <widget class="QRadioButton" name="passwd_limit_radio_button">
+               <widget class="Toggle" name="passwd_limit_radio_button">
                 <property name="text">
                  <string/>
                 </property>
@@ -336,7 +423,7 @@
                </widget>
               </item>
               <item row="10" column="1">
-               <widget class="QRadioButton" name="auth_id_change_radio_button">
+               <widget class="Toggle" name="auth_id_change_radio_button">
                 <property name="text">
                  <string/>
                 </property>
@@ -387,7 +474,7 @@
             <number>8</number>
            </property>
            <property name="rightMargin">
-            <number>8</number>
+            <number>0</number>
            </property>
            <property name="bottomMargin">
             <number>8</number>
@@ -422,6 +509,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Toggle</class>
+   <extends>QRadioButton</extends>
+   <header>toggle</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
