@@ -84,24 +84,10 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="Toggle" name="radioButton">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_6">
          <property name="text">
           <string>        Наличие хотя бы одной цифры:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="Toggle" name="radioButton_2">
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>
@@ -112,24 +98,10 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
-        <widget class="Toggle" name="radioButton_3">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="0">
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>        Наличие хотя бы одной строчной буквы:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="Toggle" name="radioButton_4">
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>
@@ -140,13 +112,6 @@
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
-        <widget class="Toggle" name="radioButton_5">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="6" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
@@ -154,24 +119,10 @@
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
-        <widget class="Toggle" name="radioButton_6">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
        <item row="7" column="0">
         <widget class="QLabel" name="label_12">
          <property name="text">
           <string>        Отсутствие последовательности цифр:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="Toggle" name="radioButton_7">
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>
@@ -231,6 +182,55 @@
          </property>
          <property name="maxLength">
           <number>3</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="Toggle" name="checkBox">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="Toggle" name="checkBox_2">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="Toggle" name="checkBox_3">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="Toggle" name="checkBox_4">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="Toggle" name="checkBox_5">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="Toggle" name="checkBox_6">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="Toggle" name="checkBox_7">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
@@ -345,7 +345,7 @@
  <customwidgets>
   <customwidget>
    <class>Toggle</class>
-   <extends>QRadioButton</extends>
+   <extends>QCheckBox</extends>
    <header>toggle</header>
   </customwidget>
  </customwidgets>

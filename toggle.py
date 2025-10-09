@@ -14,7 +14,7 @@ class Toggle(QCheckBox):
     _light_grey_pen = QPen(Qt.lightGray)
 
     def __init__(self, parent=None, bar_color=Qt.gray, checked_color="#48A23F", handle_color=Qt.white):
-        super().__init__(parent)
+        super().__init__()
 
         # Save our properties on the object via self,
         # so we can access them later in the paintEvent

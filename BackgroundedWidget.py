@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt
 
 class BackgroundedWidget(QWidget):
     def __init__(self):
-       super(QWidget, self).__init__()
+       super().__init__()
        # Без установки setAutoFillBackground не работает!
        self.setAutoFillBackground(True)
 

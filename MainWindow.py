@@ -184,10 +184,12 @@ class MainWindow(QMainWindow):
 
         # На рабочем копьютере попытка использования QWebEngineView
         # приводит к ошибке "Could not find QtWebEngineProcess"!
+        '''
         self.webEngineView = QWebEngineView()
         self.main_stacked_widget.addWidget(self.webEngineView)
         url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
         self.webEngineView.load(url)
+        '''
 
         # Установка свойства в форме почему-то не работает?!
         self.passwd_line_edit.setEchoMode(QLineEdit.Password)
@@ -283,8 +285,10 @@ class MainWindow(QMainWindow):
 
         # На рабочем копьютере попатка использования QWebEngineView
         # приводит к ошибке "Could not find QtWebEngineProcess"!
+        '''
         self.webEngineView.reload()
         self.main_stacked_widget.setCurrentIndex(VM_VIEW_PAGE)
+        '''
 
     def closeEvent(self, e):
         # Если ВМ запущена спросить о принудительном выключении

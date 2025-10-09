@@ -48,3 +48,41 @@ self.webEngineView.load(url)
 Сам бинарник находится в каталоге /usr/lib/x86_64-linux-gnu/qt5/libexec/
 Скорее всего конфликт версий, установленных в виртуальном окружении и системе
 
+Подготовка к использованию под Астрой 1.7.4
+apt install python3-pyside2.qtwebenginewidgets # не помогло, видимо нужен PyQt5.QtWebEngineWidgets, а не PySide2
+Пробуем в коде использовать PySide2
+для загрузки ui-файлов доустанавливаем
+apt install python3-pyside2.qtuitools
+
+Доустановить
+apt install python3-libvirt
+
+
+# см.: https://stackoverflow.com/questions/53828666/pyside2-qmainwindow-loaded-from-ui-file-not-triggering-window-events
+import os
+from PySide2 import QtCore, QtWidgets, QtUiTools
+
+class TestWindow(QtWidgets.QMainWindow):
+    def __init__(self, parent=None):
+        super(TestWindow, self).__init__(parent)
+        loader = QtUiTools.QUiLoader()
+        file = QtCore.QFile(os.path.abspath("ui/mainwindow.ui"))
+        file.open(QtCore.QFile.ReadOnly)
+        self.window = loader.load(file, parent)
+        file.close()
+        self.window.show()
+        self.show()
+
+    def resizeEvent(self, event):
+        print("resize")
+
+if __name__ == '__main__':
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    test = TestWindow()
+    sys.exit(app.exec_())
+
+Далее везде, где мы обращались к виджетам форм как
+self.widget_name
+нужно выполять
+self.window.widget_name

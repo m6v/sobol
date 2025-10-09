@@ -380,24 +380,10 @@ QPushButton:hover {
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
-               <widget class="Toggle" name="external_media_prohibition_radio_button">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
               <item row="8" column="0">
                <widget class="QLabel" name="change_passwd_prohibition_label">
                 <property name="text">
                  <string>Запрет смены пароля:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="8" column="1">
-               <widget class="Toggle" name="change_passwd_prohibition_label_2">
-                <property name="text">
-                 <string/>
                 </property>
                </widget>
               </item>
@@ -408,13 +394,6 @@ QPushButton:hover {
                 </property>
                </widget>
               </item>
-              <item row="9" column="1">
-               <widget class="Toggle" name="passwd_limit_radio_button">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
               <item row="10" column="0">
                <widget class="QLabel" name="auth_id_change_label">
                 <property name="text">
@@ -422,8 +401,29 @@ QPushButton:hover {
                 </property>
                </widget>
               </item>
+              <item row="7" column="1">
+               <widget class="Toggle" name="external_media_prohibition_check_box">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="8" column="1">
+               <widget class="Toggle" name="change_passwd_prohibition_check_box">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="1">
+               <widget class="Toggle" name="passwd_limit_check_box">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
               <item row="10" column="1">
-               <widget class="Toggle" name="auth_id_change_radio_button">
+               <widget class="Toggle" name="auth_id_change_check_box">
                 <property name="text">
                  <string/>
                 </property>
@@ -512,7 +512,7 @@ QPushButton:hover {
  <customwidgets>
   <customwidget>
    <class>Toggle</class>
-   <extends>QRadioButton</extends>
+   <extends>QCheckBox</extends>
    <header>toggle</header>
   </customwidget>
  </customwidgets>
