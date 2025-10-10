@@ -11,7 +11,7 @@ from PySide2 import QtCore, QtWidgets
 from PySide2.QtCore import Qt, QUrl, Signal, Slot, QRect, QTimer, QSize
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit
-from PySide2.QtWebEngineWidgets import QWebEngineView
+from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 from PySide2.QtUiTools import QUiLoader
 
 from pydbus import SessionBus
@@ -38,16 +38,34 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 REMAINING_TIME = 120
 
 # Индексы панелей
-AUTH_ID_PAGE = 0
+WAIT_ID_PAGE = 0
 PASSWD_PAGE = 1
-ADMIN_ACTION_PAGE = 2
+ADMIN_CHOICE_PAGE = 2
 SETTINGS_PAGE = 3
 WEB_VIEW_PAGE = 4
 
 
+class WebEnginePage(QWebEnginePage):
+    navigation_request = Signal(str)
+    def acceptNavigationRequest(self, url,  _type, isMainFrame):
+        # Если переходить по ссылке не требуется, возвращаем False, иначе True
+        if _type == QWebEnginePage.NavigationTypeLinkClicked:
+            logging.debug(url.path())
+            self.navigation_request.emit(url.path())
+            # Здесь можно будет анализировать url и в зависимости от него 
+            # разрешать или запрещать переход по ссылке
+            return False
+        return True
+
+
+class CustomWebEngineView(QWebEngineView):
+    def __init__(self, *args, **kwargs):
+        QWebEngineView.__init__(self, *args, **kwargs)
+        self.setPage(WebEnginePage(self))
+
+
 class MainWindow(QMainWindow):
     # Сигнал "предъявления" iButton
-    # ibutton_present = pyqtSignal(str)
     ibutton_present = Signal(str)
 
     def __init__(self, config_file):
@@ -203,11 +221,6 @@ class MainWindow(QMainWindow):
         except libvirt.libvirtError as e:
             logging.error(e)
 
-        self.webEngineView = QWebEngineView()
-        self.window.main_stacked_widget.addWidget(self.webEngineView)
-        url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
-        self.webEngineView.load(url)
-
         # Установка свойства в форме не работает?!
         self.window.passwd_line_edit.setEchoMode(QLineEdit.Password)
 
@@ -230,17 +243,15 @@ class MainWindow(QMainWindow):
         # установить функцию обратного вызова для обработки сигнала
         bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
 
-        if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
-            # ВМ уже запущена, поэтому открыть панель с ее интерфейсом
-            logging.info("%s is running" % self.vm_name)
-            self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
-        else:
-            # ВМ не запущена, поэтому ждать события о чтении идентификатора iButton
-            logging.info("%s is't running" % self.vm_name)
-            self.window.main_stacked_widget.setCurrentIndex(AUTH_ID_PAGE)
-            self.ibutton_present[str].connect(self.wait_auth_id)
-            self.timer.start(1000)
-
+        # self.webEngineView = QWebEngineView()
+        self.webEngineView = CustomWebEngineView()
+        self.window.main_stacked_widget.addWidget(self.webEngineView)
+        self.webEngineView.page().navigation_request[str].connect(self.init_training)
+        
+        url = QUrl.fromUserInput("http://127.0.0.1:8000/doc/index.html")
+        self.webEngineView.load(url)
+        self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+        
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
         # не является окном, поэтому метод closeEvent для него не определен
         # Для выполнения действий при закрытии окна с загруженным виджетом
@@ -253,6 +264,23 @@ class MainWindow(QMainWindow):
             self.closeEvent(event)
         return super().eventFilter(watched, event)
 
+    def init_training(self, url):
+        '''Инициировать начало тренировки открытием панели с интерфейсом ПАК "Соболь"
+           или интерфейсом виртуальной машины, если она уже запущена'''
+        logging.debug(url)
+        if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
+            # ВМ уже запущена, поэтому открыть панель с ее интерфейсом
+            logging.info("%s is running" % self.vm_name)
+            url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
+            self.webEngineView.load(url)
+            self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+        else:
+            # ВМ не запущена, поэтому ждать события о чтении идентификатора iButton
+            logging.info("%s is't running" % self.vm_name)
+            self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+            self.ibutton_present[str].connect(self.wait_auth_id)
+            self.timer.start(1000)
+
     def menu_action_triggered(self, index):
         self.window.stackedWidget.setCurrentIndex(index)
 
@@ -261,7 +289,7 @@ class MainWindow(QMainWindow):
         if self.remaining_time == 0:
             self.remaining_time = REMAINING_TIME
             self.ibutton_present[str].connect(self.wait_auth_id)
-            self.main_stacked_widget.setCurrentIndex(AUTH_ID_PAGE)
+            self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
             # TODO Перевести секунды в минуты и секунды
             self.window.remaining_time_label_1.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
@@ -291,14 +319,14 @@ class MainWindow(QMainWindow):
             # открыть панель выбора действия Загрузка ОС/Настройки
             if self.accounts[self.auth_id]["passwd"] == self.window.passwd_line_edit.text():
                 self.timer.stop()
-                self.window.main_stacked_widget.setCurrentIndex(ADMIN_ACTION_PAGE)
+                self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
                 return
         except KeyError as e:
             logging.info("Present unregistered iButton:", e)
         # Если введен неправильный пароль, перейти в начало
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QMessageBox.Ok)
         self.ibutton_present[str].connect(self.wait_auth_id)
-        self.window.main_stacked_widget.setCurrentIndex(AUTH_ID_PAGE)
+        self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
     def load_sys(self):
         '''Запустить виртуальную машину self.vm_name'''

@@ -5,6 +5,7 @@
 - ibutton2dbus (эмулятор чтения iButton, передающий идентификатор в сессионную dbus)
 - websockify  6080 127.0.0.1:5901 --web /usr/share/novnc
 NB! Не забыть в настройках ВМ добавить Display VNC с портом 5901
+- python3 -m http.server
 
 ##
 Зависимости:
