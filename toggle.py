@@ -1,12 +1,8 @@
 import sys
 
-from PyQt5.QtCore import (
-    Qt, QSize, QPoint, QPointF, QRectF,
-    QEasingCurve, QPropertyAnimation, QSequentialAnimationGroup)
-
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtGui import QColor, QBrush, QPaintEvent, QPen, QPainter
-
+from PySide2.QtCore import Qt, QPoint, QPointF, QSize, QRectF
+from PySide2.QtWidgets import QCheckBox
+from PySide2.QtGui import QPen, QPaintEvent, QBrush, QColor, QPainter
 
 class Toggle(QCheckBox):
 
@@ -14,7 +10,7 @@ class Toggle(QCheckBox):
     _light_grey_pen = QPen(Qt.lightGray)
 
     def __init__(self, parent=None, bar_color=Qt.gray, checked_color="#48A23F", handle_color=Qt.white):
-        super().__init__()
+        super(Toggle, self).__init__()
 
         # Save our properties on the object via self,
         # so we can access them later in the paintEvent

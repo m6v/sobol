@@ -16,9 +16,9 @@ NB! Не забыть в настройках ВМ добавить Display VNC 
 - python3-websockify (если по дефолту не установлен или не ставится с novnc)
 
 Создаем виртуальное окружение
-python3 -m venv sobol_env
+python3 -m venv venv_name
 активируем его
-source sobol_env/bin/activate
+source venv_name/bin/activate
 Перед установкой в вируальном окружении можно посмотреть какие версии пакетов предусмотрены для системы пытаться установить их
 В виртуальном окружении установить
 $python3 -m pip install PyQt5==5.15.7 (дефолтная версия PyQt5-5.15.11 при установке выдает ошибку)
@@ -42,47 +42,24 @@ PyQt5-sip      12.15.0
 PyQtWebEngine  5.14.0 
 setuptools     44.0.0 
 
-На рабочем копьютере команда
-self.webEngineView.load(url)
-приводит к ошибке "Could not find QtWebEngineProcess"
-Сам бинарник находится в каталоге /usr/lib/x86_64-linux-gnu/qt5/libexec/
-Скорее всего конфликт версий, установленных в виртуальном окружении и системе
+Версия для PySide2
+$ pip list
+Package        Version 
+-------------- --------
+libvirt-python 11.8.0  
+pip            20.0.2  
+pkg-resources  0.0.0   
+pycairo        1.26.1  
+pydbus         0.6.0   
+pygobject      3.48.2  
+PySide2        5.15.2.1
+setuptools     44.0.0  
+shiboken2      5.15.2.1
 
-Подготовка к использованию под Астрой 1.7.4
-apt install python3-pyside2.qtwebenginewidgets # не помогло, видимо нужен PyQt5.QtWebEngineWidgets, а не PySide2
-Пробуем в коде использовать PySide2
-для загрузки ui-файлов доустанавливаем
-apt install python3-pyside2.qtuitools
-
-Доустановить
-apt install python3-libvirt
+NB! Из перечисленных пакетов вручную ставились libvirt-python, pydbus, pygobject, PySide2, остальные подтянулись как зависимости
 
 
-# см.: https://stackoverflow.com/questions/53828666/pyside2-qmainwindow-loaded-from-ui-file-not-triggering-window-events
-import os
-from PySide2 import QtCore, QtWidgets, QtUiTools
 
-class TestWindow(QtWidgets.QMainWindow):
-    def __init__(self, parent=None):
-        super(TestWindow, self).__init__(parent)
-        loader = QtUiTools.QUiLoader()
-        file = QtCore.QFile(os.path.abspath("ui/mainwindow.ui"))
-        file.open(QtCore.QFile.ReadOnly)
-        self.window = loader.load(file, parent)
-        file.close()
-        self.window.show()
-        self.show()
-
-    def resizeEvent(self, event):
-        print("resize")
-
-if __name__ == '__main__':
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    test = TestWindow()
-    sys.exit(app.exec_())
-
-Далее везде, где мы обращались к виджетам форм как
-self.widget_name
-нужно выполять
-self.window.widget_name
+# Установка в Astra Linux 1.7.4
+sudo -i
+apt install python3-pyside2.qtuitools python3-pyside2.qtwebengine python3-pyside2.qtwebenginewidgets
