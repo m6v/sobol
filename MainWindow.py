@@ -76,15 +76,7 @@ class MainWindow(QMainWindow):
 
         self.window = loader.load(os.path.join(CURRENT_DIR, 'MainWindow.ui'), None)
 
-        '''
-        Вариант с загрузкой формы из файла ресурсов, создаваемого с помощью pyrcc5
-        stream = QFile(":MainWindow.ui")
-        stream.open(QFile.ReadOnly)
-        uic.loadUi(stream, self)
-        stream.close()
-        Не требует распространения ui-файлов вместе с приложением (только файл ресурсов)
-        '''
-        # Если config_file отсутствует, добавляем к нему текущий путь в надежде, что найдется там
+        # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
         # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
         if not os.path.isfile(config_file):
             config_file = os.path.join(INITIAL_DIR, config_file)
@@ -100,6 +92,14 @@ class MainWindow(QMainWindow):
             self.accounts = eval(self.config.get("general", "accounts"))
             # Имя виртуальной машины
             self.vm_name = self.config.get("general", "vm_name")
+            # Название виртуальной машины в заголовок окна
+            self.window.setWindowTitle(self.config.get("general", "vm_caption"))
+            # Панель, отображаемая при запуске (instruction - инструкция, tbm - средство доверенной загрузки, vm - виртуальная машина)
+            self.show_on_startup = self.config.get("general", "show_on_startup")
+            # Адрес инструкции к выполнению задания
+            self.instruction_url = self.config.get("general", "instruction_url")
+            # Адрес интерфейса виртуальной машины
+            self.vm_url = self.config.get("general", "vm_url")
 
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
             geometry = QRect(*map(int, self.config.get('window', 'geometry').split(';')))
@@ -243,14 +243,20 @@ class MainWindow(QMainWindow):
         # установить функцию обратного вызова для обработки сигнала
         bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
 
-        # self.webEngineView = QWebEngineView()
         self.webEngineView = CustomWebEngineView()
         self.window.main_stacked_widget.addWidget(self.webEngineView)
         self.webEngineView.page().navigation_request[str].connect(self.init_training)
         
-        url = QUrl.fromUserInput("http://127.0.0.1:8000/doc/index.html")
-        self.webEngineView.load(url)
-        self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+        # В зависимости от значения параметра show_on_startup отображаем указания к занятию,
+        # интерфейс ПАК "Соболь" или интерфейс виртуальной машины
+        if self.show_on_startup == "instruction":
+            url = QUrl.fromUserInput(self.instruction_url)
+            self.webEngineView.load(url)
+            self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+        elif self.show_on_startup == "tbm":
+            self.init_training("")
+        else:
+            self.load_sys()
         
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
         # не является окном, поэтому метод closeEvent для него не определен
@@ -271,31 +277,34 @@ class MainWindow(QMainWindow):
         if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
             # ВМ уже запущена, поэтому открыть панель с ее интерфейсом
             logging.info("%s is running" % self.vm_name)
-            url = QUrl.fromUserInput("http://127.0.0.1:6080/vnc_lite.html?scale=true")
+            url = QUrl.fromUserInput(self.vm_url)
             self.webEngineView.load(url)
             self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
         else:
             # ВМ не запущена, поэтому ждать события о чтении идентификатора iButton
             logging.info("%s is't running" % self.vm_name)
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-            self.ibutton_present[str].connect(self.wait_auth_id)
+            self.ibutton_present[str].connect(self.read_auth_id)
             self.timer.start(1000)
 
     def menu_action_triggered(self, index):
+        '''Обработать событие выбора элемента меню настроек'''
         self.window.stackedWidget.setCurrentIndex(index)
 
     def decrease_remaining_time(self):
+        '''Уменьшить счетчик времени до входа в систему'''
         self.remaining_time -= 1
         if self.remaining_time == 0:
             self.remaining_time = REMAINING_TIME
-            self.ibutton_present[str].connect(self.wait_auth_id)
-            self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+            self.ibutton_present[str].connect(self.read_auth_id)
+            self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
             # TODO Перевести секунды в минуты и секунды
             self.window.remaining_time_label_1.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
             self.window.remaining_time_label_2.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
 
-    def wait_auth_id(self, auth_id):
+    def read_auth_id(self, auth_id):
+        '''Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля'''
         logging.info("iButton %s is presented" % auth_id)
         self.auth_id = auth_id
         # Отключаем обработчик "прикладывания" iButton
@@ -313,7 +322,7 @@ class MainWindow(QMainWindow):
         self.ibutton_present.emit(id)
 
     def check_passwd(self):
-        '''Проверка пароля'''
+        '''Проверить пароль'''
         try:
             # Если введен правильный пароль, остановить таймер и
             # открыть панель выбора действия Загрузка ОС/Настройки
@@ -325,7 +334,7 @@ class MainWindow(QMainWindow):
             logging.info("Present unregistered iButton:", e)
         # Если введен неправильный пароль, перейти в начало
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QMessageBox.Ok)
-        self.ibutton_present[str].connect(self.wait_auth_id)
+        self.ibutton_present[str].connect(self.read_auth_id)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
     def load_sys(self):
@@ -366,7 +375,7 @@ class MainWindow(QMainWindow):
             self.config.write(file)
 
     def domain_event_callback(self, conn, dom, event, detail, opaque):
-        """Функция обратного вызова для обработки сообщений libvirt"""
+        '''Функция обратного вызова для обработки сообщений libvirt'''
         domain_name = dom.name()
         if event == libvirt.VIR_DOMAIN_SHUTOFF:
             logging.info("VM '%s' has shut off" % domain_name)
