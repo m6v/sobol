@@ -17,6 +17,8 @@ from PySide2.QtUiTools import QUiLoader
 from pydbus import SessionBus
 from gi.repository import GLib
 
+from qvncwidget import QVNCWidget
+
 from BackgroundedWidget import BackgroundedWidget
 from toggle import Toggle
 
@@ -43,6 +45,7 @@ PASSWD_PAGE = 1
 ADMIN_CHOICE_PAGE = 2
 SETTINGS_PAGE = 3
 WEB_VIEW_PAGE = 4
+VM_IFACE_PAGE = 5
 
 
 class WebEnginePage(QWebEnginePage):
@@ -99,8 +102,9 @@ class MainWindow(QMainWindow):
             self.show_on_startup = self.config.get("general", "show_on_startup")
             # Адрес инструкции к выполнению задания
             self.instruction_url = self.config.get("general", "instruction_url")
-            # Адрес интерфейса виртуальной машины
-            self.vm_url = self.config.get("general", "vm_url")
+            # Адрес и порт VNC-сервера виртуальной машины
+            self.vnc_addr = self.config.get("general", "vnc_addr")
+            self.vnc_port = int(self.config.get("general", "vnc_port"))
 
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
             geometry = QRect(*map(int, self.config.get('window', 'geometry').split(';')))
@@ -222,7 +226,7 @@ class MainWindow(QMainWindow):
         except libvirt.libvirtError as e:
             logging.error(e)
 
-        # Установка свойства в форме не работает?!
+        # Установка свойства в ui почему-то не работает, делаем здесь
         self.window.passwd_line_edit.setEchoMode(QLineEdit.Password)
 
         # Связать сигнал и слоты
@@ -244,9 +248,19 @@ class MainWindow(QMainWindow):
         # установить функцию обратного вызова для обработки сигнала
         bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
 
+        # Добавить панель с веб-клиентом
         self.webEngineView = CustomWebEngineView()
         self.window.main_stacked_widget.addWidget(self.webEngineView)
         self.webEngineView.page().navigation_request[str].connect(self.init_training)
+
+        # Добавить панель с VNC-клиентом
+        self.vnc = QVNCWidget(
+            parent=self,
+            host=self.vnc_addr, port=self.vnc_port,
+            password="",
+            readOnly=False
+        )
+        self.window.main_stacked_widget.addWidget(self.vnc)
 
         # В зависимости от значения параметра show_on_startup отображаем указания к занятию,
         # интерфейс ПАК "Соболь" или интерфейс виртуальной машины
@@ -344,9 +358,13 @@ class MainWindow(QMainWindow):
                 logging.info("ВМ %s запущена" % self.vm_name)
         except (AttributeError, libvirt.libvirtError) as e:
             logging.warning("Ошибка: %s" % e)
-        url = QUrl.fromUserInput(self.vm_url)
-        self.webEngineView.load(url)
-        self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+
+        self.window.main_stacked_widget.setCurrentIndex(VM_IFACE_PAGE)
+        # Установить фокус на виджете, иначе не будет работать клавиатурный ввод
+        self.vnc.setFocus()
+        # При необходимости трекинг мыши можно отключить (здесь не отключаем)
+        self.vnc.setMouseTracking(False)
+        self.vnc.start()
 
     def closeEvent(self, e):
         logging.info("closeEvent %s" % e)
@@ -362,8 +380,11 @@ class MainWindow(QMainWindow):
                     self.dom.destroy()
             # Закрыть соединение с libvirt
             self.conn.close()
-        except libvirt.libvirtError as e:
+        except (AttributeError, libvirt.libvirtError) as e:
             logging.warning("Ошибка: %s" % e)
+
+        self.vnc.stop()
+        logging.info("Disconnected from VNC server")
 
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.window.geometry().getRect()
