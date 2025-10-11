@@ -29,6 +29,7 @@ logfile = appname + ".log"
 logging.basicConfig(filename=logfile, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 logging.info("%s started" % appname)
 
+
 class MyService(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         dbus.service.Object.__init__(self, bus_name, object_path)
@@ -85,7 +86,7 @@ if __name__ == '__main__':
     # Так как используется основной цикл класса QApplication,
     # то дальнейший код не нужен (оставлен для примера)
     loop = GLib.MainLoop()
-    
+
     # Run the GLib main loop to keep the service alive and handle D-Bus events
     print("Service running, press Ctrl+C to exit.")
     try:

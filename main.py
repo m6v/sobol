@@ -7,10 +7,7 @@ __copyright__ = 'Copyright © 2025 Sergey Maksimov'
 __licence__ = 'GNU Public Licence (GPL) v3'
 
 import argparse
-import configparser
-import os
 import sys
-# from PyQt5.Qt import QApplication
 from PySide2.QtWidgets import QApplication
 
 from MainWindow import MainWindow

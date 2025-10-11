@@ -8,7 +8,7 @@ import sys
 import libvirt
 
 from PySide2 import QtCore, QtWidgets
-from PySide2.QtCore import Qt, QUrl, Signal, Slot, QRect, QTimer, QSize
+from PySide2.QtCore import Qt, QUrl, Signal, QRect, QTimer
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
@@ -47,12 +47,13 @@ WEB_VIEW_PAGE = 4
 
 class WebEnginePage(QWebEnginePage):
     navigation_request = Signal(str)
-    def acceptNavigationRequest(self, url,  _type, isMainFrame):
+
+    def acceptNavigationRequest(self, url, _type, isMainFrame):
         # Если переходить по ссылке не требуется, возвращаем False, иначе True
         if _type == QWebEnginePage.NavigationTypeLinkClicked:
             logging.debug(url.path())
             self.navigation_request.emit(url.path())
-            # Здесь можно будет анализировать url и в зависимости от него 
+            # Здесь можно будет анализировать url и в зависимости от него
             # разрешать или запрещать переход по ссылке
             return False
         return True
@@ -246,7 +247,7 @@ class MainWindow(QMainWindow):
         self.webEngineView = CustomWebEngineView()
         self.window.main_stacked_widget.addWidget(self.webEngineView)
         self.webEngineView.page().navigation_request[str].connect(self.init_training)
-        
+
         # В зависимости от значения параметра show_on_startup отображаем указания к занятию,
         # интерфейс ПАК "Соболь" или интерфейс виртуальной машины
         if self.show_on_startup == "instruction":
@@ -257,7 +258,7 @@ class MainWindow(QMainWindow):
             self.init_training("")
         else:
             self.load_sys()
-        
+
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
         # не является окном, поэтому метод closeEvent для него не определен
         # Для выполнения действий при закрытии окна с загруженным виджетом
@@ -274,15 +275,12 @@ class MainWindow(QMainWindow):
         '''Инициировать начало тренировки открытием панели с интерфейсом ПАК "Соболь"
            или интерфейсом виртуальной машины, если она уже запущена'''
         logging.debug(url)
+
         if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
             # ВМ уже запущена, поэтому открыть панель с ее интерфейсом
-            logging.info("%s is running" % self.vm_name)
-            url = QUrl.fromUserInput(self.vm_url)
-            self.webEngineView.load(url)
-            self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+            self.load_sys()
         else:
             # ВМ не запущена, поэтому ждать события о чтении идентификатора iButton
-            logging.info("%s is't running" % self.vm_name)
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
             self.ibutton_present[str].connect(self.read_auth_id)
             self.timer.start(1000)
@@ -338,30 +336,34 @@ class MainWindow(QMainWindow):
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
     def load_sys(self):
-        '''Запустить виртуальную машину self.vm_name'''
+        '''Открыть панель с интерфейсом виртуальной машины'''
         try:
-            if self.dom.state() != libvirt.VIR_DOMAIN_RUNNING:
+            # Если виртуальная машина не запущена, запустить ее
+            if self.vm_state != libvirt.VIR_DOMAIN_RUNNING:
                 self.dom.create()
                 logging.info("ВМ %s запущена" % self.vm_name)
-        except libvirt.libvirtError as e:
+        except (AttributeError, libvirt.libvirtError) as e:
             logging.warning("Ошибка: %s" % e)
-
-        self.webEngineView.reload()
+        url = QUrl.fromUserInput(self.vm_url)
+        self.webEngineView.load(url)
         self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
 
     def closeEvent(self, e):
         logging.info("closeEvent %s" % e)
 
         # Если ВМ запущена спросить о принудительном выключении
-        if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
-            msg = QtWidgets.QMessageBox.question(
-                self, "Выход", "Принудительно выключить виртуальную машину?",
-                QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes,
-                QtWidgets.QMessageBox.No)
-            if msg == QMessageBox.Yes:
-                self.dom.destroy()
-        # Закрыть соединение с libvirt
-        self.conn.close()
+        try:
+            if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
+                msg = QtWidgets.QMessageBox.question(
+                    self, "Выход", "Принудительно выключить виртуальную машину?",
+                    QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes,
+                    QtWidgets.QMessageBox.No)
+                if msg == QMessageBox.Yes:
+                    self.dom.destroy()
+            # Закрыть соединение с libvirt
+            self.conn.close()
+        except libvirt.libvirtError as e:
+            logging.warning("Ошибка: %s" % e)
 
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.window.geometry().getRect()

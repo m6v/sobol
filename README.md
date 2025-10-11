@@ -71,8 +71,6 @@ shiboken2      5.15.2.1
 
 NB! Из перечисленных пакетов вручную ставились libvirt-python, pydbus, pygobject, PySide2, остальные подтянулись как зависимости
 
-
-
 # Установка в Astra Linux 1.7.4
 sudo -i
 apt install python3-pyside2.qtuitools python3-pyside2.qtwebengine python3-pyside2.qtwebenginewidgets
