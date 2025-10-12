@@ -11,7 +11,7 @@ from PySide2 import QtCore, QtWidgets
 from PySide2.QtCore import Qt, QUrl, Signal, QRect, QTimer
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit
-from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
+from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
 from PySide2.QtUiTools import QUiLoader
 
 from pydbus import SessionBus
@@ -66,6 +66,9 @@ class CustomWebEngineView(QWebEngineView):
     def __init__(self, *args, **kwargs):
         QWebEngineView.__init__(self, *args, **kwargs)
         self.setPage(WebEnginePage(self))
+        self.settings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
+        self.settings().setAttribute(QWebEngineSettings.PdfViewerEnabled, True)
+
 
 
 class MainWindow(QMainWindow):
