@@ -1,5 +1,6 @@
 import configparser
 import functools
+import inspect
 import json
 import logging
 import os
@@ -10,7 +11,7 @@ import libvirt
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtCore import Qt, QUrl, Signal, QRect, QTimer
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QCheckBox
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
 from PySide2.QtUiTools import QUiLoader
 
@@ -185,7 +186,7 @@ class MainWindow(QMainWindow):
 
         # Динамически добавить панели в стек виджетов,
         # с последующим обращением к ним self.sys_load_panel и т.д.
-        panels = {'sys_load_panel': 'panels/SysLoadPanel.ui',
+        self.panels = {'sys_load_panel': 'panels/SysLoadPanel.ui',
                   'work_mode_panel': 'panels/WorkModePanel.ui',
                   'user_list_panel': 'panels/UserListPanel.ui',
                   'event_journal_panel': 'panels/JournalPanel.ui',
@@ -200,9 +201,10 @@ class MainWindow(QMainWindow):
         loader = QUiLoader()
         loader.registerCustomWidget(Toggle)
 
-        for panel, form in panels.items():
+        for panel, form in self.panels.items():
             self.__dict__.update({panel: loader.load(os.path.join(CURRENT_DIR, form))})
             self.window.stackedWidget.addWidget(self.__dict__[panel])
+            # TODO Здесь нужно прочитать сохраненные и восстановить настройки элементов управления панели
 
         # state - состояние виртуальной машины, которое возвращается как число из перечисления virDomainState
         # reason - причина перехода в определённое состояние, которая возвращается как число из перечисления virDomain*Reason
@@ -371,6 +373,30 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, e):
         logging.info("closeEvent %s" % e)
+        # TODO Сделать отдельный метод, который будет вызываться при нажатии кнопки Сохранить на панели
+        # Запомнить настройки ПАК "Соболь"
+        for panel in self.panels:
+            for name, obj in inspect.getmembers(self.__dict__[panel]):
+                if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox)):
+                    name = obj.objectName()
+                    value = ""
+
+                    if isinstance(obj, QCheckBox):
+                        value = obj.isChecked()
+                    elif isinstance(obj, QLineEdit):
+                        value = obj.text()
+                    logging.info("%s %s %s" % (panel, name, value))
+
+        # Получить кортеж с элементами QRect геометрии главного окна
+        geometry = self.window.geometry().getRect()
+        # Преобразовать элементы кортежа в строки и разделить символом ';'
+        self.config.set("window", "geometry", ";".join(map(str, geometry)))
+        self.config.set("window", "state", str(int(self.window.windowState())))
+        # Сохранить учетные записи пользователей
+        self.config.set("general", "accounts", str(self.accounts))
+
+        with open(self.config_file, "w") as file:
+            self.config.write(file)
 
         # Если ВМ запущена спросить о принудительном выключении
         try:
@@ -388,17 +414,6 @@ class MainWindow(QMainWindow):
 
         self.vnc.stop()
         logging.info("Disconnected from VNC server")
-
-        # Получить кортеж с элементами QRect геометрии главного окна
-        geometry = self.window.geometry().getRect()
-        # Преобразовать элементы кортежа в строки и разделить символом ';'
-        self.config.set("window", "geometry", ";".join(map(str, geometry)))
-        self.config.set("window", "state", str(int(self.window.windowState())))
-        # Сохранить учетные записи пользователей
-        self.config.set("general", "accounts", str(self.accounts))
-
-        with open(self.config_file, "w") as file:
-            self.config.write(file)
 
     def domain_event_callback(self, conn, dom, event, detail, opaque):
         '''Функция обратного вызова для обработки сообщений libvirt'''
