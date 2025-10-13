@@ -91,7 +91,7 @@
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="Toggle" name="checkBox">
+      <widget class="Toggle" name="trusted_loader_check_box">
        <property name="text">
         <string/>
        </property>
@@ -118,42 +118,42 @@
       </widget>
      </item>
      <item row="6" column="0">
-      <widget class="QLabel" name="disk_madel_label">
+      <widget class="QLabel" name="disk_model_label">
        <property name="text">
         <string>Модель</string>
        </property>
       </widget>
      </item>
      <item row="6" column="2">
-      <widget class="QLabel" name="disk_madel_value">
+      <widget class="QLabel" name="disk_model_value">
        <property name="text">
         <string>USB FLASH DRIVE</string>
        </property>
       </widget>
      </item>
      <item row="7" column="0">
-      <widget class="QLabel" name="serial_control_label">
+      <widget class="QLabel" name="serial_ctl_label">
        <property name="text">
         <string>Контроль серийного номера</string>
        </property>
       </widget>
      </item>
      <item row="7" column="1">
-      <widget class="Toggle" name="serial_control_check_box">
+      <widget class="Toggle" name="serial_ctl_check_box">
        <property name="text">
         <string/>
        </property>
       </widget>
      </item>
      <item row="7" column="2">
-      <widget class="QLabel" name="serial_control_value">
+      <widget class="QLabel" name="serial_ctl_value">
        <property name="text">
         <string>AA11092300000457</string>
        </property>
       </widget>
      </item>
      <item row="8" column="0">
-      <widget class="QLabel" name="port_control_label">
+      <widget class="QLabel" name="port_ctl_label">
        <property name="minimumSize">
         <size>
          <width>400</width>
@@ -166,14 +166,14 @@
       </widget>
      </item>
      <item row="8" column="1">
-      <widget class="Toggle" name="port_control_check_box">
+      <widget class="Toggle" name="port_ctl_check_box">
        <property name="text">
         <string/>
        </property>
       </widget>
      </item>
      <item row="8" column="2">
-      <widget class="QLabel" name="port_control_value">
+      <widget class="QLabel" name="port_ctl_value">
        <property name="text">
         <string>USB(0x4,0x0)</string>
        </property>
@@ -195,7 +195,7 @@
     </spacer>
    </item>
    <item>
-    <widget class="QLabel" name="reboot_for_select_sys_label">
+    <widget class="QLabel" name="reboot_label">
      <property name="styleSheet">
       <string notr="true">padding: 0px 0px 0px 12px;</string>
      </property>
@@ -278,7 +278,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="load_sys_push_button">
+       <widget class="QPushButton" name="sys_load_push_button">
         <property name="text">
          <string>Загрузить ОС</string>
         </property>

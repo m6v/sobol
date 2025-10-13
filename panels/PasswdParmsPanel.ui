@@ -52,14 +52,14 @@
         <number>12</number>
        </property>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="max_passwd_len_label">
          <property name="text">
           <string>Максимальная длина пароля ( 0 - 16 ):</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEdit">
+        <widget class="QLineEdit" name="max_passwd_len_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -78,70 +78,70 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_5">
+        <widget class="QLabel" name="passwd_difficulty_label">
          <property name="text">
           <string>Проверка сложности пароля:</string>
          </property>
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_6">
+        <widget class="QLabel" name="digit_present_label">
          <property name="text">
           <string>        Наличие хотя бы одной цифры:</string>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_7">
+        <widget class="QLabel" name="upcase_letter_label">
          <property name="text">
           <string>        Наличие хотя бы одной заглавной буквы:</string>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="lowercase_letter_label">
          <property name="text">
           <string>        Наличие хотя бы одной строчной буквы:</string>
          </property>
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="label_9">
+        <widget class="QLabel" name="special_char_label">
          <property name="text">
           <string>        Наличие хотя бы одного специального символа:</string>
          </property>
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="repeating_char_label">
          <property name="text">
           <string>        Отсутствие повторяющихся символов:</string>
          </property>
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="repeating_digit_label">
          <property name="text">
           <string>        Отсутствие последовательности цифр:</string>
          </property>
         </widget>
        </item>
        <item row="8" column="0">
-        <widget class="QLabel" name="label_14">
+        <widget class="QLabel" name="passwd_alphabet_label">
          <property name="text">
           <string>Алфавит пароля (симв.):</string>
          </property>
         </widget>
        </item>
        <item row="9" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="changed_symbols_label">
          <property name="text">
           <string>Минимальное число измененных символов нового пароля: ( 0 - 127 ):</string>
          </property>
         </widget>
        </item>
        <item row="9" column="1">
-        <widget class="QLineEdit" name="lineEdit_5">
+        <widget class="QLineEdit" name="changed_symbols_lineedit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -160,14 +160,14 @@
         </widget>
        </item>
        <item row="10" column="0">
-        <widget class="QLabel" name="label_11">
+        <widget class="QLabel" name="passwd_age_label">
          <property name="text">
           <string>Максимальный срок действия пароля (дн.) ( 0 - 999):</string>
          </property>
         </widget>
        </item>
        <item row="10" column="1">
-        <widget class="QLineEdit" name="lineEdit_6">
+        <widget class="QLineEdit" name="passwd_age_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -186,49 +186,49 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="Toggle" name="checkBox">
+        <widget class="Toggle" name="passwd_difficulty_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="Toggle" name="checkBox_2">
+        <widget class="Toggle" name="digit_present_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="Toggle" name="checkBox_3">
+        <widget class="Toggle" name="upcase_letter_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="Toggle" name="checkBox_4">
+        <widget class="Toggle" name="lowercase_letter_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="Toggle" name="checkBox_5">
+        <widget class="Toggle" name="special_char_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="Toggle" name="checkBox_6">
+        <widget class="Toggle" name="repeating_char_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="Toggle" name="checkBox_7">
+        <widget class="Toggle" name="repeating_digit_check_box">
          <property name="text">
           <string/>
          </property>
@@ -299,7 +299,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="default_pushb_button">
+       <widget class="QPushButton" name="default_push_button">
         <property name="minimumSize">
          <size>
           <width>120</width>

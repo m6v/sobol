@@ -306,14 +306,14 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="4" column="0">
-               <widget class="QLabel" name="failed_enter_label">
+               <widget class="QLabel" name="failed_attemps_label">
                 <property name="text">
                  <string>Количество неудачных попыток входа:</string>
                 </property>
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QLabel" name="failed_enter_value">
+               <widget class="QLabel" name="failed_attemps_value">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -353,14 +353,14 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="6" column="0">
-               <widget class="QLabel" name="integrity_control_mode_label">
+               <widget class="QLabel" name="integrity_ctl_mode_label">
                 <property name="text">
                  <string>Режим контроля целостности:</string>
                 </property>
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QComboBox" name="integrity_control_mode_combo_box">
+               <widget class="QComboBox" name="integrity_ctl_mode_combo_box">
                 <item>
                  <property name="text">
                   <string>Жесткий</string>
@@ -374,7 +374,7 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="7" column="0">
-               <widget class="QLabel" name="external_media_prohibition_label">
+               <widget class="QLabel" name="ext_media_prohibition_label">
                 <property name="text">
                  <string>Запрет загрузки с внешних носителей:</string>
                 </property>
@@ -402,7 +402,7 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="7" column="1">
-               <widget class="Toggle" name="external_media_prohibition_check_box">
+               <widget class="Toggle" name="ext_media_prohibition_check_box">
                 <property name="text">
                  <string/>
                 </property>

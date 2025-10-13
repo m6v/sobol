@@ -55,7 +55,7 @@
         <number>12</number>
        </property>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="max_records_label">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -68,21 +68,21 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLabel" name="label_3">
+        <widget class="QLabel" name="max_records_label_2">
          <property name="text">
           <string>300 пользователей, 1000 событий</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="testing_appends_label">
+        <widget class="QLabel" name="rnd_testing_attempt_label">
          <property name="text">
           <string>Число попыток тестирования ДСЧ ( 1 - 3 ):</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="testing_appends_line_edit">
+        <widget class="QLineEdit" name="rnd_testing_attempt_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -101,21 +101,21 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="show_statistic_label">
+        <widget class="QLabel" name="show_stats_label">
          <property name="text">
           <string>Показ статистики пользователю:</string>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_6">
+        <widget class="QLabel" name="max_failed_logons_label">
          <property name="text">
           <string>Предельное число неудачных входов пользователя ( 0 - 255 ):</string>
          </property>
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QLineEdit" name="lineEdit_2">
+        <widget class="QLineEdit" name="max_failed_logons_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -134,14 +134,14 @@
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_7">
+        <widget class="QLabel" name="time_limit_label">
          <property name="text">
           <string>Ограничение времени на вход в систему (мин.) ( 0 -20 ):</string>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QLineEdit" name="lineEdit_3">
+        <widget class="QLineEdit" name="time_limit_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -160,14 +160,14 @@
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="autologon_time_label">
          <property name="text">
           <string>Время ожидания автоматического входа (сек.) ( 5 - 40 ):</string>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QLineEdit" name="lineEdit_4">
+        <widget class="QLineEdit" name="autologon_time_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -186,14 +186,14 @@
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_9">
+        <widget class="QLabel" name="wait_timer_label">
          <property name="text">
           <string>Время ожидания сторожевого таймера (сек.) ( 19 - 65534 ):</string>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QLineEdit" name="lineEdit_5">
+        <widget class="QLineEdit" name="wait_timer_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -212,14 +212,14 @@
         </widget>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="timer_testing_period_label">
          <property name="text">
           <string>Период тестирования сторожевого таймера (дн.) ( 0 - 999 ):</string>
          </property>
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="QLineEdit" name="lineEdit_6">
+        <widget class="QLineEdit" name="timer_testing_period_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -245,7 +245,7 @@
         </widget>
        </item>
        <item row="9" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="alrorithm_value">
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -258,14 +258,14 @@
         </widget>
        </item>
        <item row="9" column="1">
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="alrorithm_label">
          <property name="text">
           <string>1989</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="Toggle" name="show_statistic_check_box">
+        <widget class="Toggle" name="show_stats_check_box">
          <property name="text">
           <string/>
          </property>

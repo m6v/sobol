@@ -1,5 +1,18 @@
 1. Разобраться почему в панели настроек пользователей на кнопках не отображаются иконки (ошибок не выдается)
 2. Настройках хранить не учетные записи, а идентификаторы зарегистрированных iButton. Данные об учетках хранить в настройках ibutton2dbus и передавать через dbus
-3. Проверить можно ли использовать https://github.com/zocker-160/pyQVNCWidget/tree/master вместо novnc, т.к. последний тянет за собой много зависимостей и требует на Astra Linux SE 1.7.4 использовать PiSide2, т.к. эту версию Астры не включен пакет с QtWebEngineWidgets!
-Проверено, pyQVNCWidget работает! Предварительно были установлены https://github.com/twhiteman/pyDes.git (скачан и выполнено sudo python setup.py install) и sudo apt install python-twisted-core - уточнить, требуются они или нет! Импорт pydes есть в файле rfbdes.py, но нужен он, если не используется парольная идентификация требуется уточнить. Тестовые примеры подключаются к ВМ (дисплей VNC), при этом каталог qvncwidget должен быть в корне проекта или нужно установить сам пакет!
+3. Разобраться с ошибками при множественном наследовании QVNCWidget(QWidget, RFBClient). В PyQt5 работает нормально, а в PySide2 нет! В итоге пришлось вставлять костыли и сейчас хотя и работает, но выдает ошибки
+Traceback (most recent call last):
+  File "/home/m6v/Workspace/sobol/MainWindow.py", line 290, in eventFilter
+    self.closeEvent(event)
+  File "/home/m6v/Workspace/sobol/MainWindow.py", line 415, in closeEvent
+    self.vnc.stop()
+  File "/home/m6v/Workspace/sobol/qvncwidget/qvncwidget.py", line 74, in stop
+    self.closeConnection()
+  File "/home/m6v/Workspace/sobol/qvncwidget/rfb.py", line 429, in closeConnection
+    self.__close()
+  File "/home/m6v/Workspace/sobol/qvncwidget/rfb.py", line 119, in __close
+    if self.connection:
+AttributeError: 'QVNCWidget' object has no attribute 'connection'
+Release of profile requested but WebEnginePage still not deleted. Expect troubles !
+4. Когда будет "Соболь" разобраться, что происходит при нажатии кнопок "Отмена" на панелях настроек (значения элементов возвращаются к предыдущим или остаются текущими, просто не записываются в память устройства)
 

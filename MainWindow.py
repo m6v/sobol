@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import sys
+from distutils.util import strtobool
 
 import libvirt
 
@@ -201,10 +202,22 @@ class MainWindow(QMainWindow):
         loader = QUiLoader()
         loader.registerCustomWidget(Toggle)
 
-        for panel, form in self.panels.items():
-            self.__dict__.update({panel: loader.load(os.path.join(CURRENT_DIR, form))})
-            self.window.stackedWidget.addWidget(self.__dict__[panel])
-            # TODO Здесь нужно прочитать сохраненные и восстановить настройки элементов управления панели
+        for panel_name, ui_file in self.panels.items():
+            # Динамически загрузить панели и добавить в stackedWidget
+            panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
+            setattr(self, panel_name, panel)
+            self.window.stackedWidget.addWidget(getattr(self, panel_name))
+            # Прочитать значения сохраненных настроек в секции panel_name и
+            # в соответствии с ними установить значения элементов
+            try:
+                for name, value in self.config.items(panel_name):
+                    if isinstance(getattr(panel, name), QCheckBox):
+                        getattr(panel, name).setChecked(strtobool(value))
+                    elif isinstance(getattr(panel, name), QLineEdit):
+                        getattr(panel, name).setText(value)
+
+            except configparser.NoSectionError as e:
+                logging.debug(e)
 
         # state - состояние виртуальной машины, которое возвращается как число из перечисления virDomainState
         # reason - причина перехода в определённое состояние, которая возвращается как число из перечисления virDomain*Reason
@@ -239,7 +252,8 @@ class MainWindow(QMainWindow):
         self.window.passwd_line_edit.returnPressed.connect(self.check_passwd)
         # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
         self.window.go_settings_push_button.clicked.connect(functools.partial(self.window.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
-        self.window.load_sys_push_button.clicked.connect(self.load_sys)
+        self.window.sys_load_push_button.clicked.connect(self.load_sys)
+        self.sys_load_panel.sys_load_push_button.clicked.connect(self.load_sys)
 
         # Идентификатор считанной iButton
         self.auth_id = ""
@@ -372,20 +386,9 @@ class MainWindow(QMainWindow):
         self.vnc.start()
 
     def closeEvent(self, e):
-        logging.info("closeEvent %s" % e)
-        # TODO Сделать отдельный метод, который будет вызываться при нажатии кнопки Сохранить на панели
-        # Запомнить настройки ПАК "Соболь"
-        for panel in self.panels:
-            for name, obj in inspect.getmembers(self.__dict__[panel]):
-                if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox)):
-                    name = obj.objectName()
-                    value = ""
+        logging.debug("closeEvent %s" % e)
 
-                    if isinstance(obj, QCheckBox):
-                        value = obj.isChecked()
-                    elif isinstance(obj, QLineEdit):
-                        value = obj.text()
-                    logging.info("%s %s %s" % (panel, name, value))
+        self.save_settings(*self.panels)
 
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.window.geometry().getRect()
@@ -414,6 +417,22 @@ class MainWindow(QMainWindow):
 
         self.vnc.stop()
         logging.info("Disconnected from VNC server")
+
+    def save_settings(self, *panels):
+        '''Сохранить настройки панелей, названия которых указанны в принимаемом кортеже'''
+        for panel in panels:
+            for name, obj in inspect.getmembers(self.__dict__[panel]):
+                # Сохранить установки только для элементов типа QLineEdit и QCheckBox
+                if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox)):
+                    name = obj.objectName()
+                    if isinstance(obj, QCheckBox):
+                        value = obj.isChecked()
+                    elif isinstance(obj, QLineEdit):
+                        value = obj.text()
+                    # Если отсутствует, то создать секцию с именем, соответствующим названию панели
+                    if not self.config.has_section(panel):
+                        self.config.add_section(panel)
+                    self.config.set(panel, name, str(value))
 
     def domain_event_callback(self, conn, dom, event, detail, opaque):
         '''Функция обратного вызова для обработки сообщений libvirt'''

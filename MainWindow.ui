@@ -489,7 +489,7 @@ QLineEdit {
             <item>
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <widget class="QPushButton" name="load_sys_push_button">
+               <widget class="QPushButton" name="sys_load_push_button">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -753,7 +753,7 @@ QLineEdit {
   <tabstop>passwd_line_edit</tabstop>
   <tabstop>enter_push_button</tabstop>
   <tabstop>go_settings_push_button</tabstop>
-  <tabstop>load_sys_push_button</tabstop>
+  <tabstop>sys_load_push_button</tabstop>
  </tabstops>
  <resources/>
  <connections/>

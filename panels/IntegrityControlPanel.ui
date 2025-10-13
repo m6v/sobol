@@ -27,7 +27,7 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="integrity_ctl_label">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
@@ -73,14 +73,14 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_6">
+        <widget class="QLabel" name="integriry_templates_dir_label">
          <property name="text">
           <string>Каталог с шаблогами КЦ:</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEdit">
+        <widget class="QLineEdit" name="integriry_templates_dir_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -99,80 +99,80 @@
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_7">
+        <widget class="QLabel" name="sectors_ctl_label">
          <property name="text">
           <string>Контроль секторов:</string>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="files_ctl_label">
          <property name="text">
           <string>Контроль файлов:</string>
          </property>
         </widget>
        </item>
        <item row="5" column="0">
-        <widget class="QLabel" name="label_9">
+        <widget class="QLabel" name="registry_ctl_label">
          <property name="text">
           <string>Контроль элементов реестра:</string>
          </property>
         </widget>
        </item>
        <item row="6" column="0">
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="pci_dev_ctl_label">
          <property name="text">
           <string>Контроль PCI-устройств:</string>
          </property>
         </widget>
        </item>
        <item row="6" column="1">
-        <widget class="QComboBox" name="comboBox_3"/>
+        <widget class="QComboBox" name="pci_dev_ctl_combo_box"/>
        </item>
        <item row="7" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="smbios_ctl_label">
          <property name="text">
           <string>Контроль SMBIOS:</string>
          </property>
         </widget>
        </item>
        <item row="8" column="0">
-        <widget class="QLabel" name="label_14">
+        <widget class="QLabel" name="journal_ctl_label">
          <property name="text">
           <string>Контроль журнала транзакций:</string>
          </property>
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="Toggle" name="checkBox">
+        <widget class="Toggle" name="sectors_ctl_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="Toggle" name="checkBox_2">
+        <widget class="Toggle" name="files_ctl_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="Toggle" name="checkBox_3">
+        <widget class="Toggle" name="registry_ctl_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="7" column="1">
-        <widget class="Toggle" name="checkBox_4">
+        <widget class="Toggle" name="smbios_ctl_check_box">
          <property name="text">
           <string/>
          </property>
         </widget>
        </item>
        <item row="8" column="1">
-        <widget class="Toggle" name="checkBox_5">
+        <widget class="Toggle" name="journal_ctl_check_box">
          <property name="text">
           <string/>
          </property>
@@ -196,7 +196,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QLabel" name="ctrl_tmpl_label">
+    <widget class="QLabel" name="tmpl_ctl_label">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
@@ -211,7 +211,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="exec_ctrl_tmpl_push_button">
+    <widget class="QPushButton" name="tmpl_ctl_push_button">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -224,7 +224,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_11">
+    <widget class="QLabel" name="integrity_calc_label">
      <property name="font">
       <font>
        <pointsize>12</pointsize>
@@ -239,7 +239,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="exec_intgrity_calc_push_button">
+    <widget class="QPushButton" name="integrity_calc_push_button">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
