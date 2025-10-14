@@ -13,7 +13,19 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QLabel" name="label_1">
      <property name="font">
@@ -21,54 +33,67 @@
        <pointsize>12</pointsize>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">margin-left: 8px;</string>
+     </property>
      <property name="text">
       <string>Изменение режима работы</string>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="leftMargin">
+      <number>12</number>
+     </property>
      <item>
-      <widget class="QLabel" name="mode_label">
-       <property name="text">
-        <string>Текущий режим работы:</string>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="leftMargin">
+        <number>0</number>
        </property>
-      </widget>
+       <item>
+        <widget class="QLabel" name="mode_label">
+         <property name="text">
+          <string>Текущий режим работы:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="mode_value">
+         <property name="text">
+          <string>автономный</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </item>
      <item>
-      <widget class="QLabel" name="mode_value">
+      <widget class="QPushButton" name="change_mode_push_button">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
-        <string>автономный</string>
+        <string>Изменить</string>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QPushButton" name="change_mode_push_button">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Изменить</string>
-     </property>
-    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">
@@ -77,8 +102,8 @@
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>17</width>
-       <height>432</height>
+       <width>14</width>
+       <height>507</height>
       </size>
      </property>
     </spacer>

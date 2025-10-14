@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>690</width>
+    <height>518</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,23 +43,20 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="leftMargin">
+      <number>12</number>
+     </property>
      <item>
       <layout class="QGridLayout" name="gridLayout">
-       <property name="leftMargin">
-        <number>12</number>
-       </property>
-       <property name="topMargin">
-        <number>12</number>
-       </property>
        <item row="0" column="0">
-        <widget class="QLabel" name="max_passwd_len_label">
+        <widget class="QLabel" name="min_passwd_len_label">
          <property name="text">
-          <string>Максимальная длина пароля ( 0 - 16 ):</string>
+          <string>Минимальная длина пароля ( 0 - 16 ):</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="max_passwd_len_line_edit">
+        <widget class="QLineEdit" name="min_passwd_len_line_edit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -84,45 +81,112 @@
          </property>
         </widget>
        </item>
+       <item row="1" column="1">
+        <widget class="Toggle" name="passwd_difficulty_check_box">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
        <item row="2" column="0">
         <widget class="QLabel" name="digit_present_label">
+         <property name="styleSheet">
+          <string notr="true">margin-left: 16px;</string>
+         </property>
          <property name="text">
-          <string>        Наличие хотя бы одной цифры:</string>
+          <string>Наличие хотя бы одной цифры:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="Toggle" name="digit_present_check_box">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="upcase_letter_label">
+         <property name="styleSheet">
+          <string notr="true">margin-left: 16px;</string>
+         </property>
          <property name="text">
-          <string>        Наличие хотя бы одной заглавной буквы:</string>
+          <string>Наличие хотя бы одной заглавной буквы:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="Toggle" name="upcase_letter_check_box">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="lowercase_letter_label">
+         <property name="styleSheet">
+          <string notr="true">margin-left: 16px;</string>
+         </property>
          <property name="text">
-          <string>        Наличие хотя бы одной строчной буквы:</string>
+          <string>Наличие хотя бы одной строчной буквы:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="Toggle" name="lowercase_letter_check_box">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="special_char_label">
+         <property name="styleSheet">
+          <string notr="true">margin-left: 16px;</string>
+         </property>
          <property name="text">
-          <string>        Наличие хотя бы одного специального символа:</string>
+          <string>Наличие хотя бы одного специального символа:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="Toggle" name="special_char_check_box">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
        <item row="6" column="0">
         <widget class="QLabel" name="repeating_char_label">
+         <property name="styleSheet">
+          <string notr="true">margin-left: 16px;</string>
+         </property>
          <property name="text">
-          <string>        Отсутствие повторяющихся символов:</string>
+          <string>Отсутствие повторяющихся символов:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="Toggle" name="repeating_char_check_box">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="repeating_digit_label">
+         <property name="styleSheet">
+          <string notr="true">margin-left: 16px;</string>
+         </property>
          <property name="text">
-          <string>        Отсутствие последовательности цифр:</string>
+          <string>Отсутствие последовательности цифр:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="Toggle" name="repeating_digit_check_box">
+         <property name="text">
+          <string/>
          </property>
         </widget>
        </item>
@@ -182,55 +246,6 @@
          </property>
          <property name="maxLength">
           <number>3</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="Toggle" name="passwd_difficulty_check_box">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="Toggle" name="digit_present_check_box">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="Toggle" name="upcase_letter_check_box">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="Toggle" name="lowercase_letter_check_box">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="Toggle" name="special_char_check_box">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="Toggle" name="repeating_char_check_box">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="Toggle" name="repeating_digit_check_box">
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>

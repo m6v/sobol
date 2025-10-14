@@ -12,7 +12,7 @@ import libvirt
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtCore import Qt, QUrl, Signal, QRect, QTimer
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QCheckBox
+from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QCheckBox, QComboBox
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
 from PySide2.QtUiTools import QUiLoader
 
@@ -215,6 +215,8 @@ class MainWindow(QMainWindow):
                         getattr(panel, name).setChecked(strtobool(value))
                     elif isinstance(getattr(panel, name), QLineEdit):
                         getattr(panel, name).setText(value)
+                    elif isinstance(getattr(panel, name), QComboBox):
+                        getattr(panel, name).setCurrentIndex(int(value))
 
             except configparser.NoSectionError as e:
                 logging.debug(e)
@@ -423,12 +425,14 @@ class MainWindow(QMainWindow):
         for panel in panels:
             for name, obj in inspect.getmembers(self.__dict__[panel]):
                 # Сохранить установки только для элементов типа QLineEdit и QCheckBox
-                if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox)):
+                if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
                     name = obj.objectName()
                     if isinstance(obj, QCheckBox):
                         value = obj.isChecked()
                     elif isinstance(obj, QLineEdit):
                         value = obj.text()
+                    elif isinstance(obj, QComboBox):
+                        value = obj.currentIndex()
                     # Если отсутствует, то создать секцию с именем, соответствующим названию панели
                     if not self.config.has_section(panel):
                         self.config.add_section(panel)

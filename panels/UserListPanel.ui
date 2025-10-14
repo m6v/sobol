@@ -120,7 +120,16 @@ QPushButton:hover {
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>8</number>
+       </property>
        <property name="rightMargin">
+        <number>8</number>
+       </property>
+       <property name="bottomMargin">
         <number>8</number>
        </property>
        <item>
@@ -474,7 +483,7 @@ QPushButton:hover {
             <number>8</number>
            </property>
            <property name="rightMargin">
-            <number>0</number>
+            <number>8</number>
            </property>
            <property name="bottomMargin">
             <number>8</number>
