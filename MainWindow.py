@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
 
         try:
             # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи (пароль, имя и др.)
-            self.accounts = eval(self.config.get("general", "accounts"))
+            self.users = eval(self.config.get("general", "users"))
             # Имя виртуальной машины
             self.vm_name = self.config.get("general", "vm_name")
             # Название виртуальной машины в заголовок окна
@@ -359,7 +359,7 @@ class MainWindow(QMainWindow):
         try:
             # Если введен правильный пароль, остановить таймер и
             # открыть панель выбора действия Загрузка ОС/Настройки
-            if self.accounts[self.auth_id]["passwd"] == self.window.passwd_line_edit.text():
+            if self.users[self.auth_id]["passwd"] == self.window.passwd_line_edit.text():
                 self.timer.stop()
                 self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
                 return
@@ -398,7 +398,7 @@ class MainWindow(QMainWindow):
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
         self.config.set("window", "state", str(int(self.window.windowState())))
         # Сохранить учетные записи пользователей
-        self.config.set("general", "accounts", str(self.accounts))
+        self.config.set("general", "users", str(self.users))
 
         with open(self.config_file, "w") as file:
             self.config.write(file)
