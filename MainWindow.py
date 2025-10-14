@@ -72,7 +72,6 @@ class CustomWebEngineView(QWebEngineView):
         self.settings().setAttribute(QWebEngineSettings.PdfViewerEnabled, True)
 
 
-
 class MainWindow(QMainWindow):
     # Сигнал "предъявления" iButton
     ibutton_present = Signal(str)
@@ -122,7 +121,6 @@ class MainWindow(QMainWindow):
             logging.warning(e)
         except configparser.NoSectionError as e:
             logging.error(e)
-            print("!")
 
         # Create the sidebar widget
         self.sidebar_widget = QWidget()
@@ -221,6 +219,32 @@ class MainWindow(QMainWindow):
             except configparser.NoSectionError as e:
                 logging.debug(e)
 
+        # Добавляем панель с действиями по управлению польователями
+        # отдельно от остальных, чтобы не сохранять настройки элементов
+        panel_name, ui_file = "user_actions_panel", "panels/UserActionsPanel.ui"
+        panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
+        setattr(self, panel_name, panel)
+        self.window.stackedWidget.addWidget(getattr(self, panel_name))
+
+        # TODO Продумать возможность переопределить свойство close панели
+        self.user_actions_panel.cancel_push_button_1.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.cancel_push_button_2.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.cancel_push_button_3.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.cancel_push_button_4.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.cancel_push_button_5.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.cancel_push_button_6.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.cancel_push_button_7.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.finish_push_button_4.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.finish_push_button_8.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.user_name_line_edit.textChanged[str].connect(self.user_name_changed)
+        self.user_actions_panel.next_push_button_1.clicked.connect(self.check_user_name)
+        self.user_actions_panel.yes_push_button_2.clicked.connect(self.next_user_action_panel)
+        self.user_actions_panel.passwd_line_edit_1.textChanged[str].connect(self.user_passwd_changed)
+        self.user_actions_panel.passwd_line_edit_2.textChanged[str].connect(self.user_passwd_changed)
+        self.user_actions_panel.next_push_button_3.clicked.connect(self.check_user_passwd)
+
+        self.update_user_list_panel()
+
         # state - состояние виртуальной машины, которое возвращается как число из перечисления virDomainState
         # reason - причина перехода в определённое состояние, которая возвращается как число из перечисления virDomain*Reason
         self.vm_state = False
@@ -256,6 +280,7 @@ class MainWindow(QMainWindow):
         self.window.go_settings_push_button.clicked.connect(functools.partial(self.window.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
         self.window.sys_load_push_button.clicked.connect(self.load_sys)
         self.sys_load_panel.sys_load_push_button.clicked.connect(self.load_sys)
+        self.user_list_panel.add_user_push_button.clicked.connect(self.add_user)
 
         # Идентификатор считанной iButton
         self.auth_id = ""
@@ -387,6 +412,54 @@ class MainWindow(QMainWindow):
         self.vnc.setMouseTracking(False)
         self.vnc.start()
 
+    def update_user_list_panel(self):
+        '''Обновить панель со списком пользователей'''
+        for user in self.users.values():
+            if not user["is_admin"]:
+                self.user_list_panel.user_list_widget.addItem(user["user_name"])
+        self.user_list_panel.user_list_widget.setCurrentRow(0)
+
+    def add_user(self):
+        '''Скрыть боковое меню и показать первую панель мастера создания нового пользователя'''
+        self.sidebar_widget.hide()
+        self.window.stackedWidget.setCurrentWidget(self.user_actions_panel)
+
+    def cancel_user_action(self):
+        '''Отменить работу мастера создания нового пользователя,
+        показать боковое меню и панель с списком пользователей'''
+        self.sidebar_widget.show()
+        self.window.stackedWidget.setCurrentWidget(self.user_list_panel)
+        
+    def user_name_changed(self, text):
+        '''Изменить состояние кнопки "Вперед" при вводе имени нового пользователя'''
+        self.user_actions_panel.next_push_button_1.setEnabled(bool(len(text)))
+
+    def check_user_name(self):
+        '''Проверить уникальность имени нового пользователя'''
+        logging.info(self.user_actions_panel.user_name_line_edit.text())
+        self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_2)
+        
+    def next_user_action_panel(self):
+        '''Перейти на следующую панель мастера управления пользователями'''
+        self.user_actions_panel.stacked_widget.setCurrentIndex(self.user_actions_panel.stacked_widget.currentIndex() + 1)
+
+    def user_passwd_changed(self, text):
+        '''Изменить состояние кнопки "Вперед" при наличии символов в обоих полях ввода пароля'''
+        if len(self.user_actions_panel.passwd_line_edit_1.text()) !=0 and len(self.user_actions_panel.passwd_line_edit_2.text()) !=0:
+            self.user_actions_panel.next_push_button_3.setEnabled(True)
+        else:
+            self.user_actions_panel.next_push_button_3.setEnabled(False)
+
+    def check_user_passwd(self):
+        '''Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности'''
+        if self.user_actions_panel.passwd_line_edit_1.text() != self.user_actions_panel.passwd_line_edit_2.text():
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QMessageBox.Ok)
+            return
+        # TODO Далее выдать сообщение о предъявлении нового идентификатора
+        new_user = {'passwd': self.user_actions_panel.passwd_line_edit_1.text(), 'user_name': self.user_actions_panel.user_name_line_edit.text(), 'is_admin': False}
+        self.users['5'] = new_user
+        self.next_user_action_panel()
+
     def closeEvent(self, e):
         logging.debug("closeEvent %s" % e)
 
@@ -423,7 +496,7 @@ class MainWindow(QMainWindow):
     def save_settings(self, *panels):
         '''Сохранить настройки панелей, названия которых указанны в принимаемом кортеже'''
         for panel in panels:
-            for name, obj in inspect.getmembers(self.__dict__[panel]):
+            for name, obj in inspect.getmembers(getattr(self, panel)):
                 # Сохранить установки только для элементов типа QLineEdit и QCheckBox
                 if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
                     name = obj.objectName()

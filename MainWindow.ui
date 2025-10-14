@@ -33,7 +33,7 @@
     <item>
      <widget class="QStackedWidget" name="main_stacked_widget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="BackgroundedWidget" name="auth_id_page">
        <layout class="QVBoxLayout" name="verticalLayout_7">
