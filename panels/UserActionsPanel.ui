@@ -60,14 +60,14 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="user_name_label">
            <property name="text">
             <string>Введите имя пользователя</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="user_name_line_edit">
+          <widget class="QLineEdit" name="user_name">
            <property name="maximumSize">
             <size>
              <width>240</width>

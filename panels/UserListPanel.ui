@@ -242,7 +242,7 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="0" column="1">
-               <widget class="QLabel" name="user_name_value">
+               <widget class="QLabel" name="user_name">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -262,7 +262,7 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="1" column="1">
-               <widget class="QLabel" name="user_id_value">
+               <widget class="QLabel" name="user_id">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -275,14 +275,14 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="2" column="0">
-               <widget class="QLabel" name="last_enter_label">
+               <widget class="QLabel" name="last_login_datetime_label">
                 <property name="text">
                  <string>Время последнего входа:</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QLabel" name="last_enter_value">
+               <widget class="QLabel" name="last_login_datetime">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -295,14 +295,14 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="3" column="0">
-               <widget class="QLabel" name="common_enter_label">
+               <widget class="QLabel" name="total_logins_label">
                 <property name="text">
                  <string>Общее количество входов:</string>
                 </property>
                </widget>
               </item>
               <item row="3" column="1">
-               <widget class="QLabel" name="common_enter_value">
+               <widget class="QLabel" name="total_logins">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -315,14 +315,14 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="4" column="0">
-               <widget class="QLabel" name="failed_attemps_label">
+               <widget class="QLabel" name="failed_logins_label">
                 <property name="text">
                  <string>Количество неудачных попыток входа:</string>
                 </property>
                </widget>
               </item>
               <item row="4" column="1">
-               <widget class="QLabel" name="failed_attemps_value">
+               <widget class="QLabel" name="failed_logins">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
@@ -342,7 +342,7 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="5" column="1">
-               <widget class="QComboBox" name="user_status_combo_box">
+               <widget class="QComboBox" name="user_status">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
@@ -369,7 +369,7 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="6" column="1">
-               <widget class="QComboBox" name="integrity_ctl_mode_combo_box">
+               <widget class="QComboBox" name="integrity_ctl_mode">
                 <item>
                  <property name="text">
                   <string>Жесткий</string>
@@ -383,56 +383,56 @@ QPushButton:hover {
                </widget>
               </item>
               <item row="7" column="0">
-               <widget class="QLabel" name="ext_media_prohibition_label">
+               <widget class="QLabel" name="ext_media_prohib_label">
                 <property name="text">
                  <string>Запрет загрузки с внешних носителей:</string>
                 </property>
                </widget>
               </item>
               <item row="8" column="0">
-               <widget class="QLabel" name="change_passwd_prohibition_label">
+               <widget class="QLabel" name="ch_passwd_prohib_label">
                 <property name="text">
                  <string>Запрет смены пароля:</string>
                 </property>
                </widget>
               </item>
               <item row="9" column="0">
-               <widget class="QLabel" name="passwd_limit_label">
+               <widget class="QLabel" name="passwd_age_limit_label">
                 <property name="text">
                  <string>Ограничение срока действия пароля:</string>
                 </property>
                </widget>
               </item>
               <item row="10" column="0">
-               <widget class="QLabel" name="auth_id_change_label">
+               <widget class="QLabel" name="user_id_change_label">
                 <property name="text">
                  <string>Смена аутентификатора при смене пароля:</string>
                 </property>
                </widget>
               </item>
               <item row="7" column="1">
-               <widget class="Toggle" name="ext_media_prohibition_check_box">
+               <widget class="Toggle" name="ext_media_prohib">
                 <property name="text">
                  <string/>
                 </property>
                </widget>
               </item>
               <item row="8" column="1">
-               <widget class="Toggle" name="change_passwd_prohibition_check_box">
+               <widget class="Toggle" name="ch_passwd_prohib">
                 <property name="text">
                  <string/>
                 </property>
                </widget>
               </item>
               <item row="9" column="1">
-               <widget class="Toggle" name="passwd_limit_check_box">
+               <widget class="Toggle" name="passwd_age_limit">
                 <property name="text">
                  <string/>
                 </property>
                </widget>
               </item>
               <item row="10" column="1">
-               <widget class="Toggle" name="auth_id_change_check_box">
+               <widget class="Toggle" name="user_id_change">
                 <property name="text">
                  <string/>
                 </property>
