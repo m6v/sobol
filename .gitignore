@@ -7,6 +7,9 @@
 *.py[cod]
 __pycache__/
 
+# Virtual environment
+venv/
+
 # Log files
 *.log
 
@@ -28,3 +31,7 @@ main.spec
 *.flv
 *.mov
 *.wmv
+
+# Temporary files
+tmp/
+*.tmp

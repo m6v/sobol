@@ -166,7 +166,7 @@ class MainWindow(QMainWindow):
                    "Параметры паролей": "icons/passwd_parms.png",
                    "Контроль целостности": "icons/integrity_control.png",
                    "Смена пароля": "icons/passwd_change.png",
-                   "Смена аутентификатора": "icons/auth_id_change.png",
+                   "Смена аутентификатора": "icons/user_id_change.png",
                    "Диагностика платы": "icons/diagnostic.png",
                    "Служебные операции": "icons/service_operations.png"
                    }
@@ -227,15 +227,16 @@ class MainWindow(QMainWindow):
         self.window.stackedWidget.addWidget(getattr(self, panel_name))
 
         # TODO Продумать возможность переопределить свойство close панели
-        self.user_actions_panel.cancel_push_button_1.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.cancel_push_button_2.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.cancel_push_button_3.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.cancel_push_button_4.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.cancel_push_button_5.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.cancel_push_button_6.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.cancel_push_button_7.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.finish_push_button_4.clicked.connect(self.cancel_user_action)
-        self.user_actions_panel.finish_push_button_8.clicked.connect(self.cancel_user_action)
+        self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.cancel_push_button_3.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.cancel_push_button_4.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.cancel_push_button_5.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.cancel_push_button_6.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.cancel_push_button_7.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.finish_push_button_4.clicked.connect(self.close_user_ctl_wizard)
+        self.user_actions_panel.finish_push_button_8.clicked.connect(self.close_user_ctl_wizard)
+
         self.user_actions_panel.user_name.textChanged[str].connect(self.user_name_changed)
         self.user_actions_panel.next_push_button_1.clicked.connect(self.check_user_name)
         self.user_actions_panel.yes_push_button_2.clicked.connect(self.next_user_action_panel)
@@ -286,7 +287,7 @@ class MainWindow(QMainWindow):
         self.user_list_panel.save_push_button.clicked.connect(self.save_user_parms)
 
         # Идентификатор считанной iButton
-        self.auth_id = ""
+        self.user_id = ""
 
         # Время до входа в систему, отображаемое в первых двух окнах
         self.remaining_time = REMAINING_TIME
@@ -345,7 +346,7 @@ class MainWindow(QMainWindow):
         else:
             # ВМ не запущена, поэтому ждать события о чтении идентификатора iButton
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-            self.ibutton_present[str].connect(self.read_auth_id)
+            self.ibutton_present[str].connect(self.read_user_id)
             self.timer.start(1000)
 
     def menu_action_triggered(self, index):
@@ -357,20 +358,20 @@ class MainWindow(QMainWindow):
         self.remaining_time -= 1
         if self.remaining_time == 0:
             self.remaining_time = REMAINING_TIME
-            self.ibutton_present[str].connect(self.read_auth_id)
+            self.ibutton_present[str].connect(self.read_user_id)
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
             # TODO Перевести секунды в минуты и секунды
             self.window.remaining_time_label_1.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
             self.window.remaining_time_label_2.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
 
-    def read_auth_id(self, auth_id):
+    def read_user_id(self, user_id):
         '''Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля'''
-        logging.info("iButton %s is presented" % auth_id)
-        self.auth_id = auth_id
+        logging.info("iButton %s is presented" % user_id)
+        self.user_id = user_id
         # Отключаем обработчик "прикладывания" iButton
         self.ibutton_present[str].disconnect()
-        self.window.id_label.setText("iButton %s" % self.auth_id)
+        self.window.id_label.setText("iButton %s" % self.user_id)
         # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
         self.window.passwd_line_edit.setText("")
         self.window.passwd_line_edit.setFocus()
@@ -387,7 +388,7 @@ class MainWindow(QMainWindow):
         try:
             # Если введен правильный пароль, остановить таймер и
             # открыть панель выбора действия Загрузка ОС/Настройки
-            if self.users[self.auth_id]["passwd"] == self.window.passwd_line_edit.text():
+            if self.users[self.user_id]["passwd"] == self.window.passwd_line_edit.text():
                 self.timer.stop()
                 self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
                 return
@@ -395,7 +396,7 @@ class MainWindow(QMainWindow):
             logging.info("Present unregistered iButton:", e)
         # Если введен неправильный пароль, перейти в начало
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QMessageBox.Ok)
-        self.ibutton_present[str].connect(self.read_auth_id)
+        self.ibutton_present[str].connect(self.read_user_id)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
     def load_sys(self):
@@ -429,7 +430,7 @@ class MainWindow(QMainWindow):
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_1)
         self.window.stackedWidget.setCurrentWidget(self.user_actions_panel)
 
-    def cancel_user_action(self):
+    def close_user_ctl_wizard(self):
         '''Отменить работу мастера создания нового пользователя,
         показать боковое меню и панель с списком пользователей'''
         self.sidebar_widget.show()

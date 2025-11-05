@@ -2,8 +2,8 @@
 import logging
 import qvncwidget.rfbconstants as c
 
-from PySide2.QtGui import QMouseEvent
-from PySide2.QtCore import Qt
+from PyQt5.QtGui import QMouseEvent
+from PyQt5.QtCore import Qt
 
 class RFBPixelformat:
     def __init__(self,
