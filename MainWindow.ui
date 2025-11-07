@@ -33,9 +33,15 @@
     <item>
      <widget class="QStackedWidget" name="main_stacked_widget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>1</number>
       </property>
       <widget class="BackgroundedWidget" name="auth_id_page">
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    padding: 0.3em 0.3em 0.3em 0.3em;
+    color: white;
+}</string>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <property name="spacing">
          <number>0</number>
@@ -148,6 +154,7 @@ QLineEdit {
     padding: 0.3em 0.3em 0.3em 0.3em;
      background: #3d8a36;
      border: none;
+     color: white;
 }</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>690</width>
-    <height>518</height>
+    <width>739</width>
+    <height>637</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,6 +50,12 @@
       <layout class="QGridLayout" name="gridLayout">
        <item row="0" column="0">
         <widget class="QLabel" name="min_passwd_len_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="text">
           <string>Минимальная длина пароля ( 0 - 16 ):</string>
          </property>
@@ -76,6 +82,12 @@
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="passwd_difficulty_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="text">
           <string>Проверка сложности пароля:</string>
          </property>
@@ -90,6 +102,12 @@
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="digit_present_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">margin-left: 16px;</string>
          </property>
@@ -107,6 +125,12 @@
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="upcase_letter_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">margin-left: 16px;</string>
          </property>
@@ -124,6 +148,12 @@
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="lowercase_letter_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">margin-left: 16px;</string>
          </property>
@@ -141,6 +171,12 @@
        </item>
        <item row="5" column="0">
         <widget class="QLabel" name="special_char_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">margin-left: 16px;</string>
          </property>
@@ -158,6 +194,12 @@
        </item>
        <item row="6" column="0">
         <widget class="QLabel" name="repeating_char_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">margin-left: 16px;</string>
          </property>
@@ -175,6 +217,12 @@
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="repeating_digit_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">margin-left: 16px;</string>
          </property>
@@ -192,6 +240,12 @@
        </item>
        <item row="8" column="0">
         <widget class="QLabel" name="passwd_alphabet_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="text">
           <string>Алфавит пароля (симв.):</string>
          </property>
@@ -199,6 +253,12 @@
        </item>
        <item row="9" column="0">
         <widget class="QLabel" name="changed_symbols_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="text">
           <string>Минимальное число измененных символов нового пароля: ( 0 - 127 ):</string>
          </property>
@@ -225,6 +285,12 @@
        </item>
        <item row="10" column="0">
         <widget class="QLabel" name="passwd_age_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>32</height>
+          </size>
+         </property>
          <property name="text">
           <string>Максимальный срок действия пароля (дн.) ( 0 - 999):</string>
          </property>

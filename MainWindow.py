@@ -10,9 +10,8 @@ from distutils.util import strtobool
 import libvirt
 
 from PySide2 import QtCore, QtWidgets
-from PySide2.QtCore import Qt, QUrl, Signal, QRect, QTimer
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy, QLineEdit, QCheckBox, QComboBox
+from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
 from PySide2.QtUiTools import QUiLoader
 
@@ -51,7 +50,7 @@ VM_IFACE_PAGE = 5
 
 
 class WebEnginePage(QWebEnginePage):
-    navigation_request = Signal(str)
+    navigation_request = QtCore.Signal(str)
 
     def acceptNavigationRequest(self, url, _type, isMainFrame):
         # Если переходить по ссылке не требуется, возвращаем False, иначе True
@@ -72,9 +71,9 @@ class CustomWebEngineView(QWebEngineView):
         self.settings().setAttribute(QWebEngineSettings.PdfViewerEnabled, True)
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
-    ibutton_present = Signal(str)
+    ibutton_present = QtCore.Signal(str)
 
     def __init__(self, config_file):
         super().__init__()
@@ -111,7 +110,7 @@ class MainWindow(QMainWindow):
             self.vnc_port = int(self.config.get("general", "vnc_port"))
 
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
-            geometry = QRect(*map(int, self.config.get('window', 'geometry').split(';')))
+            geometry = QtCore.QRect(*map(int, self.config.get('window', 'geometry').split(';')))
             # Восстановить геометрию главного окна
             self.window.setGeometry(geometry)
 
@@ -123,7 +122,7 @@ class MainWindow(QMainWindow):
             logging.error(e)
 
         # Create the sidebar widget
-        self.sidebar_widget = QWidget()
+        self.sidebar_widget = QtWidgets.QWidget()
         self.sidebar_widget.setFixedWidth(230)  # Set a fixed width for the sidebar
         self.sidebar_widget.setContentsMargins(0, 0, 0, 0)
 
@@ -154,7 +153,7 @@ class MainWindow(QMainWindow):
         """)
 
         # Создать боковую панель с кнопками меню
-        sidebar_layout = QVBoxLayout(self.sidebar_widget)
+        sidebar_layout = QtWidgets.QVBoxLayout(self.sidebar_widget)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setSpacing(0)
 
@@ -170,18 +169,18 @@ class MainWindow(QMainWindow):
                    "Диагностика платы": "icons/diagnostic.png",
                    "Служебные операции": "icons/service_operations.png"
                    }
-        verticalSpacer = QSpacerItem(20, 15, QSizePolicy.Fixed)
+        verticalSpacer = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Fixed)
         sidebar_layout.addItem(verticalSpacer)
         for i, item in enumerate(buttons.items()):
-            button = QPushButton(item[0])
+            button = QtWidgets.QPushButton(item[0])
             button.setIcon(QIcon(item[1]))
             sidebar_layout.addWidget(button)
             # Связать событие нажания кнопки с обработчиком, передавая в обработчик номер кнопки
             button.clicked.connect(functools.partial(self.menu_action_triggered, i))
-        verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Preferred, QSizePolicy.Expanding)
+        verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sidebar_layout.addItem(verticalSpacer)
         # Вставить созданный менеджер компоновки в нулевую позицию mainHorizontalLayout
-        self.window.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=Qt.AlignLeft)
+        self.window.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=QtCore.Qt.AlignLeft)
 
         # Динамически добавить панели в стек виджетов,
         # с последующим обращением к ним self.sys_load_panel и т.д.
@@ -211,7 +210,7 @@ class MainWindow(QMainWindow):
                 for name, value in self.config.items(panel_name):
                     if isinstance(getattr(panel, name), QCheckBox):
                         getattr(panel, name).setChecked(strtobool(value))
-                    elif isinstance(getattr(panel, name), QLineEdit):
+                    elif isinstance(getattr(panel, name), QtWidgets.QLineEdit):
                         getattr(panel, name).setText(value)
                     elif isinstance(getattr(panel, name), QComboBox):
                         getattr(panel, name).setCurrentIndex(int(value))
@@ -272,7 +271,7 @@ class MainWindow(QMainWindow):
             logging.error(e)
 
         # Установка свойства в ui почему-то не работает, делаем здесь
-        self.window.passwd_line_edit.setEchoMode(QLineEdit.Password)
+        self.window.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
 
         # Связать сигнал и слоты
         self.window.enter_push_button.clicked.connect(self.check_passwd)
@@ -291,7 +290,7 @@ class MainWindow(QMainWindow):
 
         # Время до входа в систему, отображаемое в первых двух окнах
         self.remaining_time = REMAINING_TIME
-        self.timer = QTimer()
+        self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.decrease_remaining_time)
 
         # Подписаться на получение сигналов с шины bus и
@@ -315,7 +314,7 @@ class MainWindow(QMainWindow):
         # В зависимости от значения параметра show_on_startup отображаем указания к занятию,
         # интерфейс ПАК "Соболь" или интерфейс виртуальной машины
         if self.show_on_startup == "instruction":
-            url = QUrl.fromUserInput(self.instruction_url)
+            url = QtCore.QUrl.fromUserInput(self.instruction_url)
             self.webEngineView.load(url)
             self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
         elif self.show_on_startup == "tbm":
@@ -395,7 +394,7 @@ class MainWindow(QMainWindow):
         except KeyError as e:
             logging.info("Present unregistered iButton:", e)
         # Если введен неправильный пароль, перейти в начало
-        QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QMessageBox.Ok)
+        QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
         self.ibutton_present[str].connect(self.read_user_id)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
@@ -459,7 +458,7 @@ class MainWindow(QMainWindow):
     def check_user_passwd(self):
         '''Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности'''
         if self.user_actions_panel.passwd_line_edit_1.text() != self.user_actions_panel.passwd_line_edit_2.text():
-            QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QMessageBox.Ok)
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             return
         # TODO Далее выдать сообщение о предъявлении нового идентификатора
         new_user = {'passwd': self.user_actions_panel.passwd_line_edit_1.text(), 'user_name': self.user_actions_panel.user_name.text(), 'is_admin': False}
@@ -522,7 +521,7 @@ class MainWindow(QMainWindow):
                     self, "Выход", "Принудительно выключить виртуальную машину?",
                     QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes,
                     QtWidgets.QMessageBox.No)
-                if msg == QMessageBox.Yes:
+                if msg == QtWidgets.QMessageBox.Yes:
                     self.dom.destroy()
             # Закрыть соединение с libvirt
             self.conn.close()

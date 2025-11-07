@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>769</width>
+    <width>813</width>
     <height>633</height>
    </rect>
   </property>
@@ -236,6 +236,12 @@ QPushButton:hover {
               </property>
               <item row="0" column="0">
                <widget class="QLabel" name="user_name_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Имя пользователя:</string>
                 </property>
@@ -256,6 +262,12 @@ QPushButton:hover {
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="user_id_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Идентификатор:</string>
                 </property>
@@ -276,6 +288,12 @@ QPushButton:hover {
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="last_login_datetime_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Время последнего входа:</string>
                 </property>
@@ -296,6 +314,12 @@ QPushButton:hover {
               </item>
               <item row="3" column="0">
                <widget class="QLabel" name="total_logins_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Общее количество входов:</string>
                 </property>
@@ -316,6 +340,12 @@ QPushButton:hover {
               </item>
               <item row="4" column="0">
                <widget class="QLabel" name="failed_logins_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Количество неудачных попыток входа:</string>
                 </property>
@@ -336,6 +366,12 @@ QPushButton:hover {
               </item>
               <item row="5" column="0">
                <widget class="QLabel" name="user_status_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Текущий статус пользователя:</string>
                 </property>
@@ -363,6 +399,12 @@ QPushButton:hover {
               </item>
               <item row="6" column="0">
                <widget class="QLabel" name="integrity_ctl_mode_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Режим контроля целостности:</string>
                 </property>
@@ -384,6 +426,12 @@ QPushButton:hover {
               </item>
               <item row="7" column="0">
                <widget class="QLabel" name="ext_media_prohib_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Запрет загрузки с внешних носителей:</string>
                 </property>
@@ -391,6 +439,12 @@ QPushButton:hover {
               </item>
               <item row="8" column="0">
                <widget class="QLabel" name="ch_passwd_prohib_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Запрет смены пароля:</string>
                 </property>
@@ -398,6 +452,12 @@ QPushButton:hover {
               </item>
               <item row="9" column="0">
                <widget class="QLabel" name="passwd_age_limit_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Ограничение срока действия пароля:</string>
                 </property>
@@ -405,6 +465,12 @@ QPushButton:hover {
               </item>
               <item row="10" column="0">
                <widget class="QLabel" name="user_id_change_label">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>32</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Смена аутентификатора при смене пароля:</string>
                 </property>
