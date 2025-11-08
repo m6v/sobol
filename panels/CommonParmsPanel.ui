@@ -94,7 +94,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>0</height>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -186,7 +186,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>0</height>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -253,6 +253,12 @@
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="max_failed_logons_label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>36</height>
+          </size>
+         </property>
          <property name="text">
           <string>Предельное число неудачных входов пользователя ( 0 - 255 ):</string>
          </property>
@@ -289,7 +295,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>32</height>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -302,7 +308,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>32</height>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -406,7 +412,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="default_pushb_button">
+       <widget class="QPushButton" name="default_push_button">
         <property name="minimumSize">
          <size>
           <width>120</width>

@@ -173,14 +173,13 @@ class MainWindow(QtWidgets.QMainWindow):
             button.setIcon(QIcon(item[1]))
             sidebar_layout.addWidget(button)
             # Связать событие нажания кнопки с обработчиком, передавая в обработчик номер кнопки
-            button.clicked.connect(functools.partial(self.show_panel, i))
+            button.clicked.connect(functools.partial(self.show_main_panel, i))
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sidebar_layout.addItem(verticalSpacer)
         # Вставить созданный менеджер компоновки в нулевую позицию mainHorizontalLayout
         self.window.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=QtCore.Qt.AlignLeft)
 
-        # Динамически добавить панели в стек виджетов,
-        # с последующим обращением к ним self.sys_load_panel и т.д.
+        # Динамически добавить панели в стек виджетов, с последующим обращением к ним self.sys_load_panel и т.д.
         self.panels = {'sys_load_panel': 'panels/SysLoadPanel.ui',
                        'work_mode_panel': 'panels/WorkModePanel.ui',
                        'user_list_panel': 'panels/UserListPanel.ui',
@@ -191,7 +190,8 @@ class MainWindow(QtWidgets.QMainWindow):
                        'passwd_change_panel': 'panels/PasswdChangePanel.ui',
                        'id_change_panel': 'panels/IdChangePanel.ui',
                        'diagnostic_panel': 'panels/DiagnosticPanel.ui',
-                       'service_operations_panel': 'panels/ServiceOperationsPanel.ui'
+                       'service_operations_panel': 'panels/ServiceOperationsPanel.ui',
+                       'user_actions_panel': 'panels/UserActionsPanel.ui'
                        }
         loader = QUiLoader()
         loader.registerCustomWidget(Toggle)
@@ -199,25 +199,19 @@ class MainWindow(QtWidgets.QMainWindow):
         for panel_name, ui_file in self.panels.items():
             # Динамически загрузить панели и добавить в stackedWidget
             panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
-            # Установить именем панели, для использования при установке сохраненных настроек
+            # Установить имя панели, для использования при установке сохраненных настроек
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
             self.window.stackedWidget.addWidget(getattr(self, panel_name))
 
-        # Добавляем панель с действиями по управлению пользователями
-        # отдельно от остальных, чтобы не сохранять настройки элементов
-        panel_name, ui_file = "user_actions_panel", "panels/UserActionsPanel.ui"
-        panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
-        setattr(self, panel_name, panel)
-        self.window.stackedWidget.addWidget(getattr(self, panel_name))
-
         # Установить открываемую при запуске панель
-        self.show_panel(0)
+        self.show_main_panel(0)
+        self.show_journal_panel(0)
 
-        self.sys_load_panel.save_push_button.clicked.connect(self.save_panel_settings)
-        self.common_parms_panel.save_push_button.clicked.connect(self.save_panel_settings)
-        self.passwd_parms_panel.save_push_button.clicked.connect(self.save_panel_settings)
-        self.integrity_control_panel.save_push_button.clicked.connect(self.save_panel_settings)
+        self.sys_load_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
+        self.common_parms_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
+        self.passwd_parms_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
+        self.integrity_control_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
 
         # TODO Продумать возможность переопределить свойство close панели
         self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
@@ -236,6 +230,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_actions_panel.passwd_line_edit_1.textChanged[str].connect(self.user_passwd_changed)
         self.user_actions_panel.passwd_line_edit_2.textChanged[str].connect(self.user_passwd_changed)
         self.user_actions_panel.next_push_button_3.clicked.connect(self.check_user_passwd)
+
+        self.event_journal_panel.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
+        self.event_journal_panel.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 1))
+        self.event_journal_panel.parms_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 2))
+        self.event_journal_panel.search_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 3))
+        self.event_journal_panel.select_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
+        self.event_journal_panel.cancel_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
+        self.event_journal_panel.select_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.selectAll)
+        self.event_journal_panel.clear_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.clearSelection)
+        self.event_journal_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.event_journal_panel))
+        self.event_journal_panel.events_type_search_check_box.clicked.connect(self.trigger_events_type_search)
+        self.event_journal_panel.events_time_search_check_box.clicked.connect(self.trigger_events_time_search)
 
         self.update_user_list_panel()
 
@@ -344,11 +350,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ibutton_present[str].connect(self.read_user_id)
             self.timer.start(1000)
 
-    def show_panel(self, index):
-        '''Показать выбранную панель настроек'''
+    def show_main_panel(self, index):
+        '''Показать выбранную панель настроек с сохраненными настройками'''
         self.window.stackedWidget.setCurrentIndex(index)
         # Установить значения элементов выбранной панели в соответствии с настройками
         panel = self.window.stackedWidget.widget(index)
+        self.set_panel_settings(panel)
+
+    def show_journal_panel(self, index):
+        '''Показать выбранную панель журнала событий'''
+        self.event_journal_panel.journal_stacked_widget.setCurrentIndex(index)
+        self.set_panel_settings(self.event_journal_panel)
+
+    def set_panel_settings(self, panel):
+        '''Установить настройки панели panel'''
         panel_name = panel.objectName()
         # Прочитать значения сохраненных настроек в секции panel_name и
         # в соответствии с ними установить значения элементов
@@ -363,9 +378,8 @@ class MainWindow(QtWidgets.QMainWindow):
         except configparser.NoSectionError as e:
             logging.debug(e)
 
-    def save_panel_settings(self):
-        '''Сохранить настройки текущей панели'''
-        panel = self.window.stackedWidget.currentWidget()
+    def save_panel_settings(self, panel):
+        '''Сохранить настройки панели panel'''
         panel_name = panel.objectName()
         logging.debug(f"Save {panel_name} settings")
         for name, obj in inspect.getmembers(getattr(self, panel_name)):
@@ -383,6 +397,21 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.config.add_section(panel_name)
                 self.config.set(panel_name, name, str(value))
 
+    def save_current_panel_settings(self):
+        '''Сохранить настройки текущей панели'''
+        self.save_panel_settings(self.window.stackedWidget.currentWidget())
+
+    def trigger_events_time_search(self):
+        '''Изменить состояние элементов управления фильтрации событий по времени'''
+        self.event_journal_panel.events_start_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
+        self.event_journal_panel.events_end_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
+
+    def trigger_events_type_search(self):
+        '''Изменить состояние элементов управления фильтрации событий по типам'''
+        self.event_journal_panel.events_type_list_widget.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
+        self.event_journal_panel.select_all_push_button.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
+        self.event_journal_panel.clear_all_push_button.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
+
     def decrease_remaining_time(self):
         '''Уменьшить счетчик времени до входа в систему'''
         self.remaining_time -= 1
@@ -399,7 +428,7 @@ class MainWindow(QtWidgets.QMainWindow):
         '''Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля'''
         logging.info("iButton %s is presented" % user_id)
         self.user_id = user_id
-        # Отключаем обработчик "прикладывания" iButton
+        # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[str].disconnect()
         self.window.id_label.setText("iButton %s" % self.user_id)
         # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
@@ -543,7 +572,7 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(self.config_file, "w") as file:
             self.config.write(file)
 
-        # Если ВМ запущена спросить о принудительном выключении
+        # Если ВМ запущена, спросить о принудительном выключении
         try:
             if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
                 msg = QtWidgets.QMessageBox.question(

@@ -8,7 +8,7 @@ vnc_addr = 127.0.0.1
 vnc_port = 5901
 
 [window]
-geometry = 189;31;1343;1008
+geometry = 519;184;1430;1161
 state = 0
 
 [sys_load_panel]
@@ -21,26 +21,28 @@ ch_passwd_prohib = False
 ext_media_prohib = False
 integrity_ctl_mode = 0
 passwd_age_limit = False
-user_id_change = True
-user_status = 1
+user_id_change = False
+user_status = 0
 
 [common_parms_panel]
-autologon_time_line_edit = 
-max_failed_logons_line_edit = 
-rnd_testing_attempt_line_edit = 
-show_stats_check_box = False
+autologon_time_line_edit = 0
+max_failed_logons_line_edit = 10
+rnd_testing_attempt_line_edit = 3
+show_stats_check_box = True
 sound_signals_check_box = False
-time_limit_line_edit = 
-timer_testing_period_line_edit = 
-wait_timer_line_edit = 
+time_limit_line_edit = 2
+timer_testing_period_line_edit = 0
+wait_timer_line_edit = 20
+alrorithm_combo_box = 0
+max_records_combo_box = 0
 
 [passwd_parms_panel]
-changed_symbols_lineedit = 
+changed_symbols_lineedit = 0
 digit_present_check_box = False
 lowercase_letter_check_box = False
-min_passwd_len_line_edit = 
-passwd_age_line_edit = 
-passwd_difficulty_check_box = False
+min_passwd_len_line_edit = 8
+passwd_age_line_edit = 120
+passwd_difficulty_check_box = True
 repeating_char_check_box = False
 repeating_digit_check_box = False
 special_char_check_box = False
@@ -56,4 +58,11 @@ smbios_ctl_check_box = False
 templates_ctl_software_combo_box = 0
 templates_dir_line_edit = /sobol
 templates_volume_combo_box = -1
+
+[event_journal_panel]
+file_name_line_edit = 
+journal_audit_period_combo_box = 12
+journal_max_size_line_edit = 1000
+journal_messages_overwriting_check_box = False
+volume_combo_box = -1
 

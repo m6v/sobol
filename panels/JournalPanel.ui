@@ -6,28 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>952</width>
-    <height>698</height>
+    <width>930</width>
+    <height>711</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="leftMargin">
-    <number>0</number>
-   </property>
-   <property name="topMargin">
-    <number>0</number>
-   </property>
-   <property name="rightMargin">
-    <number>0</number>
-   </property>
-   <property name="bottomMargin">
-    <number>0</number>
-   </property>
+  <layout class="QVBoxLayout" name="verticalLayout_7">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontal_layout_2">
      <item>
       <widget class="QPushButton" name="view_journal_push_button">
        <property name="text">
@@ -50,7 +38,7 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_1">
+      <spacer name="horizontal_spacer_1">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -65,9 +53,9 @@
     </layout>
    </item>
    <item>
-    <widget class="QStackedWidget" name="stackedWidget">
+    <widget class="QStackedWidget" name="journal_stacked_widget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="view_journal_page">
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -75,6 +63,12 @@
         <layout class="QHBoxLayout" name="middle_horizontal_layout">
          <item>
           <widget class="QLabel" name="view_journal_label">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>36</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>12</pointsize>
@@ -89,7 +83,7 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_2">
+          <spacer name="horizontal_spacer_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -109,7 +103,7 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_4">
+          <spacer name="horizontal_spacer_5">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -127,7 +121,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QTableWidget" name="tableWidget">
+        <widget class="QTableWidget" name="table_widget">
          <column>
           <property name="text">
            <string>Время</string>
@@ -161,7 +155,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="widget" native="true">
+        <widget class="QWidget" name="view_buttons_widget" native="true">
          <property name="styleSheet">
           <string notr="true">background-color: #f5f5f5;</string>
          </property>
@@ -182,7 +176,7 @@
            <number>8</number>
           </property>
           <item>
-           <spacer name="horizontalSpacer">
+           <spacer name="horizontal_spacer_4">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -205,14 +199,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="find_journal_push_button">
+           <widget class="QPushButton" name="search_journal_push_button">
             <property name="text">
              <string>Поиск</string>
             </property>
            </widget>
           </item>
           <item>
-           <spacer name="horizontalSpacer_3">
+           <spacer name="horizontal_spacer_3">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -235,6 +229,12 @@
         <layout class="QHBoxLayout" name="middle_horizontal_layout_2">
          <item>
           <widget class="QLabel" name="view_journal_label_2">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>36</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>12</pointsize>
@@ -249,7 +249,7 @@
           </widget>
          </item>
          <item>
-          <spacer name="horizontalSpacer_5">
+          <spacer name="horizontal_spacer_7">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -267,31 +267,20 @@
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="1" column="0">
-            <widget class="QLabel" name="file_name_label">
-             <property name="text">
-              <string>Имя файла:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLineEdit" name="file_name_line_edit">
-             <property name="minimumSize">
-              <size>
-               <width>240</width>
-               <height>0</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
             <widget class="QLabel" name="volune_label">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>36</height>
+              </size>
+             </property>
              <property name="text">
               <string>Том:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
+           <item row="0" column="1">
             <widget class="QComboBox" name="volume_combo_box">
              <property name="minimumSize">
               <size>
@@ -301,23 +290,50 @@
              </property>
             </widget>
            </item>
+           <item row="1" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <widget class="QLabel" name="file_name_label">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>36</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Имя файла:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontal_spacer_8">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
            <item row="1" column="1">
-            <spacer name="horizontalSpacer_8">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
+            <widget class="QLineEdit" name="file_name_line_edit">
+             <property name="minimumSize">
               <size>
-               <width>40</width>
-               <height>20</height>
+               <width>240</width>
+               <height>0</height>
               </size>
              </property>
-            </spacer>
+            </widget>
            </item>
           </layout>
          </item>
          <item>
-          <spacer name="horizontalSpacer_6">
+          <spacer name="horizontal_spacer_6">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -339,13 +355,13 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>455</height>
+           <height>444</height>
           </size>
          </property>
         </spacer>
        </item>
        <item>
-        <widget class="QWidget" name="widget_2" native="true">
+        <widget class="QWidget" name="export_buttons_widget" native="true">
          <property name="styleSheet">
           <string notr="true">background-color: #f5f5f5;</string>
          </property>
@@ -366,7 +382,7 @@
            <number>8</number>
           </property>
           <item>
-           <spacer name="horizontalSpacer_7">
+           <spacer name="horizontal_spacer_9">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -390,11 +406,743 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="parms_journal_page"/>
+     <widget class="QWidget" name="parms_journal_page">
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <layout class="QHBoxLayout" name="middle_horizontal_layout_3">
+         <item>
+          <widget class="QLabel" name="view_journal_label_3">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>36</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="text">
+            <string>Настройка параметров журнала событий</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontal_spacer_10">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="journal_max_size_label">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>36</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Максимальный размер журнала (100 - 1000):</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="journal_max_size_line_edit">
+             <property name="text">
+              <string>1000</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="journal_audit_period_label">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>36</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Периодичность аудита (мес.):</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QComboBox" name="journal_audit_period_combo_box">
+             <item>
+              <property name="text">
+               <string>0</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>1</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>3</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>5</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>6</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>7</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>9</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>10</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>11</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>12</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <widget class="QLabel" name="journal_messages_overwriting_label">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>36</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Перезапись событий:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="2" column="1">
+            <widget class="Toggle" name="journal_messages_overwriting_check_box">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>402</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QWidget" name="parms_buttons_widget" native="true">
+         <property name="styleSheet">
+          <string notr="true">background-color: #f5f5f5;</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <item>
+           <spacer name="horizontal_spacer_11">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="default_push_button">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>По умолчанию</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="cancel_push_button">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Отмена</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="save_push_button">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Сохранить</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="search_journal_page">
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_11">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <layout class="QHBoxLayout" name="middle_horizontal_layout_4">
+             <item>
+              <widget class="QLabel" name="search_parms_label">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>36</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>Параметры поиска</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontal_spacer_12">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="0" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_10">
+               <item>
+                <widget class="Toggle" name="events_time_search_check_box">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>36</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Поиск по времени события</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="events_start_time_label">
+               <property name="text">
+                <string>Начало событий (ЧЧ:ММ ДД/ММ/ГГГГ):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="events_start_time_line_edit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <spacer name="horizontalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="events_end_time_label">
+               <property name="text">
+                <string>Окончание событий (ЧЧ:ММ ДД/ММ/ГГГГ):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="events_end_time_line_edit">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <layout class="QHBoxLayout" name="horizontal_layout_11">
+               <item>
+                <widget class="Toggle" name="events_type_search_check_box">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>36</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>Поиск по типу событий</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_8">
+             <item>
+              <widget class="QListWidget" name="events_type_list_widget">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>600</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="selectionMode">
+                <enum>QAbstractItemView::MultiSelection</enum>
+               </property>
+               <item>
+                <property name="text">
+                 <string>Автоматический расчет КС</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Администратор сменил пароль пользователя</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Администратор сменил свой пароль</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Время/дата установки пароля опережает системное</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Вход администратора</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Вход пользователя</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Добавлен новый пользователь</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Запрос: Добавление пользователя</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Запрос: Удаление пользователя</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Идентификатор не зарегистрирован</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Изменение шаблонов КЦ</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Изменены параметры загрузочного диска</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Изменены системное время и дата</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Импорт ресурсов</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Не рассчитаны контрольные суммы</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Неправильный пароль</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Несоответствие идентификатора запроса</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Обнаружен перевод системного времени назад</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Обновление ключа КЦ</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Обработаны внешние запросы</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ошибка КС в памяти идентификатора</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ошибка внешнего запроса</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ошибка обновления ключа КЦ</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ошибка при контроле целостности</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Ошибка при экспорте журнала событий</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Перерасчет контрольных сумм</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Переход в автономный режим</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_5">
+               <item>
+                <widget class="QPushButton" name="select_all_push_button">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Выделить все</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="clear_all_push_button">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>Очистить все</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="verticalSpacer_3">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QWidget" name="parms_buttons_widget_2" native="true">
+         <property name="styleSheet">
+          <string notr="true">background-color: #f5f5f5;</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <item>
+           <spacer name="horizontal_spacer_13">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="cancel_parms_push_button">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Отмена</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="select_parms_push_button">
+            <property name="minimumSize">
+             <size>
+              <width>120</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Выбрать</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Toggle</class>
+   <extends>QCheckBox</extends>
+   <header>toggle</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
