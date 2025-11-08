@@ -33,7 +33,7 @@
     <item>
      <widget class="QStackedWidget" name="main_stacked_widget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="BackgroundedWidget" name="auth_id_page">
        <property name="styleSheet">
@@ -107,7 +107,7 @@
             <item>
              <widget class="QLabel" name="remaining_time_label_1">
               <property name="text">
-               <string>До окончания входа в систему осталось: 120 сек.</string>
+               <string/>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -294,7 +294,7 @@ QLineEdit {
         <item>
          <widget class="QLabel" name="remaining_time_label_2">
           <property name="text">
-           <string>До окончания входа в систему осталось: 120 сек.</string>
+           <string/>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>

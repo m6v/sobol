@@ -35,10 +35,7 @@ if hasattr(sys, "_MEIPASS"):
     INITIAL_DIR = os.path.dirname(sys.executable)
 
 # Для логирования в файл, добавить filename='app.log' иначе лог в консоль
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
-
-# Время, отводимое на вход в систему
-REMAINING_TIME = 120
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
 # Индексы панелей
 WAIT_ID_PAGE = 0
@@ -176,7 +173,7 @@ class MainWindow(QtWidgets.QMainWindow):
             button.setIcon(QIcon(item[1]))
             sidebar_layout.addWidget(button)
             # Связать событие нажания кнопки с обработчиком, передавая в обработчик номер кнопки
-            button.clicked.connect(functools.partial(self.menu_action_triggered, i))
+            button.clicked.connect(functools.partial(self.show_panel, i))
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sidebar_layout.addItem(verticalSpacer)
         # Вставить созданный менеджер компоновки в нулевую позицию mainHorizontalLayout
@@ -185,45 +182,42 @@ class MainWindow(QtWidgets.QMainWindow):
         # Динамически добавить панели в стек виджетов,
         # с последующим обращением к ним self.sys_load_panel и т.д.
         self.panels = {'sys_load_panel': 'panels/SysLoadPanel.ui',
-                  'work_mode_panel': 'panels/WorkModePanel.ui',
-                  'user_list_panel': 'panels/UserListPanel.ui',
-                  'event_journal_panel': 'panels/JournalPanel.ui',
-                  'common_parms_panel': 'panels/CommonParmsPanel.ui',
-                  'passwd_parms_panel': 'panels/PasswdParmsPanel.ui',
-                  'integrity_control_panel': 'panels/IntegrityControlPanel.ui',
-                  'passwd_change_panel': 'panels/PasswdChangePanel.ui',
-                  'id_change_panel': 'panels/IdChangePanel.ui',
-                  'diagnostic_panel': 'panels/DiagnosticPanel.ui',
-                  'service_operations_panel': 'panels/ServiceOperationsPanel.ui'
-                  }
+                       'work_mode_panel': 'panels/WorkModePanel.ui',
+                       'user_list_panel': 'panels/UserListPanel.ui',
+                       'event_journal_panel': 'panels/JournalPanel.ui',
+                       'common_parms_panel': 'panels/CommonParmsPanel.ui',
+                       'passwd_parms_panel': 'panels/PasswdParmsPanel.ui',
+                       'integrity_control_panel': 'panels/IntegrityControlPanel.ui',
+                       'passwd_change_panel': 'panels/PasswdChangePanel.ui',
+                       'id_change_panel': 'panels/IdChangePanel.ui',
+                       'diagnostic_panel': 'panels/DiagnosticPanel.ui',
+                       'service_operations_panel': 'panels/ServiceOperationsPanel.ui'
+                       }
         loader = QUiLoader()
         loader.registerCustomWidget(Toggle)
 
         for panel_name, ui_file in self.panels.items():
             # Динамически загрузить панели и добавить в stackedWidget
             panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
+            # Установить именем панели, для использования при установке сохраненных настроек
+            panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
             self.window.stackedWidget.addWidget(getattr(self, panel_name))
-            # Прочитать значения сохраненных настроек в секции panel_name и
-            # в соответствии с ними установить значения элементов
-            try:
-                for name, value in self.config.items(panel_name):
-                    if isinstance(getattr(panel, name), QCheckBox):
-                        getattr(panel, name).setChecked(strtobool(value))
-                    elif isinstance(getattr(panel, name), QtWidgets.QLineEdit):
-                        getattr(panel, name).setText(value)
-                    elif isinstance(getattr(panel, name), QComboBox):
-                        getattr(panel, name).setCurrentIndex(int(value))
 
-            except configparser.NoSectionError as e:
-                logging.debug(e)
-
-        # Добавляем панель с действиями по управлению польователями
+        # Добавляем панель с действиями по управлению пользователями
         # отдельно от остальных, чтобы не сохранять настройки элементов
         panel_name, ui_file = "user_actions_panel", "panels/UserActionsPanel.ui"
         panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
         setattr(self, panel_name, panel)
         self.window.stackedWidget.addWidget(getattr(self, panel_name))
+
+        # Установить открываемую при запуске панель
+        self.show_panel(0)
+
+        self.sys_load_panel.save_push_button.clicked.connect(self.save_panel_settings)
+        self.common_parms_panel.save_push_button.clicked.connect(self.save_panel_settings)
+        self.passwd_parms_panel.save_push_button.clicked.connect(self.save_panel_settings)
+        self.integrity_control_panel.save_push_button.clicked.connect(self.save_panel_settings)
 
         # TODO Продумать возможность переопределить свойство close панели
         self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
@@ -288,10 +282,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # Идентификатор считанной iButton
         self.user_id = ""
 
-        # Время до входа в систему, отображаемое в первых двух окнах
-        self.remaining_time = REMAINING_TIME
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.decrease_remaining_time)
+        # Время до входа в систему, отображаемое в первых двух окнах
+        self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
+        # Если 0, то не обрабатывать таймаут
+        if self.remaining_time:
+            self.timer.timeout.connect(self.decrease_remaining_time)
 
         # Подписаться на получение сигналов с шины bus и
         # установить функцию обратного вызова для обработки сигнала
@@ -348,9 +344,44 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ibutton_present[str].connect(self.read_user_id)
             self.timer.start(1000)
 
-    def menu_action_triggered(self, index):
-        '''Обработать событие выбора элемента меню настроек'''
+    def show_panel(self, index):
+        '''Показать выбранную панель настроек'''
         self.window.stackedWidget.setCurrentIndex(index)
+        # Установить значения элементов выбранной панели в соответствии с настройками
+        panel = self.window.stackedWidget.widget(index)
+        panel_name = panel.objectName()
+        # Прочитать значения сохраненных настроек в секции panel_name и
+        # в соответствии с ними установить значения элементов
+        try:
+            for name, value in self.config.items(panel_name):
+                if isinstance(getattr(panel, name), QCheckBox):
+                    getattr(panel, name).setChecked(strtobool(value))
+                elif isinstance(getattr(panel, name), QLineEdit):
+                    getattr(panel, name).setText(value)
+                elif isinstance(getattr(panel, name), QComboBox):
+                    getattr(panel, name).setCurrentIndex(int(value))
+        except configparser.NoSectionError as e:
+            logging.debug(e)
+
+    def save_panel_settings(self):
+        '''Сохранить настройки текущей панели'''
+        panel = self.window.stackedWidget.currentWidget()
+        panel_name = panel.objectName()
+        logging.debug(f"Save {panel_name} settings")
+        for name, obj in inspect.getmembers(getattr(self, panel_name)):
+            # Сохранить установки только для элементов типа QLineEdit, QCheckBox и QComboBox
+            if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
+                name = obj.objectName()
+                if isinstance(obj, QCheckBox):
+                    value = obj.isChecked()
+                elif isinstance(obj, QLineEdit):
+                    value = obj.text()
+                elif isinstance(obj, QComboBox):
+                    value = obj.currentIndex()
+                # Если отсутствует, то создать секцию с именем, соответствующим названию панели
+                if not self.config.has_section(panel_name):
+                    self.config.add_section(panel_name)
+                self.config.set(panel_name, name, str(value))
 
     def decrease_remaining_time(self):
         '''Уменьшить счетчик времени до входа в систему'''
@@ -501,8 +532,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, e):
         logging.debug("closeEvent %s" % e)
 
-        self.save_settings(*self.panels)
-
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.window.geometry().getRect()
         # Преобразовать элементы кортежа в строки и разделить символом ';'
@@ -530,24 +559,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.vnc.stop()
         logging.info("Disconnected from VNC server")
-
-    def save_settings(self, *panels):
-        '''Сохранить настройки панелей, названия которых указанны в принимаемом кортеже'''
-        for panel in panels:
-            for name, obj in inspect.getmembers(getattr(self, panel)):
-                # Сохранить установки только для элементов типа QLineEdit и QCheckBox
-                if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
-                    name = obj.objectName()
-                    if isinstance(obj, QCheckBox):
-                        value = obj.isChecked()
-                    elif isinstance(obj, QLineEdit):
-                        value = obj.text()
-                    elif isinstance(obj, QComboBox):
-                        value = obj.currentIndex()
-                    # Если отсутствует, то создать секцию с именем, соответствующим названию панели
-                    if not self.config.has_section(panel):
-                        self.config.add_section(panel)
-                    self.config.set(panel, name, str(value))
 
     def domain_event_callback(self, conn, dom, event, detail, opaque):
         '''Функция обратного вызова для обработки сообщений libvirt'''
