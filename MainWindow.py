@@ -572,8 +572,10 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(self.config_file, "w") as file:
             self.config.write(file)
 
-        # Если ВМ запущена, спросить о принудительном выключении
         try:
+            self.vnc.stop()
+            logging.info("Disconnected from VNC server")
+            # Если ВМ запущена, спросить о принудительном выключении
             if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
                 msg = QtWidgets.QMessageBox.question(
                     self, "Выход", "Принудительно выключить виртуальную машину?",
@@ -585,9 +587,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.conn.close()
         except (AttributeError, libvirt.libvirtError) as e:
             logging.warning("Ошибка: %s" % e)
-
-        self.vnc.stop()
-        logging.info("Disconnected from VNC server")
 
     def domain_event_callback(self, conn, dom, event, detail, opaque):
         '''Функция обратного вызова для обработки сообщений libvirt'''
