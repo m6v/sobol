@@ -47,15 +47,10 @@ class QVNCWidget(QWidget, RFBClient):
                  readOnly = False):
         super().__init__(parent=parent)
 
-        # В реализации на основе PySide не корректно работает
+        # В отличии от PyQt5 в реадизации на основе PySide не корректно работает
         # множественное наследование от QWidget и RFBClient,
-        # поэтому следуюшие 6 свойств вместо конструктора RFBClient создаем здесь
-        self.host = host
-        self.port = port
-        self.password = password
-        self.sharedConn = True
-        self._requestFrameBufferUpdate = True
-        self._incrementalFrameBufferUpdate = True
+        # поэтому приходится вызывать инициализатор RFBClient явно
+        RFBClient.__init__(self, host, port)
 
         self.readOnly = readOnly
 

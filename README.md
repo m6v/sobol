@@ -126,3 +126,7 @@ NB! Из перечисленных пакетов вручную ставили
 ## Установка в Astra Linux 1.7.4
 sudo -i
 apt install python3-pyside2.qtuitools python3-pyside2.qtwebengine python3-pyside2.qtwebenginewidgets
+
+## Видеоруководства
+https://yandex.ru/video/preview/11134341846140738338
+https://dzen.ru/video/watch/610957f659eaef364db52115

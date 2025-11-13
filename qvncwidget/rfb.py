@@ -83,6 +83,7 @@ class RFBClient:
         self._requestFrameBufferUpdate = keepRequesting
         self._incrementalFrameBufferUpdate = requestIncremental
 
+        self.connection = None
         self._mainLoop: Thread = None
 
     def __recv(self, expectedSize: int = None, maxSize=MAX_BUFF_SIZE) -> bytes:

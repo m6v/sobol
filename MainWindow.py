@@ -19,6 +19,7 @@ from pydbus import SessionBus
 from gi.repository import GLib
 
 from qvncwidget import QVNCWidget
+from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING
 
 from BackgroundedWidget import BackgroundedWidget
 from toggle import Toggle
@@ -35,7 +36,7 @@ if hasattr(sys, "_MEIPASS"):
     INITIAL_DIR = os.path.dirname(sys.executable)
 
 # Для логирования в файл, добавить filename='app.log' иначе лог в консоль
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
 # Индексы панелей
 WAIT_ID_PAGE = 0
@@ -95,9 +96,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи (пароль, имя и др.)
             self.users = eval(self.config.get("general", "users"))
             # Имя виртуальной машины
-            self.vm_name = self.config.get("general", "vm_name")
-            # Название виртуальной машины в заголовок окна
-            self.window.setWindowTitle(self.config.get("general", "vm_caption"))
+            self.domain_name = self.config.get("general", "domain_name")
             # Панель, отображаемая при запуске (instruction - инструкция, tbm - средство доверенной загрузки, vm - виртуальная машина)
             self.show_on_startup = self.config.get("general", "show_on_startup")
             # Адрес инструкции к выполнению задания
@@ -106,6 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.vnc_addr = self.config.get("general", "vnc_addr")
             self.vnc_port = int(self.config.get("general", "vnc_port"))
 
+            self.window.setWindowTitle(self.config.get("window", "title"))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
             geometry = QtCore.QRect(*map(int, self.config.get('window', 'geometry').split(';')))
             # Восстановить геометрию главного окна
@@ -154,18 +154,19 @@ class MainWindow(QtWidgets.QMainWindow):
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setSpacing(0)
 
-        buttons = {"Загрузка ОС": "icons/sys_load.png",
-                   "Режим работы": "icons/work_mode.png",
-                   "Список пользователей": "icons/users_list.png",
-                   "Журнал событий": "icons/journal.png",
-                   "Общие параметры": "icons/common_parms.png",
-                   "Параметры паролей": "icons/passwd_parms.png",
-                   "Контроль целостности": "icons/integrity_control.png",
-                   "Смена пароля": "icons/passwd_change.png",
-                   "Смена аутентификатора": "icons/user_id_change.png",
-                   "Диагностика платы": "icons/diagnostic.png",
-                   "Служебные операции": "icons/service_operations.png"
-                   }
+        buttons = {
+            "Загрузка ОС": "icons/sys_load.png",
+            "Режим работы": "icons/work_mode.png",
+            "Список пользователей": "icons/users_list.png",
+            "Журнал событий": "icons/journal.png",
+            "Общие параметры": "icons/common_parms.png",
+            "Параметры паролей": "icons/passwd_parms.png",
+            "Контроль целостности": "icons/integrity_control.png",
+            "Смена пароля": "icons/passwd_change.png",
+            "Смена аутентификатора": "icons/user_id_change.png",
+            "Диагностика платы": "icons/diagnostic.png",
+            "Служебные операции": "icons/service_operations.png"
+        }
         verticalSpacer = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Fixed)
         sidebar_layout.addItem(verticalSpacer)
         for i, item in enumerate(buttons.items()):
@@ -180,19 +181,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=QtCore.Qt.AlignLeft)
 
         # Динамически добавить панели в стек виджетов, с последующим обращением к ним self.sys_load_panel и т.д.
-        self.panels = {'sys_load_panel': 'panels/SysLoadPanel.ui',
-                       'work_mode_panel': 'panels/WorkModePanel.ui',
-                       'user_list_panel': 'panels/UserListPanel.ui',
-                       'event_journal_panel': 'panels/JournalPanel.ui',
-                       'common_parms_panel': 'panels/CommonParmsPanel.ui',
-                       'passwd_parms_panel': 'panels/PasswdParmsPanel.ui',
-                       'integrity_control_panel': 'panels/IntegrityControlPanel.ui',
-                       'passwd_change_panel': 'panels/PasswdChangePanel.ui',
-                       'id_change_panel': 'panels/IdChangePanel.ui',
-                       'diagnostic_panel': 'panels/DiagnosticPanel.ui',
-                       'service_operations_panel': 'panels/ServiceOperationsPanel.ui',
-                       'user_actions_panel': 'panels/UserActionsPanel.ui'
-                       }
+        self.panels = {
+            'sys_load_panel': 'panels/SysLoadPanel.ui',
+            'work_mode_panel': 'panels/WorkModePanel.ui',
+            'user_list_panel': 'panels/UserListPanel.ui',
+            'event_journal_panel': 'panels/JournalPanel.ui',
+            'common_parms_panel': 'panels/CommonParmsPanel.ui',
+            'passwd_parms_panel': 'panels/PasswdParmsPanel.ui',
+            'integrity_control_panel': 'panels/IntegrityControlPanel.ui',
+            'passwd_change_panel': 'panels/PasswdChangePanel.ui',
+            'id_change_panel': 'panels/IdChangePanel.ui',
+            'diagnostic_panel': 'panels/DiagnosticPanel.ui',
+            'service_operations_panel': 'panels/ServiceOperationsPanel.ui',
+            'user_actions_panel': 'panels/UserActionsPanel.ui'
+        }
         loader = QUiLoader()
         loader.registerCustomWidget(Toggle)
 
@@ -213,7 +215,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.passwd_parms_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
         self.integrity_control_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
 
-        # TODO Продумать возможность переопределить свойство close панели
         self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
         self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
         self.user_actions_panel.cancel_push_button_3.clicked.connect(self.close_user_ctl_wizard)
@@ -245,10 +246,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.update_user_list_panel()
 
-        # state - состояние виртуальной машины, которое возвращается как число из перечисления virDomainState
-        # reason - причина перехода в определённое состояние, которая возвращается как число из перечисления virDomain*Reason
-        self.vm_state = False
-        self.vm_reason = False
         try:
             # Register the default event implementation
             libvirt.virEventRegisterDefaultImpl()
@@ -259,9 +256,11 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 logging.info("Подключение к libvirt успешно")
 
-            self.dom = self.conn.lookupByName(self.vm_name)
-            self.vm_state, self.vm_reason = self.dom.state()
-            logging.info("Domain %s state: %s, reason: %s" % (self.dom.name(), self.vm_state, self.vm_reason))
+            self.dom = self.conn.lookupByName(self.domain_name)
+            # state - состояние виртуальной машины (число из перечисления virDomainState)
+            # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
+            state, reason = self.dom.state()
+            logging.info(f"Domain {self.dom.name()}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}, reason: {reason}")
 
             # Зарегистрировать функцию обратного вызова для обработки событий от libvirt для всех доменов
             self.conn.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE, self.domain_event_callback, None)
@@ -311,6 +310,7 @@ class MainWindow(QtWidgets.QMainWindow):
             password="",
             readOnly=False
         )
+        self.vnc.installEventFilter(self)
         self.window.main_stacked_widget.addWidget(self.vnc)
 
         # В зависимости от значения параметра show_on_startup отображаем указания к занятию,
@@ -326,14 +326,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
         # не является окном, поэтому метод closeEvent для него не определен
-        # Для выполнения действий при закрытии окна с загруженным виджетом
-        # фильтруем события и при возникновении события Close вызываем необходимый метод
+        # Для выполнения действий при закрытии окна с загруженным виджетом необходимо
+        # фильтровать события и при возникновении события Close вызвать необходимый метод
         self.window.installEventFilter(self)
         self.window.show()
 
     def eventFilter(self, watched, event):
+        ''' Обработчик событий'''
+        # Фильтр, перехватывающий возникновении события Close у виджетов, к которым он применен
         if watched is self.window and event.type() == QtCore.QEvent.Close:
             self.closeEvent(event)
+        # Фильтр, перехватывающий нажатия клавиш у виджетов, к которым он применен
+        if event.type() == QtCore.QEvent.KeyPress:
+            logging.info(f"KeyPress: {event.key()}")
+            # Перехватить нажатия Tab, и передать в self.vnc, иначе фокус ввода уйдет из виджета
+            if event.key() == QtCore.Qt.Key_Tab:
+                self.vnc.keyPressEvent(event)
+                return True
         return super().eventFilter(watched, event)
 
     def init_training(self, url):
@@ -341,7 +350,8 @@ class MainWindow(QtWidgets.QMainWindow):
            или интерфейсом виртуальной машины, если она уже запущена'''
         logging.debug(url)
 
-        if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
+        state, _ = self.dom.state()
+        if state == libvirt.VIR_DOMAIN_RUNNING:
             # ВМ уже запущена, поэтому открыть панель с ее интерфейсом
             self.load_sys()
         else:
@@ -462,11 +472,12 @@ class MainWindow(QtWidgets.QMainWindow):
         '''Открыть панель с интерфейсом виртуальной машины'''
         try:
             # Если виртуальная машина не запущена, запустить ее
-            if self.vm_state != libvirt.VIR_DOMAIN_RUNNING:
+            state, _ = self.dom.state()
+            if state != libvirt.VIR_DOMAIN_RUNNING:
                 self.dom.create()
-                logging.info("ВМ %s запущена" % self.vm_name)
+                logging.info("Domain %s created" % self.domain_name)
         except (AttributeError, libvirt.libvirtError) as e:
-            logging.warning("Ошибка: %s" % e)
+            logging.warning(e)
 
         self.window.main_stacked_widget.setCurrentIndex(VM_IFACE_PAGE)
         # Установить фокус на виджете, иначе не будет работать клавиатурный ввод
@@ -573,10 +584,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.config.write(file)
 
         try:
+            self.webEngineView.deleteLater()
             self.vnc.stop()
             logging.info("Disconnected from VNC server")
             # Если ВМ запущена, спросить о принудительном выключении
-            if self.vm_state == libvirt.VIR_DOMAIN_RUNNING:
+            state, _ = self.dom.state()
+            if state == libvirt.VIR_DOMAIN_RUNNING:
                 msg = QtWidgets.QMessageBox.question(
                     self, "Выход", "Принудительно выключить виртуальную машину?",
                     QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes,
@@ -590,7 +603,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def domain_event_callback(self, conn, dom, event, detail, opaque):
         '''Функция обратного вызова для обработки сообщений libvirt'''
-        domain_name = dom.name()
+        # см.: https://github.com/mishal23/libvirt-VM-info
+        state, maxmem, mem, cpus, _cput = dom.info()
+        logging.info(f"Domain {dom.name()}, event: {VIR_DOMAIN_EVENT_MAPPING.get(event)}, detail: {detail}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}")
+
         if event == libvirt.VIR_DOMAIN_SHUTOFF:
-            logging.info("VM '%s' has shut off" % domain_name)
+            logging.info("Domain '%s' has shut off" % dom.name())
             self.close()

@@ -1,7 +1,6 @@
+from qvncwidget.pyDes import des
 
-import pyDes
-
-class RFBDes(pyDes.des):
+class RFBDes(des):
     def setKey(self, key):
         """
         RFB protocol for authentication requires client to encrypt
