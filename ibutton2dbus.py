@@ -8,6 +8,7 @@ __licence__ = 'GNU Public Licence (GPL) v3'
 
 import functools
 import logging
+import json
 import os
 import pathlib
 import signal
@@ -24,11 +25,16 @@ from PyQt5.Qt import QApplication, QIcon, QAction
 DBusGMainLoop(set_as_default=True)
 
 appname = pathlib.Path(os.path.realpath(__file__)).stem
+config = appname + ".json"
 logfile = appname + ".log"
 # Если понадобится логирование в файл, добавить параметр filename='app.log'
 logging.basicConfig(filename=logfile, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 logging.info("%s started" % appname)
 
+with open(config) as file:
+    ibuttons = json.load(file)
+
+logging.info(ibuttons)
 
 class MyService(dbus.service.Object):
     def __init__(self, bus_name, object_path):
@@ -61,22 +67,24 @@ if __name__ == '__main__':
     tray_icon.setIcon(QIcon("icons/ibutton.png"))
     tray_icon.show()
 
-    def ibutton_action_triggered(index):
-        logging.info("Reading iButton:%i" % index)
+    def ibutton_action_triggered(item):
+        logging.info(f"Reading iButton: {item}")
         # Вызвать метод
         # reply = bus_interface.SayHello()
-        # reply = bus_interface.StringEcho(index)
+        # reply = bus_interface.StringEcho(item)
         # print(reply)
         # Отправить сигнал
-        service_object.MySignal("iButton:%i" % index)
+        service_object.MySignal(item)
 
     tray_menu = QtWidgets.QMenu()
     actions = []
-    for i in range(10):
-        action = QAction("iButton id:%s" % i)
+    for i in ibuttons:
+        print(i)
+        action = QAction(i)
         action.triggered.connect(functools.partial(ibutton_action_triggered, i))
         tray_menu.addAction(action)
         actions.append(action)
+
 
     tray_icon.setContextMenu(tray_menu)
 

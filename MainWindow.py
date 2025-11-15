@@ -357,8 +357,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def cb_server_signal_emission(self, *args):
         '''Функция обратного вызова для обработки сигнала с dBus'''
         logging.info("Recieve message: %s", args)
-        id = args[4][0].split(":")[1]
-        self.ibutton_present.emit(id)
+        # id = args[4][0].split(":")[1]
+        # self.ibutton_present.emit(id)
+        self.ibutton_present.emit(args[4][0])
 
     def check_passwd(self):
         '''Проверить пароль'''
