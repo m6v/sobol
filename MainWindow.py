@@ -7,19 +7,11 @@ import os
 import sys
 from distutils.util import strtobool
 
-import libvirt
-
-from PySide2 import QtCore, QtWidgets
-from PySide2.QtGui import QIcon
+from PySide2 import QtCore, QtGui, QtUiTools, QtWidgets
 from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
-from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage, QWebEngineSettings
-from PySide2.QtUiTools import QUiLoader
 
 from pydbus import SessionBus
 from gi.repository import GLib
-
-from qvncwidget import QVNCWidget
-from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING
 
 from BackgroundedWidget import BackgroundedWidget
 from toggle import Toggle
@@ -36,7 +28,7 @@ if hasattr(sys, "_MEIPASS"):
     INITIAL_DIR = os.path.dirname(sys.executable)
 
 # Для логирования в файл, добавить filename='app.log' иначе лог в консоль
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
 
 # Индексы панелей
 WAIT_ID_PAGE = 0
@@ -47,28 +39,6 @@ WEB_VIEW_PAGE = 4
 VM_IFACE_PAGE = 5
 
 
-class WebEnginePage(QWebEnginePage):
-    navigation_request = QtCore.Signal(str)
-
-    def acceptNavigationRequest(self, url, _type, isMainFrame):
-        # Если переходить по ссылке не требуется, возвращаем False, иначе True
-        if _type == QWebEnginePage.NavigationTypeLinkClicked:
-            logging.debug(url.path())
-            self.navigation_request.emit(url.path())
-            # Здесь можно будет анализировать url и в зависимости от него
-            # разрешать или запрещать переход по ссылке
-            return False
-        return True
-
-
-class CustomWebEngineView(QWebEngineView):
-    def __init__(self, *args, **kwargs):
-        QWebEngineView.__init__(self, *args, **kwargs)
-        self.setPage(WebEnginePage(self))
-        self.settings().setAttribute(QWebEngineSettings.PluginsEnabled, True)
-        self.settings().setAttribute(QWebEngineSettings.PdfViewerEnabled, True)
-
-
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
     ibutton_present = QtCore.Signal(str)
@@ -76,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, config_file):
         super().__init__()
 
-        loader = QUiLoader()
+        loader = QtUiTools.QUiLoader()
         loader.registerCustomWidget(BackgroundedWidget)
 
         self.window = loader.load(os.path.join(CURRENT_DIR, 'MainWindow.ui'), None)
@@ -171,7 +141,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sidebar_layout.addItem(verticalSpacer)
         for i, item in enumerate(buttons.items()):
             button = QtWidgets.QPushButton(item[0])
-            button.setIcon(QIcon(item[1]))
+            button.setIcon(QtGui.QIcon(item[1]))
             sidebar_layout.addWidget(button)
             # Связать событие нажания кнопки с обработчиком, передавая в обработчик номер кнопки
             button.clicked.connect(functools.partial(self.show_main_panel, i))
@@ -195,7 +165,7 @@ class MainWindow(QtWidgets.QMainWindow):
             'service_operations_panel': 'panels/ServiceOperationsPanel.ui',
             'user_actions_panel': 'panels/UserActionsPanel.ui'
         }
-        loader = QUiLoader()
+        loader = QtUiTools.QUiLoader()
         loader.registerCustomWidget(Toggle)
 
         for panel_name, ui_file in self.panels.items():
@@ -207,7 +177,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.window.stackedWidget.addWidget(getattr(self, panel_name))
 
         # Установить открываемую при запуске панель
-        self.show_main_panel(0)
+        self.show_main_panel(WAIT_ID_PAGE)
         self.show_journal_panel(0)
 
         self.sys_load_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
@@ -246,29 +216,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.update_user_list_panel()
 
-        try:
-            # Register the default event implementation
-            libvirt.virEventRegisterDefaultImpl()
-            # Открыть соединение с локальным гипервизором
-            self.conn = libvirt.open(None)
-            if self.conn is None:
-                logging.warning("Не удалось подключиться к libvirt")
-            else:
-                logging.info("Подключение к libvirt успешно")
-
-            self.dom = self.conn.lookupByName(self.domain_name)
-            # state - состояние виртуальной машины (число из перечисления virDomainState)
-            # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
-            state, reason = self.dom.state()
-            logging.info(f"Domain {self.dom.name()}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}, reason: {reason}")
-
-            # Зарегистрировать функцию обратного вызова для обработки событий от libvirt для всех доменов
-            self.conn.domainEventRegisterAny(None, libvirt.VIR_DOMAIN_EVENT_ID_LIFECYCLE, self.domain_event_callback, None)
-            # Проверить нужна команда или нет?!
-            libvirt.virEventRunDefaultImpl()
-        except libvirt.libvirtError as e:
-            logging.error(e)
-
         # Установка свойства в ui почему-то не работает, делаем здесь
         self.window.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
 
@@ -277,8 +224,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.passwd_line_edit.returnPressed.connect(self.check_passwd)
         # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
         self.window.go_settings_push_button.clicked.connect(functools.partial(self.window.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
-        self.window.sys_load_push_button.clicked.connect(self.load_sys)
-        self.sys_load_panel.sys_load_push_button.clicked.connect(self.load_sys)
+        # Вызов метода закрытия с передачей ему кода возврата для последующего анализа и запуска виртуальной машины
+        self.window.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
+        self.sys_load_panel.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
+
         self.user_list_panel.add_user_push_button.clicked.connect(self.add_user)
         self.user_list_panel.user_list_widget.itemClicked.connect(self.show_user_parms)
         self.user_list_panel.user_list_widget.itemActivated.connect(self.show_user_parms)
@@ -298,31 +247,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # установить функцию обратного вызова для обработки сигнала
         bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
 
-        # Добавить панель с веб-клиентом
-        self.webEngineView = CustomWebEngineView()
-        self.window.main_stacked_widget.addWidget(self.webEngineView)
-        self.webEngineView.page().navigation_request[str].connect(self.init_training)
-
-        # Добавить панель с VNC-клиентом
-        self.vnc = QVNCWidget(
-            parent=self,
-            host=self.vnc_addr, port=self.vnc_port,
-            password="",
-            readOnly=False
-        )
-        self.vnc.installEventFilter(self)
-        self.window.main_stacked_widget.addWidget(self.vnc)
-
-        # В зависимости от значения параметра show_on_startup отображаем указания к занятию,
-        # интерфейс ПАК "Соболь" или интерфейс виртуальной машины
-        if self.show_on_startup == "instruction":
-            url = QtCore.QUrl.fromUserInput(self.instruction_url)
-            self.webEngineView.load(url)
-            self.window.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
-        elif self.show_on_startup == "tbm":
-            self.init_training("")
-        else:
-            self.load_sys()
+        # Запустить таймер ожидания чтения идентификатора iButton
+        self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+        self.ibutton_present[str].connect(self.read_user_id)
+        self.timer.start(1000)
 
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
         # не является окном, поэтому метод closeEvent для него не определен
@@ -335,30 +263,9 @@ class MainWindow(QtWidgets.QMainWindow):
         ''' Обработчик событий'''
         # Фильтр, перехватывающий возникновении события Close у виджетов, к которым он применен
         if watched is self.window and event.type() == QtCore.QEvent.Close:
+            logging.info(f"Recieve event: {event}")
             self.closeEvent(event)
-        # Фильтр, перехватывающий нажатия клавиш у виджетов, к которым он применен
-        if event.type() == QtCore.QEvent.KeyPress:
-            logging.info(f"KeyPress: {event.key()}")
-            # Перехватить нажатия Tab, и передать в self.vnc, иначе фокус ввода уйдет из виджета
-            if event.key() == QtCore.Qt.Key_Tab:
-                self.vnc.keyPressEvent(event)
-                return True
         return super().eventFilter(watched, event)
-
-    def init_training(self, url):
-        '''Инициировать начало тренировки открытием панели с интерфейсом ПАК "Соболь"
-           или интерфейсом виртуальной машины, если она уже запущена'''
-        logging.debug(url)
-
-        state, _ = self.dom.state()
-        if state == libvirt.VIR_DOMAIN_RUNNING:
-            # ВМ уже запущена, поэтому открыть панель с ее интерфейсом
-            self.load_sys()
-        else:
-            # ВМ не запущена, поэтому ждать события о чтении идентификатора iButton
-            self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-            self.ibutton_present[str].connect(self.read_user_id)
-            self.timer.start(1000)
 
     def show_main_panel(self, index):
         '''Показать выбранную панель настроек с сохраненными настройками'''
@@ -468,24 +375,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ibutton_present[str].connect(self.read_user_id)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
-    def load_sys(self):
-        '''Открыть панель с интерфейсом виртуальной машины'''
-        try:
-            # Если виртуальная машина не запущена, запустить ее
-            state, _ = self.dom.state()
-            if state != libvirt.VIR_DOMAIN_RUNNING:
-                self.dom.create()
-                logging.info("Domain %s created" % self.domain_name)
-        except (AttributeError, libvirt.libvirtError) as e:
-            logging.warning(e)
-
-        self.window.main_stacked_widget.setCurrentIndex(VM_IFACE_PAGE)
-        # Установить фокус на виджете, иначе не будет работать клавиатурный ввод
-        self.vnc.setFocus()
-        # При необходимости трекинг мыши можно отключить (здесь не отключаем)
-        self.vnc.setMouseTracking(False)
-        self.vnc.start()
-
     def update_user_list_panel(self):
         '''Обновить панель со списком пользователей'''
         self.user_list_panel.user_list_widget.clear()
@@ -569,8 +458,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.users[user_id]["user_status"] = self.user_list_panel.user_status.currentIndex()
                 self.users[user_id]["integrity_ctl_mode"] = self.user_list_panel.integrity_ctl_mode.currentIndex()
 
-    def closeEvent(self, e):
-        logging.debug("closeEvent %s" % e)
+    def closeEvent(self, event):
+        logging.debug("closeEvent %s" % event)
 
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.window.geometry().getRect()
@@ -583,30 +472,11 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(self.config_file, "w") as file:
             self.config.write(file)
 
-        try:
-            self.webEngineView.deleteLater()
-            self.vnc.stop()
-            logging.info("Disconnected from VNC server")
-            # Если ВМ запущена, спросить о принудительном выключении
-            state, _ = self.dom.state()
-            if state == libvirt.VIR_DOMAIN_RUNNING:
-                msg = QtWidgets.QMessageBox.question(
-                    self, "Выход", "Принудительно выключить виртуальную машину?",
-                    QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes,
-                    QtWidgets.QMessageBox.No)
-                if msg == QtWidgets.QMessageBox.Yes:
-                    self.dom.destroy()
-            # Закрыть соединение с libvirt
-            self.conn.close()
-        except (AttributeError, libvirt.libvirtError) as e:
-            logging.warning("Ошибка: %s" % e)
+        if event is QtCore.QEvent.Type.Enter:
+            exit_code = True
+        else:
+            exit_code = False
 
-    def domain_event_callback(self, conn, dom, event, detail, opaque):
-        '''Функция обратного вызова для обработки сообщений libvirt'''
-        # см.: https://github.com/mishal23/libvirt-VM-info
-        state, maxmem, mem, cpus, _cput = dom.info()
-        logging.info(f"Domain {dom.name()}, event: {VIR_DOMAIN_EVENT_MAPPING.get(event)}, detail: {detail}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}")
-
-        if event == libvirt.VIR_DOMAIN_SHUTOFF:
-            logging.info("Domain '%s' has shut off" % dom.name())
-            self.close()
+        # Вместо self.window.close() используем exit, чтобы вернуть код возврата,
+        # для того, чтобы по нему понять нужно запускать виртуальную машину или нет
+        QtCore.QCoreApplication.exit(exit_code)
