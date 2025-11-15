@@ -1,7 +1,6 @@
 import configparser
 import functools
 import inspect
-import json
 import logging
 import os
 import sys
@@ -333,7 +332,9 @@ class MainWindow(QtWidgets.QMainWindow):
         '''Уменьшить счетчик времени до входа в систему'''
         self.remaining_time -= 1
         if self.remaining_time == 0:
-            self.remaining_time = REMAINING_TIME
+            # TODO Вместо сброса счетчика, блокировать вход для все пользователей, кроме администратора
+            logging.info("The waiting time has expired")
+            self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
             self.ibutton_present[str].connect(self.read_user_id)
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
@@ -394,7 +395,7 @@ class MainWindow(QtWidgets.QMainWindow):
         показать боковое меню и панель с списком пользователей'''
         self.sidebar_widget.show()
         self.window.stackedWidget.setCurrentWidget(self.user_list_panel)
-        
+
     def user_name_changed(self, text):
         '''Изменить состояние кнопки "Вперед" при вводе имени нового пользователя'''
         self.user_actions_panel.next_push_button_1.setEnabled(bool(len(text)))
@@ -403,14 +404,14 @@ class MainWindow(QtWidgets.QMainWindow):
         '''Проверить уникальность имени нового пользователя'''
         logging.info(self.user_actions_panel.user_name.text())
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_2)
-        
+
     def next_user_action_panel(self):
         '''Перейти на следующую панель мастера управления пользователями'''
         self.user_actions_panel.stacked_widget.setCurrentIndex(self.user_actions_panel.stacked_widget.currentIndex() + 1)
 
     def user_passwd_changed(self, text):
         '''Изменить состояние кнопки "Вперед" при наличии символов в обоих полях ввода пароля'''
-        if len(self.user_actions_panel.passwd_line_edit_1.text()) !=0 and len(self.user_actions_panel.passwd_line_edit_2.text()) !=0:
+        if len(self.user_actions_panel.passwd_line_edit_1.text()) != 0 and len(self.user_actions_panel.passwd_line_edit_2.text()) != 0:
             self.user_actions_panel.next_push_button_3.setEnabled(True)
         else:
             self.user_actions_panel.next_push_button_3.setEnabled(False)
@@ -424,7 +425,7 @@ class MainWindow(QtWidgets.QMainWindow):
         new_user = {'passwd': self.user_actions_panel.passwd_line_edit_1.text(), 'user_name': self.user_actions_panel.user_name.text(), 'is_admin': False}
         self.users['5'] = new_user
         self.next_user_action_panel()
-        
+
     def show_user_parms(self, item):
         '''Показать настройки пользователя переданного в item'''
         for user_id, user in self.users.items():

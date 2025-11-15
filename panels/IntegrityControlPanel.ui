@@ -235,6 +235,12 @@
        </item>
        <item row="3" column="1">
         <widget class="Toggle" name="sectors_ctl_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -242,6 +248,12 @@
        </item>
        <item row="4" column="1">
         <widget class="Toggle" name="files_ctl_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -249,6 +261,12 @@
        </item>
        <item row="5" column="1">
         <widget class="Toggle" name="registry_ctl_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -256,6 +274,12 @@
        </item>
        <item row="7" column="1">
         <widget class="Toggle" name="smbios_ctl_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -263,6 +287,12 @@
        </item>
        <item row="8" column="1">
         <widget class="Toggle" name="journal_ctl_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>

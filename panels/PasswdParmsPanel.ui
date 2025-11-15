@@ -95,6 +95,12 @@
        </item>
        <item row="1" column="1">
         <widget class="Toggle" name="passwd_difficulty_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -118,6 +124,12 @@
        </item>
        <item row="2" column="1">
         <widget class="Toggle" name="digit_present_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -141,6 +153,12 @@
        </item>
        <item row="3" column="1">
         <widget class="Toggle" name="upcase_letter_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -164,6 +182,12 @@
        </item>
        <item row="4" column="1">
         <widget class="Toggle" name="lowercase_letter_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -187,6 +211,12 @@
        </item>
        <item row="5" column="1">
         <widget class="Toggle" name="special_char_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -210,6 +240,12 @@
        </item>
        <item row="6" column="1">
         <widget class="Toggle" name="repeating_char_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -233,6 +269,12 @@
        </item>
        <item row="7" column="1">
         <widget class="Toggle" name="repeating_digit_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>

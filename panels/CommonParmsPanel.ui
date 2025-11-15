@@ -84,6 +84,12 @@
        </item>
        <item row="3" column="2">
         <widget class="Toggle" name="show_stats_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -150,6 +156,12 @@
        </item>
        <item row="9" column="2">
         <widget class="Toggle" name="sound_signals_check_box">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="text">
           <string/>
          </property>
