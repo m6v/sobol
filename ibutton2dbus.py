@@ -10,7 +10,6 @@ import functools
 import logging
 import json
 import os
-import pathlib
 import signal
 import sys
 
@@ -24,7 +23,8 @@ from PyQt5.Qt import QApplication, QIcon, QAction
 
 DBusGMainLoop(set_as_default=True)
 
-appname = pathlib.Path(os.path.realpath(__file__)).stem
+# Получить имя скрипта без расширения
+appname = os.path.splitext(os.path.basename(__file__))[0]
 config = appname + ".json"
 logfile = appname + ".log"
 # Если понадобится логирование в файл, добавить параметр filename='app.log'
@@ -47,6 +47,7 @@ class MyService(dbus.service.Object):
 
     @dbus.service.method('com.example.MyInterface', in_signature='s', out_signature='s')
     def SayHello(self, name):
+        '''Пример обработчика сигнала, принимающего строку name и вовзращающего строку f"Hello, {name}!"'''
         logging.info(f"Received SayHello call from {name}")
         return f"Hello, {name}!"
 
@@ -68,12 +69,11 @@ if __name__ == '__main__':
     tray_icon.show()
 
     def ibutton_action_triggered(item):
+        '''Отправить сигнал, содержащий строку, переданную в аргументе item'''
         logging.info(f"Reading iButton: {item}")
-        # Вызвать метод
+        # TODO В финальной версии убрать комментарии с примерами кода
         # reply = bus_interface.SayHello()
         # reply = bus_interface.StringEcho(item)
-        # print(reply)
-        # Отправить сигнал
         service_object.MySignal(item)
 
     tray_menu = QtWidgets.QMenu()
@@ -84,7 +84,6 @@ if __name__ == '__main__':
         action.triggered.connect(functools.partial(ibutton_action_triggered, i))
         tray_menu.addAction(action)
         actions.append(action)
-
 
     tray_icon.setContextMenu(tray_menu)
 
