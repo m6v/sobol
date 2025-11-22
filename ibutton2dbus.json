@@ -1,7 +1,7 @@
 {
-    "iButton_0": {"name": "Иванов", "passwd": "Aa123456"},
-    "iButton_1": {"name": "Смирнов", "passwd": "Aa123456"},
-    "iButton_2": {"name": "Кузнецов", "passwd": "Aa123456"},
-    "iButton_3": {"name": "Попов", "passwd": "Aa123456"},
-    "iButton_4": {"name": "Васильев", "passwd": "Aa123456"}
+    "iButton_0": {"name": "Иванов", "passwd": "Aa123456", "primary_auth": "", "secondary_auth": ""},
+    "iButton_1": {"name": "Смирнов", "passwd": "Aa123456", "primary_auth": "", "secondary_auth": ""},
+    "iButton_2": {"name": "Кузнецов", "passwd": "Aa123456", "primary_auth": "", "secondary_auth": ""},
+    "iButton_3": {"name": "Попов", "passwd": "Aa123456", "primary_auth": "", "secondary_auth": ""},
+    "iButton_4": {"name": "Васильев", "passwd": "Aa123456", "primary_auth": "", "secondary_auth": ""}
 }

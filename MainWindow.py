@@ -10,13 +10,13 @@ from PySide2 import QtCore, QtGui, QtUiTools, QtWidgets
 from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
 
 from pydbus import SessionBus
-from gi.repository import GLib
 
 from BackgroundedWidget import BackgroundedWidget
 from toggle import Toggle
 
-loop = GLib.MainLoop()
-dbus_filter = "/com/example/MyService"
+path = "/com/example/MyService"
+# При использовании модуля pydbus использования GLib.MainLoop не требуется,
+# т.к. используется цикл обработки QApplication
 bus = SessionBus()
 
 INITIAL_DIR = CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -26,8 +26,8 @@ if hasattr(sys, "_MEIPASS"):
     # Путь к временному каталогу взять из sys.executable
     INITIAL_DIR = os.path.dirname(sys.executable)
 
-# Для логирования в файл, добавить filename='app.log' иначе лог в консоль
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
+# Для логирования в файл, добавить filename="app.log" иначе лог в консоль
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
 # Индексы панелей
 WAIT_ID_PAGE = 0
@@ -48,7 +48,7 @@ class MainWindow(QtWidgets.QMainWindow):
         loader = QtUiTools.QUiLoader()
         loader.registerCustomWidget(BackgroundedWidget)
 
-        self.window = loader.load(os.path.join(CURRENT_DIR, 'MainWindow.ui'), None)
+        self.window = loader.load(os.path.join(CURRENT_DIR, "MainWindow.ui"), None)
 
         # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
         # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
@@ -76,11 +76,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.window.setWindowTitle(self.config.get("window", "title"))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
-            geometry = QtCore.QRect(*map(int, self.config.get('window', 'geometry').split(';')))
+            geometry = QtCore.QRect(*map(int, self.config.get("window", "geometry").split(";")))
             # Восстановить геометрию главного окна
             self.window.setGeometry(geometry)
 
-            state = int(self.config.get('window', 'state'))
+            state = int(self.config.get("window", "state"))
             self.window.restoreState(bytearray(state))
         except configparser.NoOptionError as e:
             logging.warning(e)
@@ -95,7 +95,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Apply background image using QSS
         self.sidebar_widget.setStyleSheet("""
             QWidget {
-                font: 9pt 'Monospace Regular';
+                font: 9pt "Monospace Regular";
                 background-image: url(sidebar.png);
                 background-repeat: no-repeat;
                 background-position: up;
@@ -151,18 +151,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Динамически добавить панели в стек виджетов, с последующим обращением к ним self.sys_load_panel и т.д.
         self.panels = {
-            'sys_load_panel': 'panels/SysLoadPanel.ui',
-            'work_mode_panel': 'panels/WorkModePanel.ui',
-            'user_list_panel': 'panels/UserListPanel.ui',
-            'event_journal_panel': 'panels/JournalPanel.ui',
-            'common_parms_panel': 'panels/CommonParmsPanel.ui',
-            'passwd_parms_panel': 'panels/PasswdParmsPanel.ui',
-            'integrity_control_panel': 'panels/IntegrityControlPanel.ui',
-            'passwd_change_panel': 'panels/PasswdChangePanel.ui',
-            'id_change_panel': 'panels/IdChangePanel.ui',
-            'diagnostic_panel': 'panels/DiagnosticPanel.ui',
-            'service_operations_panel': 'panels/ServiceOperationsPanel.ui',
-            'user_actions_panel': 'panels/UserActionsPanel.ui'
+            "sys_load_panel": "panels/SysLoadPanel.ui",
+            "work_mode_panel": "panels/WorkModePanel.ui",
+            "user_list_panel": "panels/UserListPanel.ui",
+            "event_journal_panel": "panels/JournalPanel.ui",
+            "common_parms_panel": "panels/CommonParmsPanel.ui",
+            "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
+            "integrity_control_panel": "panels/IntegrityControlPanel.ui",
+            "passwd_change_panel": "panels/PasswdChangePanel.ui",
+            "id_change_panel": "panels/IdChangePanel.ui",
+            "diagnostic_panel": "panels/DiagnosticPanel.ui",
+            "service_operations_panel": "panels/ServiceOperationsPanel.ui",
+            "user_actions_panel": "panels/UserActionsPanel.ui"
         }
         loader = QtUiTools.QUiLoader()
         loader.registerCustomWidget(Toggle)
@@ -244,7 +244,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Подписаться на получение сигналов с шины bus и
         # установить функцию обратного вызова для обработки сигнала
-        bus.subscribe(object=dbus_filter, signal_fired=self.cb_server_signal_emission)
+        bus.subscribe(object=path, signal_fired=self.ibutton_signal_handler)
 
         # Запустить таймер ожидания чтения идентификатора iButton
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
@@ -339,24 +339,24 @@ class MainWindow(QtWidgets.QMainWindow):
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
             # TODO Перевести секунды в минуты и секунды
-            self.window.remaining_time_label_1.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
-            self.window.remaining_time_label_2.setText("До окончания входа в систему осталось: %s сек." % self.remaining_time)
+            self.window.remaining_time_label_1.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
+            self.window.remaining_time_label_2.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
 
     def read_user_id(self, user_id):
         '''Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля'''
-        logging.info("iButton %s is presented" % user_id)
+        logging.info(f"iButton {user_id} is presented")
         self.user_id = user_id
         # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[str].disconnect()
-        self.window.id_label.setText("iButton %s" % self.user_id)
+        self.window.id_label.setText(f"iButton {self.user_id}")
         # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
         self.window.passwd_line_edit.setText("")
         self.window.passwd_line_edit.setFocus()
         self.window.main_stacked_widget.setCurrentIndex(PASSWD_PAGE)
 
-    def cb_server_signal_emission(self, *args):
+    def ibutton_signal_handler(self, *args):
         '''Функция обратного вызова для обработки сигнала с dBus'''
-        logging.info("Recieve message: %s", args)
+        logging.info(f"Recieve message: {args}")
         # id = args[4][0].split(":")[1]
         # self.ibutton_present.emit(id)
         self.ibutton_present.emit(args[4][0])
@@ -423,15 +423,15 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             return
         # TODO Далее выдать сообщение о предъявлении нового идентификатора
-        new_user = {'passwd': self.user_actions_panel.passwd_line_edit_1.text(), 'user_name': self.user_actions_panel.user_name.text(), 'is_admin': False}
-        self.users['5'] = new_user
+        new_user = {"passwd": self.user_actions_panel.passwd_line_edit_1.text(), "user_name": self.user_actions_panel.user_name.text(), "is_admin": False}
+        self.users["5"] = new_user
         self.next_user_action_panel()
 
     def show_user_parms(self, item):
         '''Показать настройки пользователя переданного в item'''
         for user_id, user in self.users.items():
             if item.text() == user["user_name"]:
-                logging.info("Selected user is %s" % user)
+                logging.info(f"Selected user is {user}")
                 try:
                     self.user_list_panel.user_id.setText(user_id)
                     self.user_list_panel.user_name.setText(user["user_name"])
@@ -450,7 +450,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def save_user_parms(self):
         '''Сохранить настройки выбранного в списке пользователя'''
         item = self.user_list_panel.user_list_widget.currentItem()
-        logging.info("Selected user is %s" % item.text())
+        logging.info(f"Selected user is {item.text()}")
         for user_id, user in self.users.items():
             if item.text() == user["user_name"]:
                 self.users[user_id]["ext_media_prohib"] = self.user_list_panel.ext_media_prohib.isChecked()
@@ -461,11 +461,11 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.users[user_id]["integrity_ctl_mode"] = self.user_list_panel.integrity_ctl_mode.currentIndex()
 
     def closeEvent(self, event):
-        logging.debug("closeEvent %s" % event)
+        logging.debug(f"closeEvent {event}")
 
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.window.geometry().getRect()
-        # Преобразовать элементы кортежа в строки и разделить символом ';'
+        # Преобразовать элементы кортежа в строки и разделить символом ;
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
         self.config.set("window", "state", str(int(self.window.windowState())))
         # Сохранить учетные записи пользователей
