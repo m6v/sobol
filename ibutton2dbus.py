@@ -24,17 +24,14 @@ DBusGMainLoop(set_as_default=True)
 
 # Получить имя скрипта без расширения
 appname = os.path.splitext(os.path.basename(__file__))[0]
-config = appname + ".json"
 logfile = appname + ".log"
 
-logging.basicConfig(filename=logfile, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+# Если требуется логирование в файл добавить аргумент filename=logfile
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logging.info("%s started" % appname)
 
-with open(config) as file:
+with open("ibuttons.json") as file:
     ibuttons = json.load(file)
-
-logging.info(ibuttons)
-
 
 class MyService(dbus.service.Object):
     def __init__(self, bus_name, object_path):

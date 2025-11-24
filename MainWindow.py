@@ -9,15 +9,14 @@ from distutils.util import strtobool
 from PySide2 import QtCore, QtGui, QtUiTools, QtWidgets
 from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
 
-from pydbus import SessionBus
+import dbus
+import dbus.mainloop.glib
 
 from BackgroundedWidget import BackgroundedWidget
 from toggle import Toggle
 
-path = "/com/example/MyService"
-# При использовании модуля pydbus использования GLib.MainLoop не требуется,
-# т.к. используется цикл обработки QApplication
-bus = SessionBus()
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+bus = dbus.SessionBus()
 
 INITIAL_DIR = CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 # Если установлена переменная окружения _MEIPASS, программа запущена
@@ -242,9 +241,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.remaining_time:
             self.timer.timeout.connect(self.decrease_remaining_time)
 
-        # Подписаться на получение сигналов с шины bus и
-        # установить функцию обратного вызова для обработки сигнала
-        bus.subscribe(object=path, signal_fired=self.ibutton_signal_handler)
+        # Установить функцию обратного вызова для обработки сигнала MySignal
+        bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.MyService', signal_name = "MySignal")
 
         # Запустить таймер ожидания чтения идентификатора iButton
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
@@ -348,18 +346,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_id = user_id
         # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[str].disconnect()
-        self.window.id_label.setText(f"iButton {self.user_id}")
+        self.window.id_label.setText(self.user_id)
         # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
         self.window.passwd_line_edit.setText("")
         self.window.passwd_line_edit.setFocus()
         self.window.main_stacked_widget.setCurrentIndex(PASSWD_PAGE)
 
-    def ibutton_signal_handler(self, *args):
+    def ibutton_signal_handler(self, message):
         '''Функция обратного вызова для обработки сигнала с dBus'''
-        logging.info(f"Recieve message: {args}")
-        # id = args[4][0].split(":")[1]
-        # self.ibutton_present.emit(id)
-        self.ibutton_present.emit(args[4][0])
+        logging.info(f"Recieve message: {message}")
+        self.ibutton_present.emit(message)
 
     def check_passwd(self):
         '''Проверить пароль'''
@@ -381,8 +377,8 @@ class MainWindow(QtWidgets.QMainWindow):
         '''Обновить панель со списком пользователей'''
         self.user_list_panel.user_list_widget.clear()
         for user in self.users.values():
-            if not user["is_admin"]:
-                self.user_list_panel.user_list_widget.addItem(user["user_name"])
+            # TODO Исключить из списка администратора безопасности
+            self.user_list_panel.user_list_widget.addItem(user["user_name"])
         self.user_list_panel.user_list_widget.setCurrentRow(0)
 
     def add_user(self):
@@ -423,7 +419,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             return
         # TODO Далее выдать сообщение о предъявлении нового идентификатора
-        new_user = {"passwd": self.user_actions_panel.passwd_line_edit_1.text(), "user_name": self.user_actions_panel.user_name.text(), "is_admin": False}
+        new_user = {"passwd": self.user_actions_panel.passwd_line_edit_1.text(), "user_name": self.user_actions_panel.user_name.text()}
         self.users["5"] = new_user
         self.next_user_action_panel()
 
