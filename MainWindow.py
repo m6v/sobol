@@ -86,12 +86,13 @@ class MainWindow(QtWidgets.QMainWindow):
         except configparser.NoSectionError as e:
             logging.error(e)
 
-        # Create the sidebar widget
+        # Создать боковую панель (sidebar)
         self.sidebar_widget = QtWidgets.QWidget()
-        self.sidebar_widget.setFixedWidth(230)  # Set a fixed width for the sidebar
+        # Установить фиксированную ширину боковой панели
+        self.sidebar_widget.setFixedWidth(230)
         self.sidebar_widget.setContentsMargins(0, 0, 0, 0)
 
-        # Apply background image using QSS
+        # Настроить параметры отображения боковой панели
         self.sidebar_widget.setStyleSheet("""
             QWidget {
                 font: 9pt "Monospace Regular";
@@ -117,7 +118,7 @@ class MainWindow(QtWidgets.QMainWindow):
            }
         """)
 
-        # Создать боковую панель с кнопками меню
+        # Создать менеджер компоновки с кнопками меню
         sidebar_layout = QtWidgets.QVBoxLayout(self.sidebar_widget)
         sidebar_layout.setContentsMargins(0, 0, 0, 0)
         sidebar_layout.setSpacing(0)
@@ -145,7 +146,7 @@ class MainWindow(QtWidgets.QMainWindow):
             button.clicked.connect(functools.partial(self.show_main_panel, i))
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sidebar_layout.addItem(verticalSpacer)
-        # Вставить созданный менеджер компоновки в нулевую позицию mainHorizontalLayout
+        # Вставить созданный менеджер компоновки в нулевую позицию менеджера компоновки главного окна (mainHorizontalLayout)
         self.window.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=QtCore.Qt.AlignLeft)
 
         # Динамически добавить панели в стек виджетов, с последующим обращением к ним self.sys_load_panel и т.д.
@@ -174,14 +175,15 @@ class MainWindow(QtWidgets.QMainWindow):
             setattr(self, panel_name, panel)
             self.window.stackedWidget.addWidget(getattr(self, panel_name))
 
-        # Установить открываемую при запуске панель
+        # При запуске открыть панель WAIT_ID_PAGE
         self.show_main_panel(WAIT_ID_PAGE)
+
         self.show_journal_panel(0)
 
-        self.sys_load_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
-        self.common_parms_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
-        self.passwd_parms_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
-        self.integrity_control_panel.save_push_button.clicked.connect(self.save_current_panel_settings)
+        self.sys_load_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.sys_load_panel))
+        self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.common_parms_panel))
+        self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.passwd_parms_panel))
+        self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
 
         self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
         self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
@@ -257,7 +259,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.show()
 
     def eventFilter(self, watched, event):
-        ''' Обработчик событий'''
+        """Обработчик событий"""
         # Фильтр, перехватывающий возникновении события Close у виджетов, к которым он применен
         if watched is self.window and event.type() == QtCore.QEvent.Close:
             logging.info(f"Recieve event: {event}")
@@ -265,20 +267,21 @@ class MainWindow(QtWidgets.QMainWindow):
         return super().eventFilter(watched, event)
 
     def show_main_panel(self, index):
-        '''Показать выбранную панель настроек с сохраненными настройками'''
+        """Показать выбранную панель настроек с сохраненными настройками"""
         self.window.stackedWidget.setCurrentIndex(index)
         # Установить значения элементов выбранной панели в соответствии с настройками
         panel = self.window.stackedWidget.widget(index)
         self.set_panel_settings(panel)
 
     def show_journal_panel(self, index):
-        '''Показать выбранную панель журнала событий'''
+        """Показать выбранную панель журнала событий"""
         self.event_journal_panel.journal_stacked_widget.setCurrentIndex(index)
         self.set_panel_settings(self.event_journal_panel)
 
     def set_panel_settings(self, panel):
-        '''Установить настройки панели panel'''
+        """Установить настройки панели panel"""
         panel_name = panel.objectName()
+        logging.debug(f"Set {panel_name} settings")
         # Прочитать значения сохраненных настроек в секции panel_name и
         # в соответствии с ними установить значения элементов
         try:
@@ -293,11 +296,11 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.debug(e)
 
     def save_panel_settings(self, panel):
-        '''Сохранить настройки панели panel'''
+        """Сохранить настройки панели panel"""
         panel_name = panel.objectName()
         logging.debug(f"Save {panel_name} settings")
         for name, obj in inspect.getmembers(getattr(self, panel_name)):
-            # Сохранить установки только для элементов типа QLineEdit, QCheckBox и QComboBox
+            # Сохранить установки только для элементов перечисленных типов
             if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
                 name = obj.objectName()
                 if isinstance(obj, QCheckBox):
@@ -311,23 +314,19 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.config.add_section(panel_name)
                 self.config.set(panel_name, name, str(value))
 
-    def save_current_panel_settings(self):
-        '''Сохранить настройки текущей панели'''
-        self.save_panel_settings(self.window.stackedWidget.currentWidget())
-
     def trigger_events_time_search(self):
-        '''Изменить состояние элементов управления фильтрации событий по времени'''
+        """Изменить состояние элементов управления фильтрации событий по времени"""
         self.event_journal_panel.events_start_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
         self.event_journal_panel.events_end_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
 
     def trigger_events_type_search(self):
-        '''Изменить состояние элементов управления фильтрации событий по типам'''
+        """Изменить состояние элементов управления фильтрации событий по типам"""
         self.event_journal_panel.events_type_list_widget.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
         self.event_journal_panel.select_all_push_button.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
         self.event_journal_panel.clear_all_push_button.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
 
     def decrease_remaining_time(self):
-        '''Уменьшить счетчик времени до входа в систему'''
+        """Уменьшить счетчик времени до входа в систему"""
         self.remaining_time -= 1
         if self.remaining_time == 0:
             # TODO Вместо сброса счетчика, блокировать вход для все пользователей, кроме администратора
@@ -341,7 +340,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.window.remaining_time_label_2.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
 
     def read_user_id(self, user_id):
-        '''Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля'''
+        """Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля"""
         logging.info(f"iButton {user_id} is presented")
         self.user_id = user_id
         # Отключить обработчик "прикладывания" iButton
@@ -358,7 +357,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ibutton_present.emit(message)
 
     def check_passwd(self):
-        '''Проверить пароль'''
+        """Проверить пароль"""
         try:
             # Если введен правильный пароль, остановить таймер и
             # открыть панель выбора действия Загрузка ОС/Настройки
@@ -374,7 +373,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
     def update_user_list_panel(self):
-        '''Обновить панель со списком пользователей'''
+        """Обновить панель со списком пользователей"""
         self.user_list_panel.user_list_widget.clear()
         for user in self.users.values():
             # TODO Исключить из списка администратора безопасности
@@ -382,39 +381,39 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_list_panel.user_list_widget.setCurrentRow(0)
 
     def add_user(self):
-        '''Скрыть боковое меню и показать первую панель мастера создания нового пользователя'''
+        """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
         self.sidebar_widget.hide()
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_1)
         self.window.stackedWidget.setCurrentWidget(self.user_actions_panel)
 
     def close_user_ctl_wizard(self):
-        '''Отменить работу мастера создания нового пользователя,
-        показать боковое меню и панель с списком пользователей'''
+        """Отменить работу мастера создания нового пользователя,
+        показать боковое меню и панель с списком пользователей"""
         self.sidebar_widget.show()
         self.window.stackedWidget.setCurrentWidget(self.user_list_panel)
 
     def user_name_changed(self, text):
-        '''Изменить состояние кнопки "Вперед" при вводе имени нового пользователя'''
+        """Изменить состояние кнопки "Вперед" при вводе имени нового пользователя"""
         self.user_actions_panel.next_push_button_1.setEnabled(bool(len(text)))
 
     def check_user_name(self):
-        '''Проверить уникальность имени нового пользователя'''
+        """Проверить уникальность имени нового пользователя"""
         logging.info(self.user_actions_panel.user_name.text())
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_2)
 
     def next_user_action_panel(self):
-        '''Перейти на следующую панель мастера управления пользователями'''
+        """Перейти на следующую панель мастера управления пользователями"""
         self.user_actions_panel.stacked_widget.setCurrentIndex(self.user_actions_panel.stacked_widget.currentIndex() + 1)
 
     def user_passwd_changed(self, text):
-        '''Изменить состояние кнопки "Вперед" при наличии символов в обоих полях ввода пароля'''
+        """Изменить состояние кнопки "Вперед" при наличии символов в обоих полях ввода пароля"""
         if len(self.user_actions_panel.passwd_line_edit_1.text()) != 0 and len(self.user_actions_panel.passwd_line_edit_2.text()) != 0:
             self.user_actions_panel.next_push_button_3.setEnabled(True)
         else:
             self.user_actions_panel.next_push_button_3.setEnabled(False)
 
     def check_user_passwd(self):
-        '''Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности'''
+        """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
         if self.user_actions_panel.passwd_line_edit_1.text() != self.user_actions_panel.passwd_line_edit_2.text():
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             return
@@ -424,7 +423,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.next_user_action_panel()
 
     def show_user_parms(self, item):
-        '''Показать настройки пользователя переданного в item'''
+        """Показать настройки пользователя переданного в item"""
         for user_id, user in self.users.items():
             if item.text() == user["user_name"]:
                 logging.info(f"Selected user is {user}")
@@ -444,7 +443,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     logging.debug(e)
 
     def save_user_parms(self):
-        '''Сохранить настройки выбранного в списке пользователя'''
+        """Сохранить настройки выбранного в списке пользователя"""
         item = self.user_list_panel.user_list_widget.currentItem()
         logging.info(f"Selected user is {item.text()}")
         for user_id, user in self.users.items():

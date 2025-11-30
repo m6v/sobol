@@ -3,6 +3,7 @@
 ## Настройка взаимодействия с libvirt
 По дефолту в Astra Linux 1.7.4 использование libvirt работает только от рута
 Попытка подключения вызывает ошибку:
+```
 libvirt: XML-RPC error : Cannot recv data: Connection reset by peer
 Использование virsh также невозможно
 virsh -c qemu:///session list
@@ -11,28 +12,34 @@ error: failed to connect to the hypervisor
 sudo virsh -c qemu:///session list
  Id   Name   State
 --------------------
-
+```
 Логи journalctl показали ошибки доступа к файлу /etc/libvirt/prev_conf.conf
 После смены прав с 600 на 660 вместо предыдущей ошибки стала выводиться другая
 libvirt: QEMU Driver error : Domain not found: no domain with matching name 'arm-abi'
 
 В консоли virsh перестал выдавать ощибку, но список ВМ пустой
+```
 virsh list --all
  Id   Name   State
 --------------------
+```
 в то время как от root'а
+```
 sudo virsh list --all
  Id   Name      State
 --------------------------
  -    arm-abi   shut off
+```
 
 Причина оказалась в том, что "default for regular users is qemu:///session, for root is qemu:///system" (см. https://wiki.gentoo.org/wiki/Libvirt/libvirtd). Поэтому обычным пользователям нужно в явном виде указывать тип соединения
+```
 virsh -c qemu:///system list --all
  Id   Name      State
 --------------------------
  -    arm-abi   shut off
+```
 Чтобы все работалп у клиентов libvirt API необходимо установить переменную окружения IBVIRT_DEFAULT_URI
-export LIBVIRT_DEFAULT_URI=qemu:///system
+`export LIBVIRT_DEFAULT_URI=qemu:///system`
 
 Таким образом необходимо
 1) Поменять права доступа к файлу /etc/libvirt/prev_conf.conf (666 или 660 и группу из серии libvirt-quemu)
@@ -55,8 +62,10 @@ sudo setfacl -m d:u:$USER:rwx /var/lib/libvirt/images
 ## Скачивание novnc
 Для скачивания novnc
 раскомментировать в /etc/apt/sources.lst интернет репозитории Astra Linux
+```
 mkdir -p /tmp/novnc
 apt install -d -o=dir::cache=/tmp/novnc novnc
+```
 установить скачанные пакеты
 закомментировать в /etc/apt/sources.lst интернет репозитории Astra Linux
 
@@ -86,6 +95,7 @@ source venv_name/bin/activate
 
 Перед установкой в вируальном окружении можно посмотреть какие версии пакетов предусмотрены для системы пытаться установить их
 В виртуальном окружении установить
+```
 $python3 -m pip install PyQt5==5.15.7 (дефолтная версия PyQt5-5.15.11 при установке выдает ошибку)
                         PyQtWebEngine==5.14.0
                         libvirt-python==6.1.0 (предварительно в системе нужно поставить пакет libvirt-dev)
@@ -106,8 +116,9 @@ PyQt5-Qt5      5.15.17
 PyQt5-sip      12.15.0
 PyQtWebEngine  5.14.0 
 setuptools     44.0.0 
-
+```
 Версия для PySide2
+```
 $ pip list
 Package        Version 
 -------------- --------
@@ -120,12 +131,14 @@ pygobject      3.48.2
 PySide2        5.15.2.1
 setuptools     44.0.0  
 shiboken2      5.15.2.1
-
+```
 NB! Из перечисленных пакетов вручную ставились libvirt-python, pydbus, pygobject, PySide2, остальные подтянулись как зависимости
 
 ## Установка в Astra Linux 1.7.4
+```
 sudo -i
 apt install python3-pyside2.qtuitools python3-pyside2.qtwebengine python3-pyside2.qtwebenginewidgets
+```
 
 ## Видеоруководства
 https://yandex.ru/video/preview/11134341846140738338
