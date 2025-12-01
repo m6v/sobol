@@ -282,17 +282,17 @@ class MainWindow(QtWidgets.QMainWindow):
         """Установить настройки панели panel"""
         panel_name = panel.objectName()
         logging.debug(f"Set {panel_name} settings")
-        # Прочитать значения сохраненных настроек в секции panel_name и
-        # в соответствии с ними установить значения элементов
         try:
-            for name, value in self.config.items(panel_name):
-                if isinstance(getattr(panel, name), QCheckBox):
-                    getattr(panel, name).setChecked(strtobool(value))
-                elif isinstance(getattr(panel, name), QLineEdit):
-                    getattr(panel, name).setText(value)
-                elif isinstance(getattr(panel, name), QComboBox):
-                    getattr(panel, name).setCurrentIndex(int(value))
-        except configparser.NoSectionError as e:
+            # Прочитать значения сохраненных настроек в секции panel_name и
+            # в соответствии с ними установить значения элементов
+            for widget_name, value in self.config.items(panel_name):
+                if isinstance(getattr(panel, widget_name), QCheckBox):
+                    getattr(panel, widget_name).setChecked(strtobool(value))
+                elif isinstance(getattr(panel, widget_name), QLineEdit):
+                    getattr(panel, widget_name).setText(value)
+                elif isinstance(getattr(panel, widget_name), QComboBox):
+                    getattr(panel, widget_name).setCurrentIndex(int(value))
+        except (configparser.NoSectionError, AttributeError) as e:
             logging.debug(e)
 
     def save_panel_settings(self, panel):
@@ -302,7 +302,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for name, obj in inspect.getmembers(getattr(self, panel_name)):
             # Сохранить установки только для элементов перечисленных типов
             if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
-                name = obj.objectName()
+                widget_name = obj.objectName()
                 if isinstance(obj, QCheckBox):
                     value = obj.isChecked()
                 elif isinstance(obj, QLineEdit):
@@ -312,7 +312,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Если отсутствует, то создать секцию с именем, соответствующим названию панели
                 if not self.config.has_section(panel_name):
                     self.config.add_section(panel_name)
-                self.config.set(panel_name, name, str(value))
+                # Сохранить значение value в параметре widget_name секции panel_name,
+                self.config.set(panel_name, widget_name, str(value))
 
     def trigger_events_time_search(self):
         """Изменить состояние элементов управления фильтрации событий по времени"""
