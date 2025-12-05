@@ -48,39 +48,12 @@ if __name__ == '__main__':
         if state != libvirt.VIR_DOMAIN_RUNNING:
                 app = QApplication(sys.argv)
                 window = MainWindow(args.config_file)
-                # Если код возврата True, если не нулевой, то выйти, если 0 запустить виртуалку
+                # Если код возврата не нулевой, то выйти, иначе запустить виртуальную машину
                 if not app.exec_():
                     sys.exit(False)
-                # Запустить виртуалку
                 dom.create()
                 logging.info("Domain %s created" % domain_name)
         subprocess.Popen(["virt-viewer", domain_name])
-        '''
-        win_id = None
-        pattern = re.compile(r"(^\S*).*arm-abi.*")
-        ts = datetime.datetime.now()
-        # Повторять пока не найдено окно запущенной программы и не достигнут таймаут 1 сек
-
-        while (not win_id) and (datetime.datetime.now() - ts < datetime.timedelta(seconds=1)):
-            process = subprocess.Popen(["wmctrl", "-l"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            output, error = process.communicate()
-            lines = output.decode().splitlines()
-            for line in lines:
-                match = pattern.match(line)
-                if match:
-                    win_id = match.group(1)
-                    break
-
-        try:
-            if win_id:
-                x, y, w, h = Считать из конфига координаты окна
-                # Скорректировать координаты левого верхнего угла окна,
-                # т.к. они задаются с учетом и без учета заголовка и бордюра
-                geometry = f"1,{x - 6},{y - 28},{w},{h}"
-                subprocess.Popen(["wmctrl", "-ir", win_id, "-e", geometry])
-        except FileNotFoundError as e:
-            logging.error(e)
-        '''
 
     except libvirt.libvirtError as e:
         logging.error(e)

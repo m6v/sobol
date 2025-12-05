@@ -373,14 +373,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ibutton_present[str].connect(self.read_user_id)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
-    def update_user_list_panel(self):
-        """Обновить панель со списком пользователей"""
-        self.user_list_panel.user_list_widget.clear()
-        for user in self.users.values():
-            # TODO Исключить из списка администратора безопасности
-            self.user_list_panel.user_list_widget.addItem(user["user_name"])
-        self.user_list_panel.user_list_widget.setCurrentRow(0)
-
     def add_user(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
         self.sidebar_widget.hide()
@@ -422,6 +414,16 @@ class MainWindow(QtWidgets.QMainWindow):
         new_user = {"passwd": self.user_actions_panel.passwd_line_edit_1.text(), "user_name": self.user_actions_panel.user_name.text()}
         self.users["5"] = new_user
         self.next_user_action_panel()
+
+    def update_user_list_panel(self):
+        """Обновить панель со списком пользователей"""
+        self.user_list_panel.user_list_widget.clear()
+        for user in self.users.values():
+            # TODO Исключить из списка администратора безопасности
+            self.user_list_panel.user_list_widget.addItem(user["user_name"])
+        self.user_list_panel.user_list_widget.setCurrentRow(0)
+        # TODO Обновить настройки
+        self.show_user_parms(self.user_list_panel.user_list_widget.currentItem())
 
     def show_user_parms(self, item):
         """Показать настройки пользователя переданного в item"""
