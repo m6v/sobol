@@ -37,9 +37,9 @@ class MyService(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         dbus.service.Object.__init__(self, bus_name, object_path)
 
-    @dbus.service.signal("com.example.MyInterface", signature="s")
+    @dbus.service.signal("com.example.MyInterface", signature="a{sv}")
     def MySignal(self, message):
-        '''Отправить сигнал, содержащий строкоу'''
+        '''Отправить сигнал, содержащий словарь'''
         logging.info(f"Emitting MySignal with message: {message}")
 
 
@@ -59,15 +59,16 @@ if __name__ == "__main__":
     tray_icon.show()
 
     def ibutton_action_triggered(item):
-        '''Отправить сигнал, содержащий строку, переданную в аргументе item'''
+        '''Отправить сигнал, содержащий словарь item'''
         logging.info(f"Reading iButton: {item}")
         service_object.MySignal(item)
 
     tray_menu = QtWidgets.QMenu()
     actions = []
-    for i in ibuttons:
-        action = QAction(i)
-        action.triggered.connect(functools.partial(ibutton_action_triggered, i))
+    print(ibuttons)
+    for item in ibuttons:
+        action = QAction(item["id"])
+        action.triggered.connect(functools.partial(ibutton_action_triggered, item))
         tray_menu.addAction(action)
         actions.append(action)
 

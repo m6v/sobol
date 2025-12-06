@@ -355,7 +355,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def ibutton_signal_handler(self, message):
         '''Функция обратного вызова для обработки сигнала с dBus'''
         logging.info(f"Recieve message: {message}")
-        self.ibutton_present.emit(message)
+        self.ibutton_present.emit(message["id"])
 
     def check_passwd(self):
         """Проверить пароль"""
