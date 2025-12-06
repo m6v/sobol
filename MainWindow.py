@@ -228,7 +228,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
         self.sys_load_panel.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
 
-        self.user_list_panel.add_user_push_button.clicked.connect(self.add_user)
+        self.user_list_panel.add_user_push_button.clicked.connect(self.show_user_creation_wizard)
+        self.user_list_panel.del_user_push_button.clicked.connect(self.del_user)
         self.user_list_panel.user_list_widget.itemClicked.connect(self.show_user_parms)
         self.user_list_panel.user_list_widget.itemActivated.connect(self.show_user_parms)
         self.user_list_panel.save_push_button.clicked.connect(self.save_user_parms)
@@ -373,11 +374,50 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ibutton_present[dict].connect(self.read_ibutton)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
-    def add_user(self):
+    def show_user_creation_wizard(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
         self.sidebar_widget.hide()
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_1)
+        # Установить исходные значения виджетов
+        self.user_actions_panel.user_name.setText("")
+        self.user_actions_panel.passwd_line_edit_1.setText("")
+        self.user_actions_panel.passwd_line_edit_2.setText("")
+        self.user_actions_panel.ibutton_label.setText("Предъявите персональный идентификатор")
+        self.user_actions_panel.cancel_push_button_4.setEnabled(True)
+        self.user_actions_panel.finish_push_button_4.setEnabled(False)
+        
         self.window.stackedWidget.setCurrentWidget(self.user_actions_panel)
+
+    def add_user(self, message):
+        """Добавить пользователя"""
+        # Вызывается по сигналу предъявдения iButton
+        logging.info(message)
+        # Отключить обработчик "прикладывания" iButton
+        self.ibutton_present[dict].disconnect()
+        # Добавить новую запись в список пользователей
+        self.users.append({
+            "id": str(message["id"]),
+            "user_name": self.user_actions_panel.user_name.text(),
+            "last_login_datetime": "",
+            "total_logins": 0,
+            "failed_logins": 0,
+            "ext_media_prohib": True,
+            "ch_passwd_prohib": False,
+            "passwd_age_limit": True,
+            "user_id_change": True,
+            "user_status": 0,
+            "integrity_ctl_mode": 0
+        })
+        self.user_actions_panel.ibutton_label.setText(f"Предъявлен идентификатор: {message['id']}\nПользователь успешно зарегистрирован.")
+        self.user_actions_panel.finish_push_button_4.setEnabled(True)
+        self.user_actions_panel.cancel_push_button_4.setEnabled(False)
+        self.update_user_list_panel()
+
+    def del_user(self):
+        """Удалить выбранного пользователя"""
+        index = self.user_list_panel.user_list_widget.currentRow()
+        self.users.pop(index)
+        self.update_user_list_panel()
 
     def close_user_ctl_wizard(self):
         """Отменить работу мастера создания нового пользователя,
@@ -392,6 +432,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def check_user_name(self):
         """Проверить уникальность имени нового пользователя"""
         logging.info(self.user_actions_panel.user_name.text())
+        # TODO Уточнить могут ли быть пользователи с одинаковыми именами или нет, если могут исключить проверку,
+        # иначе реализовать проверку и при совпадении self.user_actions_panel.user_name.text() с существуюшим пользователем
+        # выдать предупреждающее сообщение
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_2)
 
     def next_user_action_panel(self):
@@ -410,9 +453,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.user_actions_panel.passwd_line_edit_1.text() != self.user_actions_panel.passwd_line_edit_2.text():
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             return
-        # TODO Далее выдать сообщение о предъявлении нового идентификатора, прочитать его и записать на него имя и пароль пользователя
-        # passwd = self.user_actions_panel.passwd_line_edit_1.text()
-        # user_name = self.user_actions_panel.user_name.text()
+        # Перед открытием последней панели мастера добавления пользователей связать сигнал предъявления ibutton с обработчиком self.add_user
+        self.ibutton_present[dict].connect(self.add_user)
         self.next_user_action_panel()
 
     def update_user_list_panel(self):
@@ -444,7 +486,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.user_list_panel.integrity_ctl_mode.setCurrentIndex(user["integrity_ctl_mode"])
         except KeyError as e:
             logging.debug(e)
-
 
     def save_user_parms(self):
         """Сохранить настройки выбранного в списке пользователя"""

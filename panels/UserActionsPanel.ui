@@ -46,7 +46,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="step_1_label">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -148,7 +148,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="step_2_label">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -240,7 +240,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_5">
+        <widget class="QLabel" name="step_3_label">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -252,7 +252,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_6">
+        <widget class="QLabel" name="enter_passwd_label">
          <property name="text">
           <string>Введите новый пароль:</string>
          </property>
@@ -277,7 +277,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="passwd_gen_push_button_3">
+          <widget class="QPushButton" name="passwd_gen_push_button">
            <property name="text">
             <string>Сгенерировать</string>
            </property>
@@ -299,14 +299,14 @@
         </layout>
        </item>
        <item>
-        <widget class="QRadioButton" name="radioButton">
+        <widget class="QRadioButton" name="show_passwd_radio_button">
          <property name="text">
           <string>Показать пароль</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_7">
+        <widget class="QLabel" name="confirm_passwd_label">
          <property name="text">
           <string>Подтвердите новый пароль:</string>
          </property>
@@ -401,7 +401,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="step_4_label">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -415,16 +415,9 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
-          <widget class="QLabel" name="label_9">
+          <widget class="QLabel" name="ibutton_label">
            <property name="text">
-            <string>Предъявлен идентификатор:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_10">
-           <property name="text">
-            <string>1</string>
+            <string>Предъявите персональный идентификатор</string>
            </property>
           </widget>
          </item>
@@ -442,13 +435,6 @@
           </spacer>
          </item>
         </layout>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Пользователь успешно зарегистрирован</string>
-         </property>
-        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_4">
@@ -487,7 +473,7 @@
          <item>
           <widget class="QPushButton" name="cancel_push_button_4">
            <property name="enabled">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="text">
             <string>Отмена</string>
@@ -496,6 +482,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="finish_push_button_4">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Завершить</string>
            </property>
