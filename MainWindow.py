@@ -248,7 +248,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Запустить таймер ожидания чтения идентификатора iButton
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-        self.ibutton_present[str].connect(self.read_user_id)
+        self.ibutton_present[dict].connect(self.read_user_id)
         self.timer.start(1000)
 
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
