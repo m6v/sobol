@@ -39,7 +39,7 @@ VM_IFACE_PAGE = 5
 
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
-    ibutton_present = QtCore.Signal(str)
+    ibutton_present = QtCore.Signal(dict)
 
     def __init__(self, config_file):
         super().__init__()
@@ -233,8 +233,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_list_panel.user_list_widget.itemActivated.connect(self.show_user_parms)
         self.user_list_panel.save_push_button.clicked.connect(self.save_user_parms)
 
-        # Идентификатор считанной iButton
-        self.user_id = ""
+        # Содержание предъявленной iButton
+        self.presented_ibutton = ""
 
         self.timer = QtCore.QTimer()
         # Время до входа в систему, отображаемое в первых двух окнах
@@ -248,7 +248,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Запустить таймер ожидания чтения идентификатора iButton
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-        self.ibutton_present[dict].connect(self.read_user_id)
+        self.ibutton_present[dict].connect(self.read_ibutton)
         self.timer.start(1000)
 
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
@@ -333,20 +333,20 @@ class MainWindow(QtWidgets.QMainWindow):
             # TODO Вместо сброса счетчика, блокировать вход для все пользователей, кроме администратора
             logging.info("The waiting time has expired")
             self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
-            self.ibutton_present[str].connect(self.read_user_id)
+            self.ibutton_present[dict].connect(self.read_ibutton)
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
             # TODO Перевести секунды в минуты и секунды
             self.window.remaining_time_label_1.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
             self.window.remaining_time_label_2.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
 
-    def read_user_id(self, user_id):
+    def read_ibutton(self, message):
         """Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля"""
-        logging.info(f"iButton {user_id} is presented")
-        self.user_id = user_id
+        logging.info(f"Read {message} from iButton")
+        self.presented_ibutton = message
         # Отключить обработчик "прикладывания" iButton
-        self.ibutton_present[str].disconnect()
-        self.window.id_label.setText(self.user_id)
+        self.ibutton_present[dict].disconnect()
+        self.window.id_label.setText(self.presented_ibutton["id"])
         # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
         self.window.passwd_line_edit.setText("")
         self.window.passwd_line_edit.setFocus()
@@ -355,14 +355,14 @@ class MainWindow(QtWidgets.QMainWindow):
     def ibutton_signal_handler(self, message):
         '''Функция обратного вызова для обработки сигнала с dBus'''
         logging.info(f"Recieve message: {message}")
-        self.ibutton_present.emit(message["id"])
+        self.ibutton_present.emit(message)
 
     def check_passwd(self):
         """Проверить пароль"""
         try:
             # Если введен правильный пароль, остановить таймер и
             # открыть панель выбора действия Загрузка ОС/Настройки
-            if self.users[self.user_id]["passwd"] == self.window.passwd_line_edit.text():
+            if self.presented_ibutton["passwd"] == self.window.passwd_line_edit.text():
                 self.timer.stop()
                 self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
                 return
@@ -370,7 +370,7 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info("Present unregistered iButton:", e)
         # Если введен неправильный пароль, перейти в начало
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
-        self.ibutton_present[str].connect(self.read_user_id)
+        self.ibutton_present[dict].connect(self.read_ibutton)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
     def add_user(self):
@@ -410,15 +410,15 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.user_actions_panel.passwd_line_edit_1.text() != self.user_actions_panel.passwd_line_edit_2.text():
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             return
-        # TODO Далее выдать сообщение о предъявлении нового идентификатора
-        new_user = {"passwd": self.user_actions_panel.passwd_line_edit_1.text(), "user_name": self.user_actions_panel.user_name.text()}
-        self.users["5"] = new_user
+        # TODO Далее выдать сообщение о предъявлении нового идентификатора, прочитать его и записать на него имя и пароль пользователя
+        # passwd = self.user_actions_panel.passwd_line_edit_1.text()
+        # user_name = self.user_actions_panel.user_name.text()
         self.next_user_action_panel()
 
     def update_user_list_panel(self):
         """Обновить панель со списком пользователей"""
         self.user_list_panel.user_list_widget.clear()
-        for user in self.users.values():
+        for user in self.users:
             # TODO Исключить из списка администратора безопасности
             self.user_list_panel.user_list_widget.addItem(user["user_name"])
         self.user_list_panel.user_list_widget.setCurrentRow(0)
@@ -426,37 +426,36 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show_user_parms(self.user_list_panel.user_list_widget.currentItem())
 
     def show_user_parms(self, item):
-        """Показать настройки пользователя переданного в item"""
-        for user_id, user in self.users.items():
-            if item.text() == user["user_name"]:
-                logging.info(f"Selected user is {user}")
-                try:
-                    self.user_list_panel.user_id.setText(user_id)
-                    self.user_list_panel.user_name.setText(user["user_name"])
-                    self.user_list_panel.last_login_datetime.setText(user["last_login_datetime"])
-                    self.user_list_panel.total_logins.setText(str(user["total_logins"]))
-                    self.user_list_panel.failed_logins.setText(str(user["failed_logins"]))
-                    self.user_list_panel.ext_media_prohib.setChecked(bool(user["ext_media_prohib"]))
-                    self.user_list_panel.ch_passwd_prohib.setChecked(bool(user["ch_passwd_prohib"]))
-                    self.user_list_panel.passwd_age_limit.setChecked(bool(user["passwd_age_limit"]))
-                    self.user_list_panel.user_id_change.setChecked(bool(user["user_id_change"]))
-                    self.user_list_panel.user_status.setCurrentIndex(user["user_status"])
-                    self.user_list_panel.integrity_ctl_mode.setCurrentIndex(user["integrity_ctl_mode"])
-                except KeyError as e:
-                    logging.debug(e)
+        """Показать настройки выбранного в списке пользователя"""
+        index = self.user_list_panel.user_list_widget.currentRow()
+        logging.info(f"Selected user is {self.users[index]}")
+        user = self.users[index]
+        try:
+            self.user_list_panel.user_id.setText(user["id"])
+            self.user_list_panel.user_name.setText(user["user_name"])
+            self.user_list_panel.last_login_datetime.setText(user["last_login_datetime"])
+            self.user_list_panel.total_logins.setText(str(user["total_logins"]))
+            self.user_list_panel.failed_logins.setText(str(user["failed_logins"]))
+            self.user_list_panel.ext_media_prohib.setChecked(bool(user["ext_media_prohib"]))
+            self.user_list_panel.ch_passwd_prohib.setChecked(bool(user["ch_passwd_prohib"]))
+            self.user_list_panel.passwd_age_limit.setChecked(bool(user["passwd_age_limit"]))
+            self.user_list_panel.user_id_change.setChecked(bool(user["user_id_change"]))
+            self.user_list_panel.user_status.setCurrentIndex(user["user_status"])
+            self.user_list_panel.integrity_ctl_mode.setCurrentIndex(user["integrity_ctl_mode"])
+        except KeyError as e:
+            logging.debug(e)
+
 
     def save_user_parms(self):
         """Сохранить настройки выбранного в списке пользователя"""
-        item = self.user_list_panel.user_list_widget.currentItem()
-        logging.info(f"Selected user is {item.text()}")
-        for user_id, user in self.users.items():
-            if item.text() == user["user_name"]:
-                self.users[user_id]["ext_media_prohib"] = self.user_list_panel.ext_media_prohib.isChecked()
-                self.users[user_id]["ch_passwd_prohib"] = self.user_list_panel.ch_passwd_prohib.isChecked()
-                self.users[user_id]["passwd_age_limit"] = self.user_list_panel.passwd_age_limit.isChecked()
-                self.users[user_id]["user_id_change"] = self.user_list_panel.user_id_change.isChecked()
-                self.users[user_id]["user_status"] = self.user_list_panel.user_status.currentIndex()
-                self.users[user_id]["integrity_ctl_mode"] = self.user_list_panel.integrity_ctl_mode.currentIndex()
+        index = self.user_list_panel.user_list_widget.currentRow()
+        logging.info(f"Selected user is {self.users[index]}")
+        self.users[index]["ext_media_prohib"] = self.user_list_panel.ext_media_prohib.isChecked()
+        self.users[index]["ch_passwd_prohib"] = self.user_list_panel.ch_passwd_prohib.isChecked()
+        self.users[index]["passwd_age_limit"] = self.user_list_panel.passwd_age_limit.isChecked()
+        self.users[index]["user_id_change"] = self.user_list_panel.user_id_change.isChecked()
+        self.users[index]["user_status"] = self.user_list_panel.user_status.currentIndex()
+        self.users[index]["integrity_ctl_mode"] = self.user_list_panel.integrity_ctl_mode.currentIndex()
 
     def closeEvent(self, event):
         logging.debug(f"closeEvent {event}")
