@@ -1,9 +1,11 @@
 import configparser
+import datetime
 import functools
 import inspect
 import logging
 import os
 import sys
+
 from distutils.util import strtobool
 
 from PySide2 import QtCore, QtGui, QtUiTools, QtWidgets
@@ -213,15 +215,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.event_journal_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.event_journal_panel))
         self.event_journal_panel.events_type_search_check_box.clicked.connect(self.trigger_events_type_search)
         self.event_journal_panel.events_time_search_check_box.clicked.connect(self.trigger_events_time_search)
-
+        
         self.update_user_list_panel()
 
         # Установка свойства в ui почему-то не работает, делаем здесь
         self.window.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
 
         # Связать сигнал и слоты
-        self.window.enter_push_button.clicked.connect(self.check_passwd)
-        self.window.passwd_line_edit.returnPressed.connect(self.check_passwd)
+        self.window.enter_push_button.clicked.connect(self.auth_user)
+        self.window.passwd_line_edit.returnPressed.connect(self.auth_user)
         # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
         self.window.go_settings_push_button.clicked.connect(functools.partial(self.window.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
         # Вызов метода закрытия с передачей ему кода возврата для последующего анализа и запуска виртуальной машины
@@ -354,26 +356,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.main_stacked_widget.setCurrentIndex(PASSWD_PAGE)
 
     def ibutton_signal_handler(self, message):
-        '''Функция обратного вызова для обработки сигнала с dBus'''
+        """Функция обратного вызова для обработки сигнала с dBus"""
         logging.info(f"Recieve message: {message}")
         self.ibutton_present.emit(message)
 
-    def check_passwd(self):
-        """Проверить пароль"""
-        try:
-            # Если введен правильный пароль, остановить таймер и
-            # открыть панель выбора действия Загрузка ОС/Настройки
-            if self.presented_ibutton["passwd"] == self.window.passwd_line_edit.text():
-                self.timer.stop()
-                self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
-                return
-        except KeyError as e:
-            logging.info("Present unregistered iButton:", e)
+    def auth_user(self):
+        """Проверить предъявленный идентификатор и пароль"""
+        for index, item in enumerate(self.users):
+            if item["id"] == self.presented_ibutton["id"]:
+                if self.presented_ibutton["passwd"] == self.window.passwd_line_edit.text():
+                    # Веден правильный пароль, остановить таймер открыть панель выбора действия Загрузка ОС/Настройки
+                    self.timer.stop()
+                    self.users[index]["total_logins"] += 1
+                    self.users[index]["last_login_datetime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
+                    return
+                # Введен неправильный пароль
+                self.users[index]["failed_logins"] += 1
+
         # Если введен неправильный пароль, перейти в начало
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
         self.ibutton_present[dict].connect(self.read_ibutton)
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-
+        
     def show_user_creation_wizard(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
         self.sidebar_widget.hide()
@@ -464,7 +469,6 @@ class MainWindow(QtWidgets.QMainWindow):
             # TODO Исключить из списка администратора безопасности
             self.user_list_panel.user_list_widget.addItem(user["user_name"])
         self.user_list_panel.user_list_widget.setCurrentRow(0)
-        # TODO Обновить настройки
         self.show_user_parms(self.user_list_panel.user_list_widget.currentItem())
 
     def show_user_parms(self, item):
