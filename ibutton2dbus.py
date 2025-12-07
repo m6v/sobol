@@ -33,25 +33,24 @@ logging.info("%s started" % appname)
 with open("ibuttons.json") as file:
     ibuttons = json.load(file)
 
-class MyService(dbus.service.Object):
+class IButtonService(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         dbus.service.Object.__init__(self, bus_name, object_path)
 
-    @dbus.service.signal("com.example.MyInterface", signature="a{sv}")
-    def MySignal(self, message):
+    @dbus.service.signal("com.example.IButtonInterface", signature="a{sv}")
+    def IButtonSignal(self, message):
         """Отправить сигнал, содержащий словарь"""
-        logging.info(f"Emitting MySignal with message: {message}")
+        logging.info(f"Emitting IButtonSignal with message: {message}")
 
-    @dbus.service.method("com.example.MyInterface", in_signature="a{sv}", out_signature="b")
+    @dbus.service.method("com.example.IButtonInterface", in_signature="a{sv}", out_signature="b")
     def SetIButtonData(self, data):
         """Записать данные в ibutton"""
-        logging.info(f"Calling SetData method with data: {data}")
-        # TODO Записать в файл ibuttons.json имя и пароль пользователя, переданные в data
-        for item in ibuttons:
-            if item["id"] == str(data["id"]):
-                item["user"] = str(data["user_name"])
-                item["passwd"] = str(data["passwd"])
+        logging.info(f"Calling SetIButtonData method with data: {data}")
+        ibuttons[str(data["id"])] = {"user_name": str(data["user_name"]), "passwd": str(data["passwd"])}
         logging.info(f"IButtons is {ibuttons}")
+        # Записать измененный словарь ibuttons в файл
+        with open("ibuttons.json", "w") as file:
+            json.dump(ibuttons, file, ensure_ascii=False)
         return True
 
 if __name__ == "__main__":
@@ -62,8 +61,8 @@ if __name__ == "__main__":
 
     # Установить соединение с сессионной шиной D-Bus
     bus = dbus.SessionBus()
-    bus_name = dbus.service.BusName("com.example.MyService", bus)
-    service_object = MyService(bus_name, "/com/example/MyService")
+    bus_name = dbus.service.BusName("com.example.IButtonService", bus)
+    service_object = IButtonService(bus_name, "/com/example/IButtonService")
 
     tray_icon = QtWidgets.QSystemTrayIcon()
     tray_icon.setIcon(QIcon("icons/ibutton.png"))
@@ -72,12 +71,13 @@ if __name__ == "__main__":
     def ibutton_action_triggered(item):
         """Отправить сигнал, содержащий словарь item"""
         logging.info(f"Reading iButton: {item}")
-        service_object.MySignal(item)
+        message = dict(ibuttons[item], id=item)
+        service_object.IButtonSignal(message)
 
     tray_menu = QtWidgets.QMenu()
     actions = []
     for item in ibuttons:
-        action = QAction(item["id"])
+        action = QAction(item)
         action.triggered.connect(functools.partial(ibutton_action_triggered, item))
         tray_menu.addAction(action)
         actions.append(action)

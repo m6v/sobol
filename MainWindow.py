@@ -244,11 +244,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.remaining_time:
             self.timer.timeout.connect(self.decrease_remaining_time)
 
-        # Установить функцию обратного вызова для обработки сигнала MySignal
-        bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.MyService', signal_name = "MySignal")
+        # Установить функцию обратного вызова для обработки сигнала IButtonSignal
+        bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name = "IButtonSignal")
         
         # Пытаемся вызвать метод шины
-        self.service_object = bus.get_object('com.example.MyService', '/com/example/MyService')
+        self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
 
         # Запустить таймер ожидания чтения идентификатора iButton
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
@@ -520,10 +520,7 @@ class MainWindow(QtWidgets.QMainWindow):
         with open(self.config_file, "w") as file:
             self.config.write(file)
 
-        if event is QtCore.QEvent.Type.Enter:
-            exit_code = True
-        else:
-            exit_code = False
+        exit_code = True if event is QtCore.QEvent.Type.Enter else False
 
         # Вместо self.window.close() используем exit, чтобы вернуть код возврата,
         # для того, чтобы по нему понять нужно запускать виртуальную машину или нет

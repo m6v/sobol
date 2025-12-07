@@ -1,1 +1,1 @@
-[{"id": "iButton_0", "user": "Иванов", "passwd": "Aa123456"}, {"id": "iButton_1", "user": "Смирнов", "passwd": "Aa123456"}, {"id": "iButton_2", "user": "Кузнецов", "passwd": "Aa123456"}, {"id": "iButton_3", "user": "Попов", "passwd": "Aa123456"}, {"id": "iButton_4", "user": "Васильев", "passwd": "Aa123456"}]
+{"iButton_0": {"user_name": "Администратор", "passwd": "Aa123456"}, "iButton_1": {"user_name": "Иванов", "passwd": "Aa123456"}, "iButton_2": {"user_name": "Белый", "passwd": "123456"}, "iButton_3": {}, "iButton_4": {"user_name": "Петров", "passwd": "123456"}}
