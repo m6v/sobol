@@ -63,12 +63,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.read(self.config_file)
 
         try:
-            # Словарь, ключи которого - идентификатор iButton, значения - сведения об учетной записи (пароль, имя и др.)
+            # Список с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
             self.users = eval(self.config.get("general", "users"))
             # Имя виртуальной машины
             self.domain_name = self.config.get("general", "domain_name")
-            # Панель, отображаемая при запуске (instruction - инструкция, tbm - средство доверенной загрузки, vm - виртуальная машина)
-            self.show_on_startup = self.config.get("general", "show_on_startup")
             # Адрес инструкции к выполнению задания
             self.instruction_url = self.config.get("general", "instruction_url")
             # Адрес и порт VNC-сервера виртуальной машины
@@ -248,6 +246,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Установить функцию обратного вызова для обработки сигнала MySignal
         bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.MyService', signal_name = "MySignal")
+        
+        # Пытаемся вызвать метод шины
+        self.service_object = bus.get_object('com.example.MyService', '/com/example/MyService')
 
         # Запустить таймер ожидания чтения идентификатора iButton
         self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
@@ -413,6 +414,9 @@ class MainWindow(QtWidgets.QMainWindow):
             "user_status": 0,
             "integrity_ctl_mode": 0
         })
+        # TODO Вызвать метод для записи в предъявленную ibutton имени и пароля пользователя
+        self.service_object.SetIButtonData({"id": str(message["id"]), "user_name": self.user_actions_panel.user_name.text(), "passwd": self.user_actions_panel.passwd_line_edit_1.text()})
+
         self.user_actions_panel.ibutton_label.setText(f"Предъявлен идентификатор: {message['id']}\nПользователь успешно зарегистрирован.")
         self.user_actions_panel.finish_push_button_4.setEnabled(True)
         self.user_actions_panel.cancel_push_button_4.setEnabled(False)

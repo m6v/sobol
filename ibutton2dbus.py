@@ -39,9 +39,20 @@ class MyService(dbus.service.Object):
 
     @dbus.service.signal("com.example.MyInterface", signature="a{sv}")
     def MySignal(self, message):
-        '''Отправить сигнал, содержащий словарь'''
+        """Отправить сигнал, содержащий словарь"""
         logging.info(f"Emitting MySignal with message: {message}")
 
+    @dbus.service.method("com.example.MyInterface", in_signature="a{sv}", out_signature="b")
+    def SetIButtonData(self, data):
+        """Записать данные в ibutton"""
+        logging.info(f"Calling SetData method with data: {data}")
+        # TODO Записать в файл ibuttons.json имя и пароль пользователя, переданные в data
+        for item in ibuttons:
+            if item["id"] == str(data["id"]):
+                item["user"] = str(data["user_name"])
+                item["passwd"] = str(data["passwd"])
+        logging.info(f"IButtons is {ibuttons}")
+        return True
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -59,13 +70,12 @@ if __name__ == "__main__":
     tray_icon.show()
 
     def ibutton_action_triggered(item):
-        '''Отправить сигнал, содержащий словарь item'''
+        """Отправить сигнал, содержащий словарь item"""
         logging.info(f"Reading iButton: {item}")
         service_object.MySignal(item)
 
     tray_menu = QtWidgets.QMenu()
     actions = []
-    print(ibuttons)
     for item in ibuttons:
         action = QAction(item["id"])
         action.triggered.connect(functools.partial(ibutton_action_triggered, item))
