@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), args.config_file)
     if not os.path.isfile(config_file):
-        print(f"Config {config_file} not found")
+        logging.error(f"Config {config_file} not found")
         sys.exit(1)
     config = configparser.ConfigParser(allow_no_value=True)
     # Установить чувствительность ключей к регистру

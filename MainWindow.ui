@@ -384,9 +384,9 @@ QLineEdit {
              </widget>
             </item>
             <item row="5" column="0">
-             <widget class="QLabel" name="total_attempts_count_label">
+             <widget class="QLabel" name="failed_logins_label">
               <property name="text">
-               <string>Суммарное количество попыток входа</string>
+               <string>Суммарное количество неудачных попыток входа</string>
               </property>
              </widget>
             </item>
@@ -405,7 +405,7 @@ QLineEdit {
              </widget>
             </item>
             <item row="4" column="1">
-             <widget class="QLabel" name="last_user_time_value">
+             <widget class="QLabel" name="last_user_datetime_value">
               <property name="text">
                <string>00:00 01/01/2025</string>
               </property>
@@ -419,7 +419,7 @@ QLineEdit {
              </widget>
             </item>
             <item row="5" column="1">
-             <widget class="QLabel" name="total_attempts_count_value">
+             <widget class="QLabel" name="failed_logins_value">
               <property name="text">
                <string/>
               </property>
@@ -454,7 +454,7 @@ QLineEdit {
              </widget>
             </item>
             <item row="4" column="0">
-             <widget class="QLabel" name="last_user_time_label">
+             <widget class="QLabel" name="last_user_datetime_label">
               <property name="text">
                <string>Время входа последнего пользователя</string>
               </property>

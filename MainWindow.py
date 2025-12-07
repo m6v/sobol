@@ -7,6 +7,7 @@ import os
 import sys
 
 from distutils.util import strtobool
+from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtUiTools, QtWidgets
 from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
@@ -65,10 +66,10 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             # Список с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
             self.users = eval(self.config.get("general", "users"))
+            # Суммарное кол-во неудачных попыток входа (с момента инициализации)
+            self.failed_logins = int(self.config.get("general", "failed_logins"))
             # Имя виртуальной машины
             self.domain_name = self.config.get("general", "domain_name")
-            # Адрес инструкции к выполнению задания
-            self.instruction_url = self.config.get("general", "instruction_url")
             # Адрес и порт VNC-сервера виртуальной машины
             self.vnc_addr = self.config.get("general", "vnc_addr")
             self.vnc_port = int(self.config.get("general", "vnc_port"))
@@ -76,9 +77,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.window.setWindowTitle(self.config.get("window", "title"))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
             geometry = QtCore.QRect(*map(int, self.config.get("window", "geometry").split(";")))
-            # Восстановить геометрию главного окна
+            # Восстановить геометрию и состояние главного окна
             self.window.setGeometry(geometry)
-
             state = int(self.config.get("window", "state"))
             self.window.restoreState(bytearray(state))
         except configparser.NoOptionError as e:
@@ -198,8 +198,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_actions_panel.user_name.textChanged[str].connect(self.user_name_changed)
         self.user_actions_panel.next_push_button_1.clicked.connect(self.check_user_name)
         self.user_actions_panel.yes_push_button_2.clicked.connect(self.next_user_action_panel)
-        self.user_actions_panel.passwd_line_edit_1.textChanged[str].connect(self.user_passwd_changed)
-        self.user_actions_panel.passwd_line_edit_2.textChanged[str].connect(self.user_passwd_changed)
+        self.user_actions_panel.passwd_line_edit.textChanged[str].connect(self.user_passwd_changed)
+        self.user_actions_panel.passwd_confirm_line_edit.textChanged[str].connect(self.user_passwd_changed)
         self.user_actions_panel.next_push_button_3.clicked.connect(self.check_user_passwd)
 
         self.event_journal_panel.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
@@ -346,12 +346,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def read_ibutton(self, message):
         """Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля"""
-        logging.info(f"Read {message} from iButton")
         self.presented_ibutton = message
         # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[dict].disconnect()
         self.window.id_label.setText(self.presented_ibutton["id"])
-        # Стереть поле ввода пароля на случай, если выполняем попытку повторного ввода
+        # Стереть поле ввода пароля на случай попытки повторного входа
         self.window.passwd_line_edit.setText("")
         self.window.passwd_line_edit.setFocus()
         self.window.main_stacked_widget.setCurrentIndex(PASSWD_PAGE)
@@ -366,14 +365,32 @@ class MainWindow(QtWidgets.QMainWindow):
         for index, item in enumerate(self.users):
             if item["id"] == self.presented_ibutton["id"]:
                 if self.presented_ibutton["passwd"] == self.window.passwd_line_edit.text():
+                    # TODO Проверить, что пользователь не заблокирован
                     # Веден правильный пароль, остановить таймер открыть панель выбора действия Загрузка ОС/Настройки
                     self.timer.stop()
+                    # Заполнить поля в окне выбора действия
+                    self.window.failed_logins_value.setText(str(self.failed_logins))
+                    # Найти пользователя входившего в систему последним
+                    last_user = self.users[0]
+                    for user in self.users:
+                        if user["last_login_datetime"] > last_user["last_login_datetime"]:
+                           last_user = user
+                    self.window.last_user_name_value.setText(last_user["user_name"])
+                    self.window.last_user_id_value.setText(last_user["id"])
+                    self.window.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                    # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик общего количества попыток входа
+                    self.users[index]["failed_logins"] = 0
                     self.users[index]["total_logins"] += 1
-                    self.users[index]["last_login_datetime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    self.users[index]["last_login_datetime"] = datetime.datetime.now()
+                    
+                    self.window.current_user_id_value.setText(self.users[index]["id"])
+                    self.window.current_user_time_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                                        
                     self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
                     return
                 # Введен неправильный пароль
                 self.users[index]["failed_logins"] += 1
+                self.failed_logins += 1
 
         # Если введен неправильный пароль, перейти в начало
         QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
@@ -386,25 +403,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_1)
         # Установить исходные значения виджетов
         self.user_actions_panel.user_name.setText("")
-        self.user_actions_panel.passwd_line_edit_1.setText("")
-        self.user_actions_panel.passwd_line_edit_2.setText("")
+        self.user_actions_panel.passwd_line_edit.setText("")
+        self.user_actions_panel.passwd_confirm_line_edit.setText("")
         self.user_actions_panel.ibutton_label.setText("Предъявите персональный идентификатор")
         self.user_actions_panel.cancel_push_button_4.setEnabled(True)
         self.user_actions_panel.finish_push_button_4.setEnabled(False)
         
         self.window.stackedWidget.setCurrentWidget(self.user_actions_panel)
 
-    def add_user(self, message):
-        """Добавить пользователя"""
-        # Вызывается по сигналу предъявдения iButton
+    def add_user(self, message: Dict[str, str]):
+        """Добавить пользователя, id которого указана в словаре message"""
+        # Метод вызывается по сигналу предъявления iButton,
+        # в message передается словарь с id, user_name и passwd, считанные изпредъявленной ibutton
         logging.info(message)
         # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[dict].disconnect()
+
         # Добавить новую запись в список пользователей
         self.users.append({
             "id": str(message["id"]),
             "user_name": self.user_actions_panel.user_name.text(),
-            "last_login_datetime": "",
+            "last_login_datetime": datetime.datetime(1, 1, 1, 0, 0),
             "total_logins": 0,
             "failed_logins": 0,
             "ext_media_prohib": True,
@@ -414,8 +433,9 @@ class MainWindow(QtWidgets.QMainWindow):
             "user_status": 0,
             "integrity_ctl_mode": 0
         })
-        # TODO Вызвать метод для записи в предъявленную ibutton имени и пароля пользователя
-        self.service_object.SetIButtonData({"id": str(message["id"]), "user_name": self.user_actions_panel.user_name.text(), "passwd": self.user_actions_panel.passwd_line_edit_1.text()})
+
+        # Вызвать метод для записи в предъявленную ibutton имени и пароля пользователя
+        self.service_object.SetIButtonData({"id": str(message["id"]), "user_name": self.user_actions_panel.user_name.text(), "passwd": self.user_actions_panel.passwd_line_edit.text()})
 
         self.user_actions_panel.ibutton_label.setText(f"Предъявлен идентификатор: {message['id']}\nПользователь успешно зарегистрирован.")
         self.user_actions_panel.finish_push_button_4.setEnabled(True)
@@ -452,14 +472,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def user_passwd_changed(self, text):
         """Изменить состояние кнопки "Вперед" при наличии символов в обоих полях ввода пароля"""
-        if len(self.user_actions_panel.passwd_line_edit_1.text()) != 0 and len(self.user_actions_panel.passwd_line_edit_2.text()) != 0:
+        if len(self.user_actions_panel.passwd_line_edit.text()) != 0 and len(self.user_actions_panel.passwd_confirm_line_edit.text()) != 0:
             self.user_actions_panel.next_push_button_3.setEnabled(True)
         else:
             self.user_actions_panel.next_push_button_3.setEnabled(False)
 
     def check_user_passwd(self):
         """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
-        if self.user_actions_panel.passwd_line_edit_1.text() != self.user_actions_panel.passwd_line_edit_2.text():
+        if self.user_actions_panel.passwd_line_edit.text() != self.user_actions_panel.passwd_confirm_line_edit.text():
             QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             return
         # Перед открытием последней панели мастера добавления пользователей связать сигнал предъявления ibutton с обработчиком self.add_user
@@ -478,12 +498,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_user_parms(self, item):
         """Показать настройки выбранного в списке пользователя"""
         index = self.user_list_panel.user_list_widget.currentRow()
-        logging.info(f"Selected user is {self.users[index]}")
+        logging.info(f"Select user: {self.users[index]['user_name']}")
         user = self.users[index]
         try:
             self.user_list_panel.user_id.setText(user["id"])
             self.user_list_panel.user_name.setText(user["user_name"])
-            self.user_list_panel.last_login_datetime.setText(user["last_login_datetime"])
+            self.user_list_panel.last_login_datetime.setText(user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
             self.user_list_panel.total_logins.setText(str(user["total_logins"]))
             self.user_list_panel.failed_logins.setText(str(user["failed_logins"]))
             self.user_list_panel.ext_media_prohib.setChecked(bool(user["ext_media_prohib"]))
@@ -514,8 +534,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Преобразовать элементы кортежа в строки и разделить символом ;
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
         self.config.set("window", "state", str(int(self.window.windowState())))
-        # Сохранить учетные записи пользователей
+        # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
         self.config.set("general", "users", str(self.users))
+        self.config.set("general", "failed_logins", str(self.failed_logins))
 
         with open(self.config_file, "w") as file:
             self.config.write(file)

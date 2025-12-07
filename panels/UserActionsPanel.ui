@@ -261,7 +261,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
-          <widget class="QLineEdit" name="passwd_line_edit_1">
+          <widget class="QLineEdit" name="passwd_line_edit">
            <property name="minimumSize">
             <size>
              <width>240</width>
@@ -313,7 +313,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="passwd_line_edit_2">
+        <widget class="QLineEdit" name="passwd_confirm_line_edit">
          <property name="minimumSize">
           <size>
            <width>240</width>
