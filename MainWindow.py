@@ -35,9 +35,8 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(fil
 WAIT_ID_PAGE = 0
 PASSWD_PAGE = 1
 ADMIN_CHOICE_PAGE = 2
-SETTINGS_PAGE = 3
-WEB_VIEW_PAGE = 4
-VM_IFACE_PAGE = 5
+USER_CHOICE_PAGE = 3
+SETTINGS_PAGE = 4
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -66,6 +65,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             # Список с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
             self.users = eval(self.config.get("general", "users"))
+            # Список с идентификаторами iButton зарегистрированных администраторов
+            self.admins = eval(self.config.get("general", "admins"))
             # Суммарное кол-во неудачных попыток входа (с момента инициализации)
             self.failed_logins = int(self.config.get("general", "failed_logins"))
             # Имя виртуальной машины
@@ -362,40 +363,60 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def auth_user(self):
         """Проверить предъявленный идентификатор и пароль"""
-        for index, item in enumerate(self.users):
-            if item["id"] == self.presented_ibutton["id"]:
-                if self.presented_ibutton["passwd"] == self.window.passwd_line_edit.text():
-                    # TODO Проверить, что пользователь не заблокирован
-                    # Веден правильный пароль, остановить таймер открыть панель выбора действия Загрузка ОС/Настройки
-                    self.timer.stop()
-                    # Заполнить поля в окне выбора действия
-                    self.window.failed_logins_value.setText(str(self.failed_logins))
-                    # Найти пользователя входившего в систему последним
-                    last_user = self.users[0]
-                    for user in self.users:
-                        if user["last_login_datetime"] > last_user["last_login_datetime"]:
-                           last_user = user
-                    self.window.last_user_name_value.setText(last_user["user_name"])
-                    self.window.last_user_id_value.setText(last_user["id"])
-                    self.window.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
-                    # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик общего количества попыток входа
-                    self.users[index]["failed_logins"] = 0
-                    self.users[index]["total_logins"] += 1
-                    self.users[index]["last_login_datetime"] = datetime.datetime.now()
-                    
-                    self.window.current_user_id_value.setText(self.users[index]["id"])
-                    self.window.current_user_time_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
-                                        
-                    self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
-                    return
-                # Введен неправильный пароль
-                self.users[index]["failed_logins"] += 1
-                self.failed_logins += 1
+        # Найти в списке self.users индекс пользователя iButton которого предъявлен или None, если не найден
+        try:
+            index = [i["id"] for i in self.users].index(self.presented_ibutton["id"])
+        except ValueError:
+            index = None
 
-        # Если введен неправильный пароль, перейти в начало
-        QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
-        self.ibutton_present[dict].connect(self.read_ibutton)
-        self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+        if self.presented_ibutton["passwd"] == self.window.passwd_line_edit.text():
+            # Веден правильный пароль, остановить таймер открыть панель выбора действия Загрузка ОС/Настройки
+            self.timer.stop()
+            # Если входящий пользователь в списке self.admins, открыть страницу настроек и выйти
+            if self.presented_ibutton["id"] in self.admins:
+                # Заполнить поля в окне выбора действий, доступных администратору
+                self.window.failed_logins_value.setText(str(self.failed_logins))
+                # Найти пользователя входившего в систему последним
+                last_user = self.users[0]
+                for user in self.users:
+                    if user["last_login_datetime"] > last_user["last_login_datetime"]:
+                        last_user = user
+                self.window.last_user_name_value.setText(last_user["user_name"])
+                self.window.last_user_id_value.setText(last_user["id"])
+                self.window.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                self.window.current_user_id_value.setText(self.presented_ibutton["id"])
+                self.window.current_user_time_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
+                # Перейти на страницу выбора действий, доступных администратору
+                self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
+                return
+            # TODO Проверить, что пользователь не заблокирован
+            pass
+            # Заполнить поля в окне выбора действий, доступных пользователю
+            self.window.user_name_value.setText(self.users[index]["user_name"])
+            self.window.user_id_value.setText(self.users[index]["id"])
+            self.window.current_user_time_value_2.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
+            self.window.last_user_time_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+            self.window.logins_count_value.setText(str(self.users[index]["total_logins"]))
+            self.window.remaining_days_value.setText("---")
+            # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик общего количества попыток входа
+            self.users[index]["failed_logins"] = 0
+            self.users[index]["total_logins"] += 1
+            self.users[index]["last_login_datetime"] = datetime.datetime.now()
+            # Перейти на страницу выбора действий, доступных пользователю
+            self.window.main_stacked_widget.setCurrentIndex(USER_CHOICE_PAGE)
+        # Введен неправильный пароль
+        else:
+            logging.info(f"Fail login, user index {index}")
+            self.failed_logins += 1
+            # Если это обычный пользователь, то увеличить число неудачных попыток входа
+            if index is not None:
+                self.users[index]["failed_logins"] += 1
+                # TODO Проверить, что и в случае превышения максимальное числа неверных попыток входа, зааблокировать пользователя
+                pass
+
+            QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
+            self.ibutton_present[dict].connect(self.read_ibutton)
+            self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         
     def show_user_creation_wizard(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
