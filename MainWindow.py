@@ -6,7 +6,6 @@ import logging
 import os
 import sys
 
-from distutils.util import strtobool
 from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtUiTools, QtWidgets
@@ -37,6 +36,11 @@ PASSWD_PAGE = 1
 ADMIN_CHOICE_PAGE = 2
 USER_CHOICE_PAGE = 3
 SETTINGS_PAGE = 4
+
+
+def str2bool(s):
+    """Преобразовать строковое предстваление истины в boolean"""
+    return s.lower() in ("y", "yes", "true", "д", "да", "1")
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -258,6 +262,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
         # не является окном, поэтому метод closeEvent для него не определен
+        # TODO Попробовать исправить как в https://stackoverflow.com/questions/27603350/how-do-i-load-children-from-ui-file-in-pyside/27610822
         # Для выполнения действий при закрытии окна с загруженным виджетом необходимо
         # фильтровать события и при возникновении события Close вызвать необходимый метод
         self.window.installEventFilter(self)
@@ -290,9 +295,10 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             # Прочитать значения сохраненных настроек в секции panel_name и
             # в соответствии с ними установить значения элементов
+            # в соответствии с ними установить значения элементов
             for widget_name, value in self.config.items(panel_name):
                 if isinstance(getattr(panel, widget_name), QCheckBox):
-                    getattr(panel, widget_name).setChecked(strtobool(value))
+                    getattr(panel, widget_name).setChecked(str2bool(value))
                 elif isinstance(getattr(panel, widget_name), QLineEdit):
                     getattr(panel, widget_name).setText(value)
                 elif isinstance(getattr(panel, widget_name), QComboBox):
@@ -384,36 +390,40 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.window.last_user_name_value.setText(last_user["user_name"])
                 self.window.last_user_id_value.setText(last_user["id"])
                 self.window.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
-                self.window.current_user_id_value.setText(self.presented_ibutton["id"])
-                self.window.current_user_time_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
+                self.window.admin_id_value.setText(self.presented_ibutton["id"])
+                self.window.admin_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
                 # Перейти на страницу выбора действий, доступных администратору
                 self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
-                return
-            # TODO Проверить, что пользователь не заблокирован
-            pass
-            # Заполнить поля в окне выбора действий, доступных пользователю
-            self.window.user_name_value.setText(self.users[index]["user_name"])
-            self.window.user_id_value.setText(self.users[index]["id"])
-            self.window.current_user_time_value_2.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
-            self.window.last_user_time_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
-            self.window.logins_count_value.setText(str(self.users[index]["total_logins"]))
-            self.window.remaining_days_value.setText("---")
-            # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик общего количества попыток входа
-            self.users[index]["failed_logins"] = 0
-            self.users[index]["total_logins"] += 1
-            self.users[index]["last_login_datetime"] = datetime.datetime.now()
-            # Перейти на страницу выбора действий, доступных пользователю
-            self.window.main_stacked_widget.setCurrentIndex(USER_CHOICE_PAGE)
-        # Введен неправильный пароль
+            else:
+                # TODO Проверить, что пользователь не заблокирован
+                pass
+                # TODO Показать статистику, только если установлен соответствующий параметр
+                pass
+                # Заполнить поля в окне выбора действий, доступных пользователю
+                self.window.user_name_value.setText(self.users[index]["user_name"])
+                self.window.user_id_value.setText(self.users[index]["id"])
+                self.window.user_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
+                self.window.user_last_datetime_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                self.window.user_logins_count_value.setText(str(self.users[index]["total_logins"]))
+                # Вычислить срок действия пароля и число дней до устаревания
+                passwd_age = (datetime.datetime.now() - self.users[index]["passwd_datetime"]).days
+                remaining_days = int(self.config.get("passwd_parms_panel", "passwd_age_line_edit")) - passwd_age
+                self.window.user_remaining_days_value.setText(str(remaining_days))
+                # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик общего количества попыток входа
+                self.users[index]["failed_logins"] = 0
+                self.users[index]["total_logins"] += 1
+                self.users[index]["last_login_datetime"] = datetime.datetime.now()
+                # Перейти на страницу выбора действий, доступных пользователю
+                self.window.main_stacked_widget.setCurrentIndex(USER_CHOICE_PAGE)
         else:
+            # Введен неправильный пароль
             logging.info(f"Fail login, user index {index}")
             self.failed_logins += 1
             # Если это обычный пользователь, то увеличить число неудачных попыток входа
             if index is not None:
                 self.users[index]["failed_logins"] += 1
-                # TODO Проверить, что и в случае превышения максимальное числа неверных попыток входа, зааблокировать пользователя
+                # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
                 pass
-
             QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
             self.ibutton_present[dict].connect(self.read_ibutton)
             self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
@@ -444,6 +454,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.users.append({
             "id": str(message["id"]),
             "user_name": self.user_actions_panel.user_name.text(),
+            "passwd_datetime": datetime.datetime.now(),
             "last_login_datetime": datetime.datetime(1, 1, 1, 0, 0),
             "total_logins": 0,
             "failed_logins": 0,

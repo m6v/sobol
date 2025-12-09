@@ -33,7 +33,7 @@
     <item>
      <widget class="QStackedWidget" name="main_stacked_widget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="BackgroundedWidget" name="wait_id_page">
        <property name="styleSheet">
@@ -391,14 +391,14 @@ QLineEdit {
              </widget>
             </item>
             <item row="1" column="1">
-             <widget class="QLabel" name="current_user_time_value">
+             <widget class="QLabel" name="admin_datetime_value">
               <property name="text">
                <string/>
               </property>
              </widget>
             </item>
             <item row="1" column="0">
-             <widget class="QLabel" name="current_user_time_label">
+             <widget class="QLabel" name="admin_datetime_label">
               <property name="text">
                <string>Время текущего входа</string>
               </property>
@@ -412,7 +412,7 @@ QLineEdit {
              </widget>
             </item>
             <item row="0" column="0">
-             <widget class="QLabel" name="current_user_id_label">
+             <widget class="QLabel" name="admin_id_label">
               <property name="text">
                <string>Номер идентификатора</string>
               </property>
@@ -447,7 +447,7 @@ QLineEdit {
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QLabel" name="current_user_id_value">
+             <widget class="QLabel" name="admin_id_value">
               <property name="text">
                <string/>
               </property>
@@ -650,7 +650,7 @@ QLineEdit {
           <item>
            <layout class="QGridLayout" name="gridLayout_3">
             <item row="3" column="0">
-             <widget class="QLabel" name="last_user_time_label">
+             <widget class="QLabel" name="user_last_datetime_label">
               <property name="minimumSize">
                <size>
                 <width>450</width>
@@ -663,7 +663,7 @@ QLineEdit {
              </widget>
             </item>
             <item row="5" column="0">
-             <widget class="QLabel" name="remaining_days_label">
+             <widget class="QLabel" name="user_remaining_days_label">
               <property name="text">
                <string>Осталось дней до устаревания пароля</string>
               </property>
@@ -684,7 +684,7 @@ QLineEdit {
              </widget>
             </item>
             <item row="4" column="1">
-             <widget class="QLabel" name="logins_count_value">
+             <widget class="QLabel" name="user_logins_count_value">
               <property name="text">
                <string/>
               </property>
@@ -698,35 +698,35 @@ QLineEdit {
              </widget>
             </item>
             <item row="5" column="1">
-             <widget class="QLabel" name="remaining_days_value">
+             <widget class="QLabel" name="user_remaining_days_value">
               <property name="text">
                <string/>
               </property>
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QLabel" name="last_user_time_value">
+             <widget class="QLabel" name="user_last_datetime_value">
               <property name="text">
                <string>00:00 01/01/2025</string>
               </property>
              </widget>
             </item>
             <item row="2" column="0">
-             <widget class="QLabel" name="current_user_time_label_2">
+             <widget class="QLabel" name="user_datetime_label">
               <property name="text">
                <string>Время текущего входа</string>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="QLabel" name="current_user_time_value_2">
+             <widget class="QLabel" name="user_datetime_value">
               <property name="text">
                <string/>
               </property>
              </widget>
             </item>
             <item row="4" column="0">
-             <widget class="QLabel" name="logins_count_label">
+             <widget class="QLabel" name="user_logins_count_label">
               <property name="text">
                <string>Общее количество входов</string>
               </property>
