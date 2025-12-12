@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 __author__ = 'Sergey Maksimov'
 __mail__ = 'm6v@mail.ru'
-__version__ = '0.2'
+__version__ = '1.2'
 __date__ = '2025-10-02'
 __copyright__ = 'Copyright © 2025 Sergey Maksimov'
 __licence__ = 'GNU Public Licence (GPL) v3'
@@ -29,6 +29,7 @@ if __name__ == '__main__':
     if not os.path.isfile(config_file):
         logging.error(f"Config {config_file} not found")
         sys.exit(1)
+
     config = configparser.ConfigParser(allow_no_value=True)
     # Установить чувствительность ключей к регистру
     config.optionxform = str
@@ -41,24 +42,17 @@ if __name__ == '__main__':
         # Открыть соединение с локальным гипервизором
         conn = libvirt.open(None)
         dom = conn.lookupByName(domain_name)
-        # state - состояние виртуальной машины (число из перечисления virDomainState)
-        # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
+            # state - состояние виртуальной машины (число из перечисления virDomainState)
+            # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
         state, reason = dom.state()
         logging.info(f"Domain {dom.name()}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}, reason: {reason}")
         if state != libvirt.VIR_DOMAIN_RUNNING:
-                app = QApplication(sys.argv)
-                window = MainWindow(args.config_file)
-                # Если код возврата не нулевой, то выйти, иначе запустить виртуальную машину
-                if not app.exec_():
-                    sys.exit(False)
-                dom.create()
-                logging.info("Domain %s created" % domain_name)
-        subprocess.Popen(["virt-viewer", domain_name])
-
+            # Если виртуальная машина domain_name не запущена, запустить имитатор ПАК "Соболь"
+            app = QApplication(sys.argv)
+            window = MainWindow(args.config_file)
+            sys.exit(app.exec_())
+        else:
+            # Если виртуальная машина domain_name не запущена, запустить virt-viewer
+            sys.exit(subprocess.Popen(["virt-viewer", domain_name]))
     except libvirt.libvirtError as e:
         logging.error(e)
-
-    sys.exit(0)
-
-
-

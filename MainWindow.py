@@ -2,18 +2,21 @@ import configparser
 import datetime
 import functools
 import inspect
+import libvirt
 import logging
 import os
+import subprocess
 import sys
 
 from typing import Dict
 
-from PySide2 import QtCore, QtGui, QtUiTools, QtWidgets
+from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
 
 import dbus
 import dbus.mainloop.glib
 
+from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING
 from BackgroundedWidget import BackgroundedWidget
 from UiLoader import UiLoader
 from toggle import Toggle
@@ -51,27 +54,19 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, config_file):
         super().__init__()
 
-        '''
-        # Классический способ загрузки
-        loader = QtUiTools.QUiLoader()
-        loader.registerCustomWidget(BackgroundedWidget)
-        self.window = loader.load(os.path.join(CURRENT_DIR, "MainWindow.ui"), None)
-        '''
         loader = UiLoader()
         loader.registerCustomWidget(BackgroundedWidget)
+        loader.registerCustomWidget(Toggle)
         loader.loadUi('MainWindow.ui', self)
-
         # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
         # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
         if not os.path.isfile(config_file):
             config_file = os.path.join(INITIAL_DIR, config_file)
-
         self.config_file = os.path.join(INITIAL_DIR, config_file)
         self.config = configparser.ConfigParser(allow_no_value=True)
         # Установить чувствительность ключей к регистру
         self.config.optionxform = str
         self.config.read(self.config_file)
-
         try:
             # Список с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
             self.users = eval(self.config.get("general", "users"))
@@ -95,6 +90,25 @@ class MainWindow(QtWidgets.QMainWindow):
         except configparser.NoOptionError as e:
             logging.warning(e)
         except configparser.NoSectionError as e:
+            logging.error(e)
+
+        try:
+            # Register the default event implementation
+            libvirt.virEventRegisterDefaultImpl()
+            # Открыть соединение с локальным гипервизором
+            conn = libvirt.open(None)
+            self.dom = conn.lookupByName(self.domain_name)
+            # state - состояние виртуальной машины (число из перечисления virDomainState)
+            # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
+            state, reason = self.dom.state()
+            logging.info(f"Domain {self.dom.name()}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}, reason: {reason}")
+            '''
+            if state == libvirt.VIR_DOMAIN_RUNNING:
+                # Если клиент vnc или spice будет отображаться в имитаторе,
+                # установить здесь его в качестве первой открывающейся панели 
+                pass
+            '''
+        except libvirt.libvirtError as e:
             logging.error(e)
 
         # Создать боковую панель (sidebar)
@@ -175,14 +189,8 @@ class MainWindow(QtWidgets.QMainWindow):
             "service_operations_panel": "panels/ServiceOperationsPanel.ui",
             "user_actions_panel": "panels/UserActionsPanel.ui"
         }
-        loader = QtUiTools.QUiLoader()
-        loader.registerCustomWidget(Toggle)
-
-        # TODO Посмотреть, можно ли здесь использовать кастомный UiLoader
         for panel_name, ui_file in self.panels.items():
-            # Динамически загрузить панели и добавить в stackedWidget
-            panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
-            # Установить имя панели, для использования при установке сохраненных настроек
+            panel = loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
             self.stackedWidget.addWidget(getattr(self, panel_name))
@@ -225,7 +233,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.event_journal_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.event_journal_panel))
         self.event_journal_panel.events_type_search_check_box.clicked.connect(self.trigger_events_type_search)
         self.event_journal_panel.events_time_search_check_box.clicked.connect(self.trigger_events_time_search)
-        
+
         self.update_user_list_panel()
 
         # Установка свойства в ui почему-то не работает, делаем здесь
@@ -236,9 +244,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.passwd_line_edit.returnPressed.connect(self.auth_user)
         # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
         self.go_settings_push_button.clicked.connect(functools.partial(self.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
-        # Вызов метода закрытия с передачей ему кода возврата для последующего анализа и запуска виртуальной машины
-        self.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
-        self.sys_load_panel.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
+        # Вызов метода запуска виртуальной машины
+        self.sys_load_push_button.clicked.connect(self.sys_load)
+        self.sys_load_panel.sys_load_push_button.clicked.connect(self.sys_load)
 
         self.user_list_panel.add_user_push_button.clicked.connect(self.show_user_creation_wizard)
         self.user_list_panel.del_user_push_button.clicked.connect(self.del_user)
@@ -257,8 +265,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timer.timeout.connect(self.decrease_remaining_time)
 
         # Установить функцию обратного вызова для обработки сигнала IButtonSignal
-        bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name = "IButtonSignal")
-        
+        bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name="IButtonSignal")
+
         # Пытаемся вызвать метод шины
         self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
 
@@ -267,21 +275,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ibutton_present[dict].connect(self.read_ibutton)
         self.timer.start(1000)
 
-        # В отличии от PyQt в PySide виджет, загруженный с помощью QtUiTools,
-        # не является окном, поэтому метод closeEvent для него не определен
-        # TODO Попробовать исправить как в https://stackoverflow.com/questions/27603350/how-do-i-load-children-from-ui-file-in-pyside/27610822
-        # Для выполнения действий при закрытии окна с загруженным виджетом необходимо
-        # фильтровать события и при возникновении события Close вызвать необходимый метод
-        self.installEventFilter(self)
         self.show()
-
-    def eventFilter(self, watched, event):
-        """Обработчик событий"""
-        # Фильтр, перехватывающий возникновении события Close у виджетов, к которым он применен
-        if watched is self and event.type() == QtCore.QEvent.Close:
-            logging.info(f"Recieve event: {event}")
-            self.closeEvent(event)
-        return super().eventFilter(watched, event)
 
     def show_main_panel(self, index):
         """Показать выбранную панель настроек с сохраненными настройками"""
@@ -434,7 +428,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
             self.ibutton_present[dict].connect(self.read_ibutton)
             self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-        
+
     def show_user_creation_wizard(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
         self.sidebar_widget.hide()
@@ -446,7 +440,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_actions_panel.ibutton_label.setText("Предъявите персональный идентификатор")
         self.user_actions_panel.cancel_push_button_4.setEnabled(True)
         self.user_actions_panel.finish_push_button_4.setEnabled(False)
-        
+
         self.stackedWidget.setCurrentWidget(self.user_actions_panel)
 
     def add_user(self, message: Dict[str, str]):
@@ -474,7 +468,11 @@ class MainWindow(QtWidgets.QMainWindow):
         })
 
         # Вызвать метод для записи в предъявленную ibutton имени и пароля пользователя
-        self.service_object.SetIButtonData({"id": str(message["id"]), "user_name": self.user_actions_panel.user_name.text(), "passwd": self.user_actions_panel.passwd_line_edit.text()})
+        self.service_object.SetIButtonData({
+            "id": str(message["id"]),
+            "user_name": self.user_actions_panel.user_name.text(),
+            "passwd": self.user_actions_panel.passwd_line_edit.text()
+        })
 
         self.user_actions_panel.ibutton_label.setText(f"Предъявлен идентификатор: {message['id']}\nПользователь успешно зарегистрирован.")
         self.user_actions_panel.finish_push_button_4.setEnabled(True)
@@ -565,9 +563,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.users[index]["user_status"] = self.user_list_panel.user_status.currentIndex()
         self.users[index]["integrity_ctl_mode"] = self.user_list_panel.integrity_ctl_mode.currentIndex()
 
-    def closeEvent(self, event):
-        logging.debug(f"closeEvent {event}")
+    def sys_load(self):
+        """Запустить виртуальную машину и открыть virt-viewer"""
+        try:
+            self.dom.create()
+            logging.info("Domain %s created" % self.domain_name)
+        except libvirt.libvirtError as e:
+            logging.error(e)
+        subprocess.Popen(["virt-viewer", self.domain_name])
+        self.close()
 
+    def closeEvent(self, event):
+        """Сохранить настройки приложения"""
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.geometry().getRect()
         # Преобразовать элементы кортежа в строки и разделить символом ;
@@ -576,12 +583,5 @@ class MainWindow(QtWidgets.QMainWindow):
         # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
         self.config.set("general", "users", str(self.users))
         self.config.set("general", "failed_logins", str(self.failed_logins))
-
         with open(self.config_file, "w") as file:
             self.config.write(file)
-
-        exit_code = True if event is QtCore.QEvent.Type.Enter else False
-
-        # Вместо self.close() используем exit, чтобы вернуть код возврата,
-        # для того, чтобы по нему понять нужно запускать виртуальную машину или нет
-        QtCore.QCoreApplication.exit(exit_code)
