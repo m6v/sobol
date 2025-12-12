@@ -15,6 +15,7 @@ import dbus
 import dbus.mainloop.glib
 
 from BackgroundedWidget import BackgroundedWidget
+from UiLoader import UiLoader
 from toggle import Toggle
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
@@ -50,10 +51,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, config_file):
         super().__init__()
 
+        '''
+        # Классический способ загрузки
         loader = QtUiTools.QUiLoader()
         loader.registerCustomWidget(BackgroundedWidget)
-
         self.window = loader.load(os.path.join(CURRENT_DIR, "MainWindow.ui"), None)
+        '''
+        loader = UiLoader()
+        loader.registerCustomWidget(BackgroundedWidget)
+        loader.loadUi('MainWindow.ui', self)
 
         # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
         # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
@@ -79,13 +85,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.vnc_addr = self.config.get("general", "vnc_addr")
             self.vnc_port = int(self.config.get("general", "vnc_port"))
 
-            self.window.setWindowTitle(self.config.get("window", "title"))
+            self.setWindowTitle(self.config.get("window", "title"))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
             geometry = QtCore.QRect(*map(int, self.config.get("window", "geometry").split(";")))
             # Восстановить геометрию и состояние главного окна
-            self.window.setGeometry(geometry)
+            self.setGeometry(geometry)
             state = int(self.config.get("window", "state"))
-            self.window.restoreState(bytearray(state))
+            self.restoreState(bytearray(state))
         except configparser.NoOptionError as e:
             logging.warning(e)
         except configparser.NoSectionError as e:
@@ -152,7 +158,7 @@ class MainWindow(QtWidgets.QMainWindow):
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sidebar_layout.addItem(verticalSpacer)
         # Вставить созданный менеджер компоновки в нулевую позицию менеджера компоновки главного окна (mainHorizontalLayout)
-        self.window.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=QtCore.Qt.AlignLeft)
+        self.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=QtCore.Qt.AlignLeft)
 
         # Динамически добавить панели в стек виджетов, с последующим обращением к ним self.sys_load_panel и т.д.
         self.panels = {
@@ -172,13 +178,14 @@ class MainWindow(QtWidgets.QMainWindow):
         loader = QtUiTools.QUiLoader()
         loader.registerCustomWidget(Toggle)
 
+        # TODO Посмотреть, можно ли здесь использовать кастомный UiLoader
         for panel_name, ui_file in self.panels.items():
             # Динамически загрузить панели и добавить в stackedWidget
             panel = loader.load(os.path.join(CURRENT_DIR, ui_file))
             # Установить имя панели, для использования при установке сохраненных настроек
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
-            self.window.stackedWidget.addWidget(getattr(self, panel_name))
+            self.stackedWidget.addWidget(getattr(self, panel_name))
 
         # При запуске открыть панель WAIT_ID_PAGE
         self.show_main_panel(WAIT_ID_PAGE)
@@ -222,15 +229,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_user_list_panel()
 
         # Установка свойства в ui почему-то не работает, делаем здесь
-        self.window.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
 
         # Связать сигнал и слоты
-        self.window.enter_push_button.clicked.connect(self.auth_user)
-        self.window.passwd_line_edit.returnPressed.connect(self.auth_user)
+        self.enter_push_button.clicked.connect(self.auth_user)
+        self.passwd_line_edit.returnPressed.connect(self.auth_user)
         # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
-        self.window.go_settings_push_button.clicked.connect(functools.partial(self.window.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
+        self.go_settings_push_button.clicked.connect(functools.partial(self.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
         # Вызов метода закрытия с передачей ему кода возврата для последующего анализа и запуска виртуальной машины
-        self.window.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
+        self.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
         self.sys_load_panel.sys_load_push_button.clicked.connect(functools.partial(self.closeEvent, QtCore.QEvent.Enter))
 
         self.user_list_panel.add_user_push_button.clicked.connect(self.show_user_creation_wizard)
@@ -256,7 +263,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
 
         # Запустить таймер ожидания чтения идентификатора iButton
-        self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+        self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         self.ibutton_present[dict].connect(self.read_ibutton)
         self.timer.start(1000)
 
@@ -265,22 +272,22 @@ class MainWindow(QtWidgets.QMainWindow):
         # TODO Попробовать исправить как в https://stackoverflow.com/questions/27603350/how-do-i-load-children-from-ui-file-in-pyside/27610822
         # Для выполнения действий при закрытии окна с загруженным виджетом необходимо
         # фильтровать события и при возникновении события Close вызвать необходимый метод
-        self.window.installEventFilter(self)
-        self.window.show()
+        self.installEventFilter(self)
+        self.show()
 
     def eventFilter(self, watched, event):
         """Обработчик событий"""
         # Фильтр, перехватывающий возникновении события Close у виджетов, к которым он применен
-        if watched is self.window and event.type() == QtCore.QEvent.Close:
+        if watched is self and event.type() == QtCore.QEvent.Close:
             logging.info(f"Recieve event: {event}")
             self.closeEvent(event)
         return super().eventFilter(watched, event)
 
     def show_main_panel(self, index):
         """Показать выбранную панель настроек с сохраненными настройками"""
-        self.window.stackedWidget.setCurrentIndex(index)
+        self.stackedWidget.setCurrentIndex(index)
         # Установить значения элементов выбранной панели в соответствии с настройками
-        panel = self.window.stackedWidget.widget(index)
+        panel = self.stackedWidget.widget(index)
         self.set_panel_settings(panel)
 
     def show_journal_panel(self, index):
@@ -345,22 +352,22 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info("The waiting time has expired")
             self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
             self.ibutton_present[dict].connect(self.read_ibutton)
-            self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+            self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
             # TODO Перевести секунды в минуты и секунды
-            self.window.remaining_time_label_1.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
-            self.window.remaining_time_label_2.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
+            self.remaining_time_label_1.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
+            self.remaining_time_label_2.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
 
     def read_ibutton(self, message):
         """Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля"""
         self.presented_ibutton = message
         # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[dict].disconnect()
-        self.window.id_label.setText(self.presented_ibutton["id"])
+        self.id_label.setText(self.presented_ibutton["id"])
         # Стереть поле ввода пароля на случай попытки повторного входа
-        self.window.passwd_line_edit.setText("")
-        self.window.passwd_line_edit.setFocus()
-        self.window.main_stacked_widget.setCurrentIndex(PASSWD_PAGE)
+        self.passwd_line_edit.setText("")
+        self.passwd_line_edit.setFocus()
+        self.main_stacked_widget.setCurrentIndex(PASSWD_PAGE)
 
     def ibutton_signal_handler(self, message):
         """Функция обратного вызова для обработки сигнала с dBus"""
@@ -375,46 +382,46 @@ class MainWindow(QtWidgets.QMainWindow):
         except ValueError:
             index = None
 
-        if self.presented_ibutton["passwd"] == self.window.passwd_line_edit.text():
+        if self.presented_ibutton["passwd"] == self.passwd_line_edit.text():
             # Веден правильный пароль, остановить таймер открыть панель выбора действия Загрузка ОС/Настройки
             self.timer.stop()
             # Если входящий пользователь в списке self.admins, открыть страницу настроек и выйти
             if self.presented_ibutton["id"] in self.admins:
                 # Заполнить поля в окне выбора действий, доступных администратору
-                self.window.failed_logins_value.setText(str(self.failed_logins))
+                self.failed_logins_value.setText(str(self.failed_logins))
                 # Найти пользователя входившего в систему последним
                 last_user = self.users[0]
                 for user in self.users:
                     if user["last_login_datetime"] > last_user["last_login_datetime"]:
                         last_user = user
-                self.window.last_user_name_value.setText(last_user["user_name"])
-                self.window.last_user_id_value.setText(last_user["id"])
-                self.window.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
-                self.window.admin_id_value.setText(self.presented_ibutton["id"])
-                self.window.admin_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
+                self.last_user_name_value.setText(last_user["user_name"])
+                self.last_user_id_value.setText(last_user["id"])
+                self.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                self.admin_id_value.setText(self.presented_ibutton["id"])
+                self.admin_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
                 # Перейти на страницу выбора действий, доступных администратору
-                self.window.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
+                self.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
             else:
                 # TODO Проверить, что пользователь не заблокирован
                 pass
                 # TODO Показать статистику, только если установлен соответствующий параметр
                 pass
                 # Заполнить поля в окне выбора действий, доступных пользователю
-                self.window.user_name_value.setText(self.users[index]["user_name"])
-                self.window.user_id_value.setText(self.users[index]["id"])
-                self.window.user_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
-                self.window.user_last_datetime_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
-                self.window.user_logins_count_value.setText(str(self.users[index]["total_logins"]))
+                self.user_name_value.setText(self.users[index]["user_name"])
+                self.user_id_value.setText(self.users[index]["id"])
+                self.user_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
+                self.user_last_datetime_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                self.user_logins_count_value.setText(str(self.users[index]["total_logins"]))
                 # Вычислить срок действия пароля и число дней до устаревания
                 passwd_age = (datetime.datetime.now() - self.users[index]["passwd_datetime"]).days
                 remaining_days = int(self.config.get("passwd_parms_panel", "passwd_age_line_edit")) - passwd_age
-                self.window.user_remaining_days_value.setText(str(remaining_days))
+                self.user_remaining_days_value.setText(str(remaining_days))
                 # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик общего количества попыток входа
                 self.users[index]["failed_logins"] = 0
                 self.users[index]["total_logins"] += 1
                 self.users[index]["last_login_datetime"] = datetime.datetime.now()
                 # Перейти на страницу выбора действий, доступных пользователю
-                self.window.main_stacked_widget.setCurrentIndex(USER_CHOICE_PAGE)
+                self.main_stacked_widget.setCurrentIndex(USER_CHOICE_PAGE)
         else:
             # Введен неправильный пароль
             logging.info(f"Fail login, user index {index}")
@@ -426,7 +433,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
             QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
             self.ibutton_present[dict].connect(self.read_ibutton)
-            self.window.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+            self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         
     def show_user_creation_wizard(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
@@ -440,7 +447,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_actions_panel.cancel_push_button_4.setEnabled(True)
         self.user_actions_panel.finish_push_button_4.setEnabled(False)
         
-        self.window.stackedWidget.setCurrentWidget(self.user_actions_panel)
+        self.stackedWidget.setCurrentWidget(self.user_actions_panel)
 
     def add_user(self, message: Dict[str, str]):
         """Добавить пользователя, id которого указана в словаре message"""
@@ -484,7 +491,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Отменить работу мастера создания нового пользователя,
         показать боковое меню и панель с списком пользователей"""
         self.sidebar_widget.show()
-        self.window.stackedWidget.setCurrentWidget(self.user_list_panel)
+        self.stackedWidget.setCurrentWidget(self.user_list_panel)
 
     def user_name_changed(self, text):
         """Изменить состояние кнопки "Вперед" при вводе имени нового пользователя"""
@@ -562,10 +569,10 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.debug(f"closeEvent {event}")
 
         # Получить кортеж с элементами QRect геометрии главного окна
-        geometry = self.window.geometry().getRect()
+        geometry = self.geometry().getRect()
         # Преобразовать элементы кортежа в строки и разделить символом ;
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
-        self.config.set("window", "state", str(int(self.window.windowState())))
+        self.config.set("window", "state", str(int(self.windowState())))
         # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
         self.config.set("general", "users", str(self.users))
         self.config.set("general", "failed_logins", str(self.failed_logins))
@@ -575,6 +582,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         exit_code = True if event is QtCore.QEvent.Type.Enter else False
 
-        # Вместо self.window.close() используем exit, чтобы вернуть код возврата,
+        # Вместо self.close() используем exit, чтобы вернуть код возврата,
         # для того, чтобы по нему понять нужно запускать виртуальную машину или нет
         QtCore.QCoreApplication.exit(exit_code)
