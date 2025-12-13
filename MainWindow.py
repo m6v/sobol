@@ -57,7 +57,7 @@ class MainWindow(QtWidgets.QMainWindow):
         loader = UiLoader()
         loader.registerCustomWidget(BackgroundedWidget)
         loader.registerCustomWidget(Toggle)
-        loader.loadUi('MainWindow.ui', self)
+        loader.loadUi("MainWindow.ui", self)
         # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
         # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
         if not os.path.isfile(config_file):
@@ -296,7 +296,6 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             # Прочитать значения сохраненных настроек в секции panel_name и
             # в соответствии с ними установить значения элементов
-            # в соответствии с ними установить значения элементов
             for widget_name, value in self.config.items(panel_name):
                 if isinstance(getattr(panel, widget_name), QCheckBox):
                     getattr(panel, widget_name).setChecked(str2bool(value))
@@ -365,7 +364,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def ibutton_signal_handler(self, message):
         """Функция обратного вызова для обработки сигнала с dBus"""
-        logging.info(f"Recieve message: {message}")
+        logging.debug(f"Recieve message: {message}")
         self.ibutton_present.emit(message)
 
     def auth_user(self):
@@ -535,7 +534,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_user_parms(self, item):
         """Показать настройки выбранного в списке пользователя"""
         index = self.user_list_panel.user_list_widget.currentRow()
-        logging.info(f"Select user: {self.users[index]['user_name']}")
+        logging.debug(f"Select user: {self.users[index]['user_name']}")
         user = self.users[index]
         try:
             self.user_list_panel.user_id.setText(user["id"])

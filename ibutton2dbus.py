@@ -33,6 +33,7 @@ logging.info("%s started" % appname)
 with open("ibuttons.json") as file:
     ibuttons = json.load(file)
 
+
 class IButtonService(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         dbus.service.Object.__init__(self, bus_name, object_path)
@@ -52,6 +53,7 @@ class IButtonService(dbus.service.Object):
         with open("ibuttons.json", "w") as file:
             json.dump(ibuttons, file, ensure_ascii=False)
         return True
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -85,4 +87,3 @@ if __name__ == "__main__":
     tray_icon.setContextMenu(tray_menu)
 
     sys.exit(app.exec())
-

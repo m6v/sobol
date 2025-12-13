@@ -37,13 +37,13 @@ if __name__ == '__main__':
     domain_name = config.get("general", "domain_name")
 
     try:
-        # Register the default event implementation
+        # Регистрация стандартной реализации цикла событий
         libvirt.virEventRegisterDefaultImpl()
         # Открыть соединение с локальным гипервизором
         conn = libvirt.open(None)
         dom = conn.lookupByName(domain_name)
-            # state - состояние виртуальной машины (число из перечисления virDomainState)
-            # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
+        # state - состояние виртуальной машины (число из перечисления virDomainState)
+        # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
         state, reason = dom.state()
         logging.info(f"Domain {dom.name()}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}, reason: {reason}")
         if state != libvirt.VIR_DOMAIN_RUNNING:
