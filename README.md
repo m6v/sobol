@@ -71,19 +71,20 @@ apt install -d -o=dir::cache=/tmp/novnc novnc
 
 Скопировать ibutton2dbus.desktop в /etc/xdg/autostart
 
+В настройках виртуальной машины добавить Display VNC с портом, например, 5901
+
 До запуска программы запустить
 - ibutton2dbus (эмулятор чтения iButton, передающий идентификатор в сессионную dbus)
 - websockify  6080 127.0.0.1:5901 --web /usr/share/novnc
-NB! Не забыть в настройках ВМ добавить Display VNC с портом 5901
 - python3 -m http.server
 
 ## Зависимости
-- python3-pyqt5 (если по дефолту не установлен)
-- python3-pyqt5.qtwebengine
-- python3-pydbus
+- python3-pyside2.qtuitools
+- python3-pyside2.qtwebengine
+- python3-pyside2.qtwebenginewidgets
 - python3-libvirt
 - novnc
-- python3-websockify (если по дефолту не установлен или не ставится с novnc)
+- python3-websockify
 
 ## Установка необходимых пакетов
 apt install python3-pip python3-venv

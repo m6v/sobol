@@ -33,7 +33,7 @@
     <item>
      <widget class="QStackedWidget" name="main_stacked_widget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>4</number>
       </property>
       <widget class="BackgroundedWidget" name="wait_id_page">
        <property name="styleSheet">

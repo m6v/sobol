@@ -12,6 +12,7 @@ from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
+from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 import dbus
 import dbus.mainloop.glib
@@ -40,11 +41,31 @@ PASSWD_PAGE = 1
 ADMIN_CHOICE_PAGE = 2
 USER_CHOICE_PAGE = 3
 SETTINGS_PAGE = 4
+WEB_VIEW_PAGE = 5
 
 
 def str2bool(s):
     """Преобразовать строковое предстваление истины в boolean"""
     return s.lower() in ("y", "yes", "true", "д", "да", "1")
+
+
+class WebEnginePage(QWebEnginePage):
+    navigation_request = QtCore.Signal(str)
+    def acceptNavigationRequest(self, url,  _type, isMainFrame):
+        # Если переходить по ссылке не требуется, возвратить False, иначе True
+        if _type == QWebEnginePage.NavigationTypeLinkClicked:
+            logging.debug(url.path())
+            self.navigation_request.emit(url.path())
+            # Здесь можно анализировать url и в зависимости от него 
+            # разрешать или запрещать переход по ссылке
+            return False
+        return True
+
+
+class CustomWebEngineView(QWebEngineView):
+    def __init__(self, *args, **kwargs):
+        QWebEngineView.__init__(self, *args, **kwargs)
+        self.setPage(WebEnginePage(self))
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -57,6 +78,7 @@ class MainWindow(QtWidgets.QMainWindow):
         loader = UiLoader()
         loader.registerCustomWidget(BackgroundedWidget)
         loader.registerCustomWidget(Toggle)
+        loader.registerCustomWidget(QWebEngineView)
         loader.loadUi("MainWindow.ui", self)
         # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
         # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
@@ -76,9 +98,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.failed_logins = int(self.config.get("general", "failed_logins"))
             # Имя виртуальной машины
             self.domain_name = self.config.get("general", "domain_name")
-            # Адрес и порт VNC-сервера виртуальной машины
-            self.vnc_addr = self.config.get("general", "vnc_addr")
-            self.vnc_port = int(self.config.get("general", "vnc_port"))
 
             self.setWindowTitle(self.config.get("window", "title"))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
@@ -110,6 +129,9 @@ class MainWindow(QtWidgets.QMainWindow):
             '''
         except libvirt.libvirtError as e:
             logging.error(e)
+
+        self.web_engine_view = QWebEngineView()
+        self.main_stacked_widget.addWidget(self.web_engine_view)
 
         # Создать боковую панель (sidebar)
         self.sidebar_widget = QtWidgets.QWidget()
@@ -569,6 +591,16 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.info("Domain %s created" % self.domain_name)
         except libvirt.libvirtError as e:
             logging.error(e)
+        """
+        # Вариант с отображением рабочего стола виртуальной машины во встроенном QWebEngineView
+        self.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+        # Если url вводится пользователем, лучше использовать метод QtCore.QUrl.fromUserInput(url),
+        # чтобы при необходимости добавить название протокола и т.п.
+        url = QtCore.QUrl(self.config.get("general", "vnc_url"))
+        logging.debug(f"Open {url}")
+        self.web_engine_view.load(url)
+        return
+        """
         subprocess.Popen(["virt-viewer", self.domain_name])
         self.close()
 
