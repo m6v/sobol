@@ -134,13 +134,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_stacked_widget.addWidget(self.web_engine_view)
 
         # Создать боковую панель (sidebar)
-        self.sidebar_widget = QtWidgets.QWidget()
+        self.settings_sidebar_widget = QtWidgets.QWidget()
         # Установить фиксированную ширину боковой панели
-        self.sidebar_widget.setFixedWidth(230)
-        self.sidebar_widget.setContentsMargins(0, 0, 0, 0)
+        self.settings_sidebar_widget.setFixedWidth(230)
+        self.settings_sidebar_widget.setContentsMargins(0, 0, 0, 0)
 
-        # Настроить параметры отображения боковой панели
-        self.sidebar_widget.setStyleSheet("""
+        sidebar_style_sheet = """
             QWidget {
                 font: 9pt "Monospace Regular";
                 background-image: url(sidebar.png);
@@ -163,147 +162,166 @@ class MainWindow(QtWidgets.QMainWindow):
            QPushButton:pressed {
                 background-color: #3D8A36;
            }
-        """)
+        """
+
+        # Настроить параметры отображения боковой панели страницы настроек
+        self.settings_sidebar_widget.setStyleSheet(sidebar_style_sheet)
 
         # Создать менеджер компоновки с кнопками меню
-        sidebar_layout = QtWidgets.QVBoxLayout(self.sidebar_widget)
-        sidebar_layout.setContentsMargins(0, 0, 0, 0)
-        sidebar_layout.setSpacing(0)
+        settings_sidebar_layout = QtWidgets.QVBoxLayout(self.settings_sidebar_widget)
+        settings_sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        settings_sidebar_layout.setSpacing(0)
 
-        buttons = {
-            "Загрузка ОС": "icons/sys_load.png",
-            "Режим работы": "icons/work_mode.png",
-            "Список пользователей": "icons/users_list.png",
-            "Журнал событий": "icons/journal.png",
-            "Общие параметры": "icons/common_parms.png",
-            "Параметры паролей": "icons/passwd_parms.png",
-            "Контроль целостности": "icons/integrity_control.png",
-            "Смена пароля": "icons/passwd_change.png",
-            "Смена аутентификатора": "icons/user_id_change.png",
-            "Диагностика платы": "icons/diagnostic.png",
-            "Служебные операции": "icons/service_operations.png"
-        }
+        # Если зарегистрирован хоть один администратор, считаем, что комплекс инициализирован
+        if self.admins:
+            buttons = {
+                "Загрузка ОС": "icons/sys_load.png",
+                "Режим работы": "icons/work_mode.png",
+                "Список пользователей": "icons/users_list.png",
+                "Журнал событий": "icons/journal.png",
+                "Общие параметры": "icons/common_parms.png",
+                "Параметры паролей": "icons/passwd_parms.png",
+                "Контроль целостности": "icons/integrity_control.png",
+                "Смена пароля": "icons/passwd_change.png",
+                "Смена аутентификатора": "icons/user_id_change.png",
+                "Диагностика платы": "icons/diagnostic.png",
+                "Служебные операции": "icons/service_operations.png"
+            }
+            settings_panels = {
+                "sys_load_panel": "panels/SysLoadPanel.ui",
+                "work_mode_panel": "panels/WorkModePanel.ui",
+                "user_list_panel": "panels/UserListPanel.ui",
+                "event_journal_panel": "panels/JournalPanel.ui",
+                "common_parms_panel": "panels/CommonParmsPanel.ui",
+                "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
+                "integrity_control_panel": "panels/IntegrityControlPanel.ui",
+                "passwd_change_panel": "panels/PasswdChangePanel.ui",
+                "id_change_panel": "panels/IdChangePanel.ui",
+                "diagnostic_panel": "panels/DiagnosticPanel.ui",
+                "service_operations_panel": "panels/ServiceOperationsPanel.ui",
+                "user_actions_panel": "panels/UserActionsPanel.ui"
+            }
+        else:
+            buttons = {
+                "Инициализация платы": "icons/sys_load.png",
+                "Диагностика платы": "icons/diagnostic.png",
+                "Служебные операции": "icons/service_operations.png"
+            }
+            settings_panels = {
+                "sys_load_panel": "panels/SysLoadPanel.ui",
+                "diagnostic_panel": "panels/DiagnosticPanel.ui",
+                "service_operations_panel": "panels/ServiceOperationsPanel.ui",
+            }
+
         verticalSpacer = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Fixed)
-        sidebar_layout.addItem(verticalSpacer)
+        settings_sidebar_layout.addItem(verticalSpacer)
         for i, item in enumerate(buttons.items()):
             button = QtWidgets.QPushButton(item[0])
             button.setIcon(QtGui.QIcon(item[1]))
-            sidebar_layout.addWidget(button)
+            settings_sidebar_layout.addWidget(button)
             # Связать событие нажания кнопки с обработчиком, передавая в обработчик номер кнопки
             button.clicked.connect(functools.partial(self.show_main_panel, i))
         verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
-        sidebar_layout.addItem(verticalSpacer)
-        # Вставить созданный менеджер компоновки в нулевую позицию менеджера компоновки главного окна (mainHorizontalLayout)
-        self.mainHorizontalLayout.insertWidget(0, self.sidebar_widget, alignment=QtCore.Qt.AlignLeft)
-
+        settings_sidebar_layout.addItem(verticalSpacer)
+        # Вставить созданный менеджер компоновки в нулевую позицию менеджера компоновки главного окна (settings_horizontal_layout)
+        self.settings_horizontal_layout.insertWidget(0, self.settings_sidebar_widget, alignment=QtCore.Qt.AlignLeft)
         # Динамически добавить панели в стек виджетов, с последующим обращением к ним self.sys_load_panel и т.д.
-        self.panels = {
-            "sys_load_panel": "panels/SysLoadPanel.ui",
-            "work_mode_panel": "panels/WorkModePanel.ui",
-            "user_list_panel": "panels/UserListPanel.ui",
-            "event_journal_panel": "panels/JournalPanel.ui",
-            "common_parms_panel": "panels/CommonParmsPanel.ui",
-            "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
-            "integrity_control_panel": "panels/IntegrityControlPanel.ui",
-            "passwd_change_panel": "panels/PasswdChangePanel.ui",
-            "id_change_panel": "panels/IdChangePanel.ui",
-            "diagnostic_panel": "panels/DiagnosticPanel.ui",
-            "service_operations_panel": "panels/ServiceOperationsPanel.ui",
-            "user_actions_panel": "panels/UserActionsPanel.ui"
-        }
-        for panel_name, ui_file in self.panels.items():
+        for panel_name, ui_file in settings_panels.items():
             panel = loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
-            self.stackedWidget.addWidget(getattr(self, panel_name))
+            self.settings_stacked_widget.addWidget(getattr(self, panel_name))
 
-        # При запуске открыть панель WAIT_ID_PAGE
-        self.show_main_panel(WAIT_ID_PAGE)
+        if self.admins:
+            # При запуске открыть панель WAIT_ID_PAGE
+            self.show_main_panel(WAIT_ID_PAGE)
 
-        self.show_journal_panel(0)
+            self.show_journal_panel(0)
 
-        self.sys_load_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.sys_load_panel))
-        self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.common_parms_panel))
-        self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.passwd_parms_panel))
-        self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
+            self.sys_load_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.sys_load_panel))
+            self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.common_parms_panel))
+            self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.passwd_parms_panel))
+            self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
 
-        self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.cancel_push_button_3.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.cancel_push_button_4.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.cancel_push_button_5.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.cancel_push_button_6.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.cancel_push_button_7.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.finish_push_button_4.clicked.connect(self.close_user_ctl_wizard)
-        self.user_actions_panel.finish_push_button_8.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.cancel_push_button_3.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.cancel_push_button_4.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.cancel_push_button_5.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.cancel_push_button_6.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.cancel_push_button_7.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.finish_push_button_4.clicked.connect(self.close_user_ctl_wizard)
+            self.user_actions_panel.finish_push_button_8.clicked.connect(self.close_user_ctl_wizard)
 
-        self.user_actions_panel.user_name.textChanged[str].connect(self.user_name_changed)
-        self.user_actions_panel.next_push_button_1.clicked.connect(self.check_user_name)
-        self.user_actions_panel.yes_push_button_2.clicked.connect(self.next_user_action_panel)
-        self.user_actions_panel.passwd_line_edit.textChanged[str].connect(self.user_passwd_changed)
-        self.user_actions_panel.passwd_confirm_line_edit.textChanged[str].connect(self.user_passwd_changed)
-        self.user_actions_panel.next_push_button_3.clicked.connect(self.check_user_passwd)
+            self.user_actions_panel.user_name.textChanged[str].connect(self.user_name_changed)
+            self.user_actions_panel.next_push_button_1.clicked.connect(self.check_user_name)
+            self.user_actions_panel.yes_push_button_2.clicked.connect(self.next_user_action_panel)
+            self.user_actions_panel.passwd_line_edit.textChanged[str].connect(self.user_passwd_changed)
+            self.user_actions_panel.passwd_confirm_line_edit.textChanged[str].connect(self.user_passwd_changed)
+            self.user_actions_panel.next_push_button_3.clicked.connect(self.check_user_passwd)
 
-        self.event_journal_panel.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
-        self.event_journal_panel.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 1))
-        self.event_journal_panel.parms_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 2))
-        self.event_journal_panel.search_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 3))
-        self.event_journal_panel.select_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
-        self.event_journal_panel.cancel_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
-        self.event_journal_panel.select_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.selectAll)
-        self.event_journal_panel.clear_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.clearSelection)
-        self.event_journal_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.event_journal_panel))
-        self.event_journal_panel.events_type_search_check_box.clicked.connect(self.trigger_events_type_search)
-        self.event_journal_panel.events_time_search_check_box.clicked.connect(self.trigger_events_time_search)
+            self.event_journal_panel.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
+            self.event_journal_panel.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 1))
+            self.event_journal_panel.parms_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 2))
+            self.event_journal_panel.search_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 3))
+            self.event_journal_panel.select_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
+            self.event_journal_panel.cancel_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
+            self.event_journal_panel.select_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.selectAll)
+            self.event_journal_panel.clear_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.clearSelection)
+            self.event_journal_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.event_journal_panel))
+            self.event_journal_panel.events_type_search_check_box.clicked.connect(self.trigger_events_type_search)
+            self.event_journal_panel.events_time_search_check_box.clicked.connect(self.trigger_events_time_search)
 
-        self.update_user_list_panel()
+            self.update_user_list_panel()
 
-        # Установка свойства в ui почему-то не работает, делаем здесь
-        self.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+            # Установка свойства в ui почему-то не работает, делаем здесь
+            self.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
 
-        # Связать сигнал и слоты
-        self.enter_push_button.clicked.connect(self.auth_user)
-        self.passwd_line_edit.returnPressed.connect(self.auth_user)
-        # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
-        self.go_settings_push_button.clicked.connect(functools.partial(self.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
-        # Вызов метода запуска виртуальной машины
-        self.sys_load_push_button.clicked.connect(self.sys_load)
-        self.sys_load_panel.sys_load_push_button.clicked.connect(self.sys_load)
+            # Связать сигнал и слоты
+            self.enter_push_button.clicked.connect(self.auth_user)
+            self.passwd_line_edit.returnPressed.connect(self.auth_user)
+            # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
+            self.go_settings_push_button.clicked.connect(functools.partial(self.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
+            # Вызов метода запуска виртуальной машины
+            self.sys_load_push_button.clicked.connect(self.sys_load)
+            self.sys_load_panel.sys_load_push_button.clicked.connect(self.sys_load)
 
-        self.user_list_panel.add_user_push_button.clicked.connect(self.show_user_creation_wizard)
-        self.user_list_panel.del_user_push_button.clicked.connect(self.del_user)
-        self.user_list_panel.user_list_widget.itemClicked.connect(self.show_user_parms)
-        self.user_list_panel.user_list_widget.itemActivated.connect(self.show_user_parms)
-        self.user_list_panel.save_push_button.clicked.connect(self.save_user_parms)
+            self.user_list_panel.add_user_push_button.clicked.connect(self.show_user_creation_wizard)
+            self.user_list_panel.del_user_push_button.clicked.connect(self.del_user)
+            self.user_list_panel.user_list_widget.itemClicked.connect(self.show_user_parms)
+            self.user_list_panel.user_list_widget.itemActivated.connect(self.show_user_parms)
+            self.user_list_panel.save_push_button.clicked.connect(self.save_user_parms)
 
+            self.timer = QtCore.QTimer()
+            # Время до входа в систему, отображаемое в первых двух окнах
+            self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
+            # Если 0, то не обрабатывать таймаут
+            if self.remaining_time:
+                self.timer.timeout.connect(self.decrease_remaining_time)
+
+            # Запустить таймер ожидания чтения идентификатора iButton
+            self.ibutton_present[dict].connect(self.read_ibutton)
+            self.timer.start(1000)
+            # Открыть страницу ожидания предъявления идентификатора
+            self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+        else:
+            # Открыть страницу инициализации
+            self.main_stacked_widget.setCurrentIndex(SETTINGS_PAGE)
+            
         # Содержание предъявленной iButton
         self.presented_ibutton = ""
-
-        self.timer = QtCore.QTimer()
-        # Время до входа в систему, отображаемое в первых двух окнах
-        self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
-        # Если 0, то не обрабатывать таймаут
-        if self.remaining_time:
-            self.timer.timeout.connect(self.decrease_remaining_time)
-
         # Установить функцию обратного вызова для обработки сигнала IButtonSignal
         bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name="IButtonSignal")
-
         # Пытаемся вызвать метод шины
         self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
-
-        # Запустить таймер ожидания чтения идентификатора iButton
-        self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
-        self.ibutton_present[dict].connect(self.read_ibutton)
-        self.timer.start(1000)
 
         self.show()
 
     def show_main_panel(self, index):
         """Показать выбранную панель настроек с сохраненными настройками"""
-        self.stackedWidget.setCurrentIndex(index)
+        self.settings_stacked_widget.setCurrentIndex(index)
         # Установить значения элементов выбранной панели в соответствии с настройками
-        panel = self.stackedWidget.widget(index)
+        panel = self.settings_stacked_widget.widget(index)
         self.set_panel_settings(panel)
 
     def show_journal_panel(self, index):
@@ -452,7 +470,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_user_creation_wizard(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
-        self.sidebar_widget.hide()
+        self.settings_sidebar_widget.hide()
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_1)
         # Установить исходные значения виджетов
         self.user_actions_panel.user_name.setText("")
@@ -509,7 +527,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def close_user_ctl_wizard(self):
         """Отменить работу мастера создания нового пользователя,
         показать боковое меню и панель с списком пользователей"""
-        self.sidebar_widget.show()
+        self.settings_sidebar_widget.show()
         self.stackedWidget.setCurrentWidget(self.user_list_panel)
 
     def user_name_changed(self, text):

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>820</width>
+    <width>832</width>
     <height>700</height>
    </rect>
   </property>
@@ -60,7 +60,7 @@
          </spacer>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <layout class="QVBoxLayout" name="wait_vertical_layout">
           <item>
            <widget class="QLabel" name="present_personal_id_label">
             <property name="sizePolicy">
@@ -103,7 +103,7 @@
            </spacer>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <layout class="QHBoxLayout" name="wait_horizontal_layout">
             <item>
              <widget class="QLabel" name="remaining_time_label_1">
               <property name="text">
@@ -892,14 +892,7 @@ QLineEdit {
          <number>0</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="topHorizontalLayout">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-         </layout>
-        </item>
-        <item>
-         <widget class="QWidget" name="widget" native="true">
+         <widget class="QWidget" name="settings_main_widget" native="true">
           <property name="styleSheet">
            <string notr="true">background-color: white;</string>
           </property>
@@ -920,7 +913,7 @@ QLineEdit {
             <number>0</number>
            </property>
            <item>
-            <widget class="QLabel" name="left_label">
+            <widget class="QLabel" name="settings_left_label">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -942,7 +935,7 @@ QLineEdit {
             </widget>
            </item>
            <item>
-            <spacer name="horizontalSpacer_7">
+            <spacer name="settings_horizontal_spacer">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
@@ -955,7 +948,7 @@ QLineEdit {
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="right_label">
+            <widget class="QLabel" name="settings_right_label">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -980,12 +973,12 @@ QLineEdit {
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="mainHorizontalLayout">
+         <layout class="QHBoxLayout" name="settings_horizontal_layout">
           <property name="spacing">
            <number>0</number>
           </property>
           <item>
-           <widget class="QStackedWidget" name="stackedWidget">
+           <widget class="QStackedWidget" name="settings_stacked_widget">
             <property name="styleSheet">
              <string notr="true">background-color: white;</string>
             </property>
@@ -997,7 +990,7 @@ QLineEdit {
          </layout>
         </item>
         <item>
-         <widget class="QLabel" name="bottom_label">
+         <widget class="QLabel" name="settings_bottom_label">
           <property name="minimumSize">
            <size>
             <width>0</width>
