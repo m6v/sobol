@@ -208,7 +208,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "Служебные операции": "icons/service_operations.png"
             }
             settings_panels = {
-                "sys_load_panel": "panels/SysLoadPanel.ui",
+                "init_panel": "panels/InitPanel.ui",
                 "diagnostic_panel": "panels/DiagnosticPanel.ui",
                 "service_operations_panel": "panels/ServiceOperationsPanel.ui",
             }
@@ -307,7 +307,22 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             # Открыть страницу инициализации
             self.main_stacked_widget.setCurrentIndex(SETTINGS_PAGE)
-            
+
+            init_panels = {
+                "sys_parms_panel": "panels/SysParmsPanel.ui",
+                "common_parms_panel": "panels/CommonParmsPanel.ui",
+                "event_journal_panel": "panels/JournalPanel.ui",
+                "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
+                "admin_actions_panel":"panels/AdminActionsPanel.ui",
+                "integrity_control_panel": "panels/IntegrityControlPanel.ui"
+            }
+            for panel_name, ui_file in init_panels.items():
+                panel = loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
+                panel.setObjectName(panel_name)
+                setattr(self, panel_name, panel)
+                self.init_panel.stacked_widget.addWidget(getattr(self, panel_name))
+            self.show_init_panel(0)
+
         # Содержание предъявленной iButton
         self.presented_ibutton = ""
         # Установить функцию обратного вызова для обработки сигнала IButtonSignal
@@ -323,6 +338,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # Установить значения элементов выбранной панели в соответствии с настройками
         panel = self.settings_stacked_widget.widget(index)
         self.set_panel_settings(panel)
+
+    def show_init_panel(self, index):
+        """Показать выбранную панель инициализации с сохраненными настройками"""
+        self.init_panel.stacked_widget.setCurrentIndex(index)
 
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""
