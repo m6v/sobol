@@ -51,12 +51,13 @@ def str2bool(s):
 
 class WebEnginePage(QWebEnginePage):
     navigation_request = QtCore.Signal(str)
-    def acceptNavigationRequest(self, url,  _type, isMainFrame):
+
+    def acceptNavigationRequest(self, url, _type, isMainFrame):
         # Если переходить по ссылке не требуется, возвратить False, иначе True
         if _type == QWebEnginePage.NavigationTypeLinkClicked:
             logging.debug(url.path())
             self.navigation_request.emit(url.path())
-            # Здесь можно анализировать url и в зависимости от него 
+            # Здесь можно анализировать url и в зависимости от него
             # разрешать или запрещать переход по ссылке
             return False
         return True
@@ -121,12 +122,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
             state, reason = self.dom.state()
             logging.info(f"Domain {self.dom.name()}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}, reason: {reason}")
-            '''
+            """
             if state == libvirt.VIR_DOMAIN_RUNNING:
                 # Если клиент vnc или spice будет отображаться в имитаторе,
-                # установить здесь его в качестве первой открывающейся панели 
+                # установить здесь его в качестве первой открывающейся панели
                 pass
-            '''
+            """
         except libvirt.libvirtError as e:
             logging.error(e)
 
@@ -242,9 +243,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.common_parms_panel))
             self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.passwd_parms_panel))
             self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
-            
-            self.common_parms_panel.default_push_button.clicked.connect(self.set_default_values)
-            self.passwd_parms_panel.default_push_button.clicked.connect(self.set_default_values)
+
+            self.common_parms_panel.default_push_button.clicked.connect(functools.partial(self.set_default_settings, self.common_parms_panel))
+            self.passwd_parms_panel.default_push_button.clicked.connect(functools.partial(self.set_default_settings, self.passwd_parms_panel))
 
             self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
             self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
@@ -316,7 +317,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "common_parms_panel": "panels/CommonParmsPanel.ui",
                 "event_journal_panel": "panels/JournalPanel.ui",
                 "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
-                "admin_actions_panel":"panels/AdminActionsPanel.ui",
+                "admin_actions_panel": "panels/AdminActionsPanel.ui",
                 "integrity_control_panel": "panels/IntegrityControlPanel.ui"
             }
             for panel_name, ui_file in init_panels.items():
@@ -340,7 +341,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings_stacked_widget.setCurrentIndex(index)
         # Установить значения элементов выбранной панели в соответствии с настройками
         panel = self.settings_stacked_widget.widget(index)
-        self.set_panel_settings(panel)
+        self.set_saved_settings(panel)
 
     def show_init_panel(self, index):
         """Показать выбранную панель инициализации с сохраненными настройками"""
@@ -349,10 +350,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""
         self.event_journal_panel.journal_stacked_widget.setCurrentIndex(index)
-        self.set_panel_settings(self.event_journal_panel)
+        self.set_saved_settings(self.event_journal_panel)
 
-    def set_panel_settings(self, panel):
-        """Установить настройки панели panel"""
+    def set_saved_settings(self, panel):
+        """Установить сохраненные настройки panel"""
         panel_name = panel.objectName()
         logging.debug(f"Set {panel_name} settings")
         try:
@@ -368,8 +369,33 @@ class MainWindow(QtWidgets.QMainWindow):
         except (configparser.NoSectionError, AttributeError) as e:
             logging.debug(e)
 
+    def set_default_settings(self, panel):
+        """Установить дефолтные насмтройки panel из ui-файла"""
+        index = self.settings_stacked_widget.indexOf(panel)
+        if index == -1:
+            logging.error(f"{str(panel)} is't founded")
+            return
+        # Получить имя панели и ui-файла
+        panel_name = panel.objectName()
+        ui_file = self.settings_panels[panel_name]
+        logging.debug(f"Set default settings for {panel_name}")
+        # Загрузить дефтную панель из ui-файла
+        default_panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
+        default_panel.setObjectName(panel_name)
+        setattr(self, panel_name, default_panel)
+        # Удалить панель из стека (но не из памяти)
+        self.settings_stacked_widget.removeWidget(panel)
+        # Удалить панель из памяти в цикле событий Qt
+        panel.deleteLater()
+        # Вставить панель с дефолтными настройками
+        self.settings_stacked_widget.insertWidget(index, default_panel)
+        self.settings_stacked_widget.setCurrentIndex(index)
+        # Заново связать сигналы и слоты
+        getattr(self, panel_name).default_push_button.clicked.connect(functools.partial(self.set_default_settings, getattr(self, panel_name)))
+        getattr(self, panel_name).save_push_button.clicked.connect(functools.partial(self.save_panel_settings, getattr(self, panel_name)))
+
     def save_panel_settings(self, panel):
-        """Сохранить настройки панели panel"""
+        """Сохранить настройки panel"""
         panel_name = panel.objectName()
         logging.debug(f"Save {panel_name} settings")
         for name, obj in inspect.getmembers(getattr(self, panel_name)):
@@ -388,30 +414,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Сохранить значение value в параметре widget_name секции panel_name,
                 self.config.set(panel_name, widget_name, str(value))
 
-    def set_default_values(self):
-        """Установить дефолтные значения текущей панели"""
-        index = self.settings_stacked_widget.currentIndex()
-        current_panel = self.settings_stacked_widget.widget(index)
-        # Получить имя панели и ui-файла
-        panel_name = current_panel.objectName()
-        ui_file = self.settings_panels[panel_name]
-        logging.debug(f"Set default values on page {panel_name}")
-        
-        default_panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
-        default_panel.setObjectName(panel_name)
-        setattr(self, panel_name, default_panel)
-
-        # Удалить панель из стека (но не из памяти)
-        self.settings_stacked_widget.removeWidget(current_panel)
-        # Удалить панель из памяти в цикле событий Qt
-        current_panel.deleteLater()
-        # Вставить панель с дефолтными настройками
-        self.settings_stacked_widget.insertWidget(index, default_panel)
-        self.settings_stacked_widget.setCurrentIndex(index)
-        # Заново связать сигналы и слоты
-        getattr(self, panel_name).default_push_button.clicked.connect(self.set_default_values)
-        getattr(self, panel_name).save_push_button.clicked.connect(functools.partial(self.save_panel_settings, getattr(self, panel_name)))
-        
     def trigger_events_time_search(self):
         """Изменить состояние элементов управления фильтрации событий по времени"""
         self.event_journal_panel.events_start_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
