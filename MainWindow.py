@@ -75,11 +75,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, config_file):
         super().__init__()
 
-        loader = UiLoader()
-        loader.registerCustomWidget(BackgroundedWidget)
-        loader.registerCustomWidget(Toggle)
-        loader.registerCustomWidget(QWebEngineView)
-        loader.loadUi("MainWindow.ui", self)
+        self.loader = UiLoader()
+        self.loader.registerCustomWidget(BackgroundedWidget)
+        self.loader.registerCustomWidget(Toggle)
+        self.loader.registerCustomWidget(QWebEngineView)
+        self.loader.loadUi("MainWindow.ui", self)
         # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
         # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
         if not os.path.isfile(config_file):
@@ -174,7 +174,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Если зарегистрирован хоть один администратор, считаем, что комплекс инициализирован
         if self.admins:
-            buttons = {
+            self.buttons = {
                 "Загрузка ОС": "icons/sys_load.png",
                 "Режим работы": "icons/work_mode.png",
                 "Список пользователей": "icons/users_list.png",
@@ -187,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "Диагностика платы": "icons/diagnostic.png",
                 "Служебные операции": "icons/service_operations.png"
             }
-            settings_panels = {
+            self.settings_panels = {
                 "sys_load_panel": "panels/SysLoadPanel.ui",
                 "work_mode_panel": "panels/WorkModePanel.ui",
                 "user_list_panel": "panels/UserListPanel.ui",
@@ -202,12 +202,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 "user_actions_panel": "panels/UserActionsPanel.ui"
             }
         else:
-            buttons = {
+            self.buttons = {
                 "Инициализация платы": "icons/sys_load.png",
                 "Диагностика платы": "icons/diagnostic.png",
                 "Служебные операции": "icons/service_operations.png"
             }
-            settings_panels = {
+            self.settings_panels = {
                 "init_panel": "panels/InitPanel.ui",
                 "diagnostic_panel": "panels/DiagnosticPanel.ui",
                 "service_operations_panel": "panels/ServiceOperationsPanel.ui",
@@ -215,7 +215,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         verticalSpacer = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Fixed)
         settings_sidebar_layout.addItem(verticalSpacer)
-        for i, item in enumerate(buttons.items()):
+        for i, item in enumerate(self.buttons.items()):
             button = QtWidgets.QPushButton(item[0])
             button.setIcon(QtGui.QIcon(item[1]))
             settings_sidebar_layout.addWidget(button)
@@ -226,8 +226,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Вставить созданный менеджер компоновки в нулевую позицию менеджера компоновки главного окна (settings_horizontal_layout)
         self.settings_horizontal_layout.insertWidget(0, self.settings_sidebar_widget, alignment=QtCore.Qt.AlignLeft)
         # Динамически добавить панели в стек виджетов, с последующим обращением к ним self.sys_load_panel и т.д.
-        for panel_name, ui_file in settings_panels.items():
-            panel = loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
+        for panel_name, ui_file in self.settings_panels.items():
+            panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
             self.settings_stacked_widget.addWidget(getattr(self, panel_name))
@@ -242,6 +242,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.common_parms_panel))
             self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.passwd_parms_panel))
             self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
+            
+            self.common_parms_panel.default_push_button.clicked.connect(self.set_default_values)
+            self.passwd_parms_panel.default_push_button.clicked.connect(self.set_default_values)
 
             self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
             self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
@@ -317,7 +320,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "integrity_control_panel": "panels/IntegrityControlPanel.ui"
             }
             for panel_name, ui_file in init_panels.items():
-                panel = loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
+                panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
                 panel.setObjectName(panel_name)
                 setattr(self, panel_name, panel)
                 self.init_panel.stacked_widget.addWidget(getattr(self, panel_name))
@@ -385,6 +388,30 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Сохранить значение value в параметре widget_name секции panel_name,
                 self.config.set(panel_name, widget_name, str(value))
 
+    def set_default_values(self):
+        """Установить дефолтные значения текущей панели"""
+        index = self.settings_stacked_widget.currentIndex()
+        current_panel = self.settings_stacked_widget.widget(index)
+        # Получить имя панели и ui-файла
+        panel_name = current_panel.objectName()
+        ui_file = self.settings_panels[panel_name]
+        logging.debug(f"Set default values on page {panel_name}")
+        
+        default_panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
+        default_panel.setObjectName(panel_name)
+        setattr(self, panel_name, default_panel)
+
+        # Удалить панель из стека (но не из памяти)
+        self.settings_stacked_widget.removeWidget(current_panel)
+        # Удалить панель из памяти в цикле событий Qt
+        current_panel.deleteLater()
+        # Вставить панель с дефолтными настройками
+        self.settings_stacked_widget.insertWidget(index, default_panel)
+        self.settings_stacked_widget.setCurrentIndex(index)
+        # Заново связать сигналы и слоты
+        getattr(self, panel_name).default_push_button.clicked.connect(self.set_default_values)
+        getattr(self, panel_name).save_push_button.clicked.connect(functools.partial(self.save_panel_settings, getattr(self, panel_name)))
+        
     def trigger_events_time_search(self):
         """Изменить состояние элементов управления фильтрации событий по времени"""
         self.event_journal_panel.events_start_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
