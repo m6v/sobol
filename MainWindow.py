@@ -68,6 +68,15 @@ class CustomWebEngineView(QWebEngineView):
         QWebEngineView.__init__(self, *args, **kwargs)
         self.setPage(WebEnginePage(self))
 
+class SobolDialog(QtWidgets.QDialog):
+    def __init__(self, text, caption="Внимание"):
+        super().__init__()
+        
+        self.loader = UiLoader()
+        self.loader.loadUi("SobolDialog.ui", self)
+        
+        self.caption_label.setText(caption)
+        self.text_label.setText(text)
 
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
@@ -315,7 +324,7 @@ class MainWindow(QtWidgets.QMainWindow):
             init_panels = {
                 "sys_parms_panel": "panels/SysParmsPanel.ui",
                 "common_parms_panel": "panels/CommonParmsPanel.ui",
-                "event_journal_panel": "panels/JournalPanel.ui",
+                "journal_parms_panel": "panels/JournalParms.ui",
                 "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
                 "admin_actions_panel": "panels/AdminActionsPanel.ui",
                 "integrity_control_panel": "panels/IntegrityControlPanel.ui"
@@ -325,6 +334,31 @@ class MainWindow(QtWidgets.QMainWindow):
                 panel.setObjectName(panel_name)
                 setattr(self, panel_name, panel)
                 self.init_panel.stacked_widget.addWidget(getattr(self, panel_name))
+            # Переименовать кнопки, т.к. в панелях инициализации некоторые называются по-другому
+            self.common_parms_panel.save_push_button.setText("Вперед")
+            self.common_parms_panel.cancel_push_button.setText("Назад")
+            self.passwd_parms_panel.save_push_button.setText("Вперед")
+            self.passwd_parms_panel.cancel_push_button.setText("Назад")
+            self.integrity_control_panel.save_push_button.setText("Вперед")
+            self.integrity_control_panel.cancel_push_button.hide()
+            
+            self.sys_parms_panel.next_push_button.clicked.connect(functools.partial(self.show_init_panel, 1))
+            self.common_parms_panel.cancel_push_button.clicked.connect(functools.partial(self.show_init_panel, 0))
+            self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.show_init_panel, 2))
+            self.journal_parms_panel.back_push_button.clicked.connect(functools.partial(self.show_init_panel, 1))
+            self.journal_parms_panel.next_push_button.clicked.connect(functools.partial(self.show_init_panel, 3))
+            self.passwd_parms_panel.cancel_push_button.clicked.connect(functools.partial(self.show_init_panel, 2))
+            self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.show_init_panel, 4))
+            self.admin_actions_panel.back_push_button.clicked.connect(functools.partial(self.show_init_panel, 3))
+            self.admin_actions_panel.yes_push_button.clicked.connect(self.next_admin_action_panel)
+            self.admin_actions_panel.cancel_push_button_2.clicked.connect(functools.partial(self.show_init_panel, 0))
+            self.admin_actions_panel.next_push_button_2.clicked.connect(self.check_admin_passwd)
+            self.admin_actions_panel.cancel_push_button_3.clicked.connect(functools.partial(self.show_init_panel, 0))
+            self.admin_actions_panel.next_push_button_3.clicked.connect(functools.partial(self.show_init_panel, 5))
+            self.admin_actions_panel.passwd_line_edit.textChanged[str].connect(self.admin_passwd_changed)
+            self.admin_actions_panel.passwd_confirm_line_edit.textChanged[str].connect(self.admin_passwd_changed)
+            self.integrity_control_panel.save_push_button.clicked.connect(self.show_complete_init_dialog)
+
             self.show_init_panel(0)
 
         # Содержание предъявленной iButton
@@ -346,6 +380,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_init_panel(self, index):
         """Показать выбранную панель инициализации с сохраненными настройками"""
         self.init_panel.stacked_widget.setCurrentIndex(index)
+        self.admin_actions_panel.stacked_widget.setCurrentIndex(0)
 
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""
@@ -650,6 +685,50 @@ class MainWindow(QtWidgets.QMainWindow):
         self.users[index]["user_status"] = self.user_list_panel.user_status.currentIndex()
         self.users[index]["integrity_ctl_mode"] = self.user_list_panel.integrity_ctl_mode.currentIndex()
 
+    def next_admin_action_panel(self):
+        """Перейти на следующую панель мастера регистрации администратора"""
+        self.admin_actions_panel.stacked_widget.setCurrentIndex(self.admin_actions_panel.stacked_widget.currentIndex() + 1)
+
+    def admin_passwd_changed(self, text):
+        """Изменить состояние кнопки "Вперед" при наличии символов в обоих полях ввода пароля"""
+        if len(self.admin_actions_panel.passwd_line_edit.text()) != 0 and len(self.admin_actions_panel.passwd_confirm_line_edit.text()) != 0:
+            self.admin_actions_panel.next_push_button_2.setEnabled(True)
+        else:
+            self.admin_actions_panel.next_push_button_2.setEnabled(False)
+
+    def check_admin_passwd(self):
+        """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
+        if self.admin_actions_panel.passwd_line_edit.text() != self.admin_actions_panel.passwd_confirm_line_edit.text():
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
+            return
+        # Перед открытием последней панели мастера дрегистрации администратора связать сигнал предъявления ibutton с обработчиком self.add_admin
+        self.ibutton_present[dict].connect(self.add_admin)
+        self.next_admin_action_panel()
+    
+    def add_admin(self, message: Dict[str, str]):
+        """Зарегистрировать администратора id которого указана в словаре message"""
+        # Метод вызывается по сигналу предъявления iButton,
+        # в message передается словарь с id, user_name и passwd, считанные изпредъявленной ibutton
+        logging.info(message)
+        # Отключить обработчик "прикладывания" iButton
+        self.ibutton_present[dict].disconnect()
+
+        self.admins.append(str(message["id"]))
+        # TODO Записать пароль администратора, для этого вызвать метод SetIButtonData, зарегистрированный в dbus
+        message["user_name"] = "Администратор"
+        message["passwd"] = self.admin_actions_panel.passwd_line_edit.text()
+        logging.info(str(message))
+        self.admin_actions_panel.next_push_button_3.setEnabled(True)
+
+    def show_complete_init_dialog(self):
+        sobol_dialog = SobolDialog("Включен контроль целостности, но не\nрассчитаны контрольные суммы.\nВы уверены, что хотите продолжить?")
+        sobol_dialog.exec()
+        QtWidgets.QMessageBox.warning(
+            self,
+            "Внимание", "Включен контроль целостности, но не рассчитаны контрольные суммы. Вы уверены, что хотите продолжить?",
+            QtWidgets.QMessageBox.Cancel | QtWidgets.QMessageBox.Ok
+            )
+
     def sys_load(self):
         """Запустить виртуальную машину и открыть virt-viewer"""
         try:
@@ -679,6 +758,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("window", "state", str(int(self.windowState())))
         # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
         self.config.set("general", "users", str(self.users))
+        self.config.set("general", "admins", str(self.admins))
         self.config.set("general", "failed_logins", str(self.failed_logins))
         with open(self.config_file, "w") as file:
             self.config.write(file)
