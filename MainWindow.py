@@ -5,6 +5,8 @@ import inspect
 import libvirt
 import logging
 import os
+import secrets
+import string
 import subprocess
 import sys
 
@@ -49,6 +51,31 @@ def str2bool(s):
     return s.lower() in ("y", "yes", "true", "д", "да", "1")
 
 
+
+def gen_password(length=8):
+    if length < 4:
+        raise ValueError("Length must be >= 4")
+
+    chars = {
+        "lower": string.ascii_lowercase,
+        "upper": string.ascii_uppercase,
+        "digit": string.digits,
+        "symbol": string.punctuation
+    }
+
+    password = [
+        secrets.choice(chars["lower"]),
+        secrets.choice(chars["upper"]),
+        secrets.choice(chars["digit"]),
+        secrets.choice(chars["symbol"]),
+    ]
+
+    all_chars = ''.join(chars.values())
+    password += [secrets.choice(all_chars) for _ in range(length - 4)]
+    secrets.SystemRandom().shuffle(password)
+
+    return ''.join(password)
+
 class WebEnginePage(QWebEnginePage):
     navigation_request = QtCore.Signal(str)
 
@@ -74,9 +101,32 @@ class SobolDialog(QtWidgets.QDialog):
         
         self.loader = UiLoader()
         self.loader.loadUi("SobolDialog.ui", self)
-        
+
+        # NB! Геометрия кнопок почему-то не устанавливается?!
+        dialog_style_sheet = """
+            QWidget {
+                font: 9pt "Monospace Regular";
+                background-color: #F5F5F5;
+            }
+            QPushButton {
+                background-color: #48A23F;
+                width: 120px;
+                height: 48px;
+                color: white;
+           }
+           QPushButton:hover {
+                background: #3D8A36;
+           }
+           QPushButton:pressed {
+                background-color: #3D8A36;
+           }
+        """
+        self.setStyleSheet(dialog_style_sheet)
         self.caption_label.setText(caption)
         self.text_label.setText(text)
+        
+        self.yes_push_button.clicked.connect(self.accept)
+        self.no_push_button.clicked.connect(self.reject)
 
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
@@ -334,6 +384,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 panel.setObjectName(panel_name)
                 setattr(self, panel_name, panel)
                 self.init_panel.stacked_widget.addWidget(getattr(self, panel_name))
+
+            # Настроить таблицу со списком операций при регистрации администратора
+            self.admin_actions_panel.table_widget.verticalHeader().hide()
+            self.admin_actions_panel.table_widget.insertRow(0) 
+            self.admin_actions_panel.table_widget.setItem(0, 0, QtWidgets.QTableWidgetItem("Предъявите персональный идентификатор"))
+            self.admin_actions_panel.table_widget.resizeColumnsToContents()
             # Переименовать кнопки, т.к. в панелях инициализации некоторые называются по-другому
             self.common_parms_panel.save_push_button.setText("Вперед")
             self.common_parms_panel.cancel_push_button.setText("Назад")
@@ -357,8 +413,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.admin_actions_panel.next_push_button_3.clicked.connect(functools.partial(self.show_init_panel, 5))
             self.admin_actions_panel.passwd_line_edit.textChanged[str].connect(self.admin_passwd_changed)
             self.admin_actions_panel.passwd_confirm_line_edit.textChanged[str].connect(self.admin_passwd_changed)
-            self.integrity_control_panel.save_push_button.clicked.connect(self.show_complete_init_dialog)
-
+            self.admin_actions_panel.show_passwd_radio_button.clicked.connect(self.toggle_passwd_visibility)
+            self.admin_actions_panel.passwd_gen_push_button.clicked.connect(self.gen_admin_passwd)
+            self.integrity_control_panel.save_push_button.clicked.connect(self.show_complete_dialog)
+            
             self.show_init_panel(0)
 
         # Содержание предъявленной iButton
@@ -696,6 +754,21 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.admin_actions_panel.next_push_button_2.setEnabled(False)
 
+    def gen_admin_passwd(self):
+        admin_passwd = gen_password(int(self.passwd_parms_panel.min_passwd_len_line_edit.text()))
+        self.admin_actions_panel.passwd_line_edit.setText(admin_passwd)
+        self.admin_actions_panel.passwd_confirm_line_edit.setText(admin_passwd)
+        self.admin_actions_panel.show_passwd_radio_button.setChecked(True)
+        self.toggle_passwd_visibility()
+
+    def toggle_passwd_visibility(self):
+        if self.admin_actions_panel.show_passwd_radio_button.isChecked():
+            self.admin_actions_panel.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.admin_actions_panel.passwd_confirm_line_edit.setEchoMode(QtWidgets.QLineEdit.Normal)
+        else:
+            self.admin_actions_panel.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.admin_actions_panel.passwd_confirm_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+
     def check_admin_passwd(self):
         """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
         if self.admin_actions_panel.passwd_line_edit.text() != self.admin_actions_panel.passwd_confirm_line_edit.text():
@@ -718,16 +791,25 @@ class MainWindow(QtWidgets.QMainWindow):
         message["user_name"] = "Администратор"
         message["passwd"] = self.admin_actions_panel.passwd_line_edit.text()
         logging.info(str(message))
+
+        # Вызвать метод для записи в предъявленную ibutton имени и пароля администратора
+        self.service_object.SetIButtonData({
+            "id": str(message["id"]),
+            "user_name": "Администратор",
+            "passwd": self.admin_actions_panel.passwd_line_edit.text()
+        })
+
+        row = self.admin_actions_panel.table_widget.rowCount() - 1
+        self.admin_actions_panel.table_widget.setItem(row, 1, QtWidgets.QTableWidgetItem(str(message["id"])))
+        self.admin_actions_panel.table_widget.setItem(row, 2, QtWidgets.QTableWidgetItem("Администратор зарегистирован"))
+        self.admin_actions_panel.table_widget.resizeColumnsToContents()
         self.admin_actions_panel.next_push_button_3.setEnabled(True)
 
-    def show_complete_init_dialog(self):
+    def show_complete_dialog(self):
         sobol_dialog = SobolDialog("Включен контроль целостности, но не\nрассчитаны контрольные суммы.\nВы уверены, что хотите продолжить?")
-        sobol_dialog.exec()
-        QtWidgets.QMessageBox.warning(
-            self,
-            "Внимание", "Включен контроль целостности, но не рассчитаны контрольные суммы. Вы уверены, что хотите продолжить?",
-            QtWidgets.QMessageBox.Cancel | QtWidgets.QMessageBox.Ok
-            )
+        result = sobol_dialog.exec()
+        if result == QtWidgets.QDialog.Accepted:
+            self.close()
 
     def sys_load(self):
         """Запустить виртуальную машину и открыть virt-viewer"""
