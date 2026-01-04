@@ -299,12 +299,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.show_journal_panel(0)
 
             self.sys_load_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.sys_load_panel))
-            self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.common_parms_panel))
-            self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.passwd_parms_panel))
-            self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
 
-            self.common_parms_panel.default_push_button.clicked.connect(functools.partial(self.set_default_settings, self.common_parms_panel))
-            self.passwd_parms_panel.default_push_button.clicked.connect(functools.partial(self.set_default_settings, self.passwd_parms_panel))
+            self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
 
             self.user_actions_panel.cancel_push_button_1.clicked.connect(self.close_user_ctl_wizard)
             self.user_actions_panel.cancel_push_button_2.clicked.connect(self.close_user_ctl_wizard)
@@ -322,6 +318,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.user_actions_panel.passwd_line_edit.textChanged[str].connect(self.user_passwd_changed)
             self.user_actions_panel.passwd_confirm_line_edit.textChanged[str].connect(self.user_passwd_changed)
             self.user_actions_panel.next_push_button_3.clicked.connect(self.check_user_passwd)
+            self.user_actions_panel.passwd_gen_push_button.clicked.connect(self.gen_user_passwd)
+            self.user_actions_panel.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
 
             self.event_journal_panel.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
             self.event_journal_panel.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 1))
@@ -351,9 +349,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.user_list_panel.add_user_push_button.clicked.connect(self.show_user_creation_wizard)
             self.user_list_panel.del_user_push_button.clicked.connect(self.del_user)
+            self.user_list_panel.del_all_users_push_button.clicked.connect(self.del_all_users)
             self.user_list_panel.user_list_widget.itemClicked.connect(self.show_user_parms)
             self.user_list_panel.user_list_widget.itemActivated.connect(self.show_user_parms)
             self.user_list_panel.save_push_button.clicked.connect(self.save_user_parms)
+            self.user_list_panel.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
 
             self.timer = QtCore.QTimer()
             # Время до входа в систему, отображаемое в первых двух окнах
@@ -371,7 +371,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Открыть страницу инициализации
             self.main_stacked_widget.setCurrentIndex(SETTINGS_PAGE)
 
-            init_panels = {
+            self.init_panels = {
                 "sys_parms_panel": "panels/SysParmsPanel.ui",
                 "common_parms_panel": "panels/CommonParmsPanel.ui",
                 "journal_parms_panel": "panels/JournalParms.ui",
@@ -379,7 +379,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 "admin_actions_panel": "panels/AdminActionsPanel.ui",
                 "integrity_control_panel": "panels/IntegrityControlPanel.ui"
             }
-            for panel_name, ui_file in init_panels.items():
+            for panel_name, ui_file in self.init_panels.items():
                 panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
                 panel.setObjectName(panel_name)
                 setattr(self, panel_name, panel)
@@ -413,17 +413,23 @@ class MainWindow(QtWidgets.QMainWindow):
             self.admin_actions_panel.next_push_button_3.clicked.connect(functools.partial(self.show_init_panel, 5))
             self.admin_actions_panel.passwd_line_edit.textChanged[str].connect(self.admin_passwd_changed)
             self.admin_actions_panel.passwd_confirm_line_edit.textChanged[str].connect(self.admin_passwd_changed)
-            self.admin_actions_panel.show_passwd_radio_button.clicked.connect(self.toggle_passwd_visibility)
+            self.admin_actions_panel.show_passwd_radio_button.clicked.connect(self.toggle_admin_passwd_visibility)
             self.admin_actions_panel.passwd_gen_push_button.clicked.connect(self.gen_admin_passwd)
             self.integrity_control_panel.save_push_button.clicked.connect(self.show_complete_dialog)
-            
+
             self.show_init_panel(0)
+
+        # Связать сигналы и слоты в панелях, используемых в обоих режимах
+        self.common_parms_panel.default_push_button.clicked.connect(functools.partial(self.set_default_settings, self.common_parms_panel))
+        self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.common_parms_panel))
+        self.passwd_parms_panel.default_push_button.clicked.connect(functools.partial(self.set_default_settings, self.passwd_parms_panel))
+        self.passwd_parms_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.passwd_parms_panel))
 
         # Содержание предъявленной iButton
         self.presented_ibutton = ""
         # Установить функцию обратного вызова для обработки сигнала IButtonSignal
         bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name="IButtonSignal")
-        # Пытаемся вызвать метод шины
+        # Получить объект шины
         self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
 
         self.show()
@@ -463,29 +469,41 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.debug(e)
 
     def set_default_settings(self, panel):
-        """Установить дефолтные насмтройки panel из ui-файла"""
-        index = self.settings_stacked_widget.indexOf(panel)
+        """Установить дефолтные настройки panel из ui-файла"""
+        # stack_widget в котором находится panel
+        parent = panel.parentWidget()
+        index = parent.indexOf(panel)
         if index == -1:
-            logging.error(f"{str(panel)} is't founded")
+            logging.error(f"Index of {panel.objectName()} is't founded")
             return
-        # Получить имя панели и ui-файла
+        # Получить имя ui-файла
         panel_name = panel.objectName()
-        ui_file = self.settings_panels[panel_name]
+        try:
+            ui_file = self.settings_panels[panel_name]
+        except KeyError:
+            ui_file = self.init_panels[panel_name]
+
         logging.debug(f"Set default settings for {panel_name}")
         # Загрузить дефтную панель из ui-файла
         default_panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))
         default_panel.setObjectName(panel_name)
         setattr(self, panel_name, default_panel)
         # Удалить панель из стека (но не из памяти)
-        self.settings_stacked_widget.removeWidget(panel)
+        parent.removeWidget(panel)
         # Удалить панель из памяти в цикле событий Qt
         panel.deleteLater()
         # Вставить панель с дефолтными настройками
-        self.settings_stacked_widget.insertWidget(index, default_panel)
-        self.settings_stacked_widget.setCurrentIndex(index)
-        # Заново связать сигналы и слоты
-        getattr(self, panel_name).default_push_button.clicked.connect(functools.partial(self.set_default_settings, getattr(self, panel_name)))
-        getattr(self, panel_name).save_push_button.clicked.connect(functools.partial(self.save_panel_settings, getattr(self, panel_name)))
+        parent.insertWidget(index, default_panel)
+        parent.setCurrentIndex(index)
+        # Заново связать сигналы и слоты (по-разному в зависимости от режима)
+        if self.admins:
+            getattr(self, panel_name).default_push_button.clicked.connect(functools.partial(self.set_default_settings, getattr(self, panel_name)))
+            getattr(self, panel_name).save_push_button.clicked.connect(functools.partial(self.save_panel_settings, getattr(self, panel_name)))
+        else:
+            getattr(self, panel_name).save_push_button.setText("Вперед")
+            getattr(self, panel_name).save_push_button.clicked.connect(functools.partial(self.show_init_panel, index+1))
+            getattr(self, panel_name).cancel_push_button.setText("Назад")
+            getattr(self, panel_name).cancel_push_button.clicked.connect(functools.partial(self.show_init_panel, index-1))
 
     def save_panel_settings(self, panel):
         """Сохранить настройки panel"""
@@ -665,6 +683,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.users.pop(index)
         self.update_user_list_panel()
 
+    def del_all_users(self):
+        """Удалить всех всех пользователей"""
+        self.users.clear()
+        self.update_user_list_panel()
+
     def close_user_ctl_wizard(self):
         """Отменить работу мастера создания нового пользователя,
         показать боковое меню и панель с списком пользователей"""
@@ -693,6 +716,23 @@ class MainWindow(QtWidgets.QMainWindow):
             self.user_actions_panel.next_push_button_3.setEnabled(True)
         else:
             self.user_actions_panel.next_push_button_3.setEnabled(False)
+
+    def toggle_user_passwd_visibility(self):
+        """Переключить видимость пароля пользователя в полях ввода"""
+        if self.user_actions_panel.show_passwd_radio_button.isChecked():
+            self.user_actions_panel.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.user_actions_panel.passwd_confirm_line_edit.setEchoMode(QtWidgets.QLineEdit.Normal)
+        else:
+            self.user_actions_panel.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.user_actions_panel.passwd_confirm_line_edit.setEchoMode(QtWidgets.QLineEdit.Password)
+
+    def gen_user_passwd(self):
+        """Сгенерировать пароль пользователя и показать его в полях ввода"""
+        user_passwd = gen_password(int(self.passwd_parms_panel.min_passwd_len_line_edit.text()))
+        self.user_actions_panel.passwd_line_edit.setText(admin_passwd)
+        self.user_actions_panel.passwd_confirm_line_edit.setText(admin_passwd)
+        self.user_actions_panel.show_passwd_radio_button.setChecked(True)
+        self.toggle_user_passwd_visibility()
 
     def check_user_passwd(self):
         """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
@@ -755,13 +795,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self.admin_actions_panel.next_push_button_2.setEnabled(False)
 
     def gen_admin_passwd(self):
+        """Сгенерировать пароль администратора и показать его в полях ввода"""
         admin_passwd = gen_password(int(self.passwd_parms_panel.min_passwd_len_line_edit.text()))
         self.admin_actions_panel.passwd_line_edit.setText(admin_passwd)
         self.admin_actions_panel.passwd_confirm_line_edit.setText(admin_passwd)
         self.admin_actions_panel.show_passwd_radio_button.setChecked(True)
-        self.toggle_passwd_visibility()
+        self.toggle_admin_passwd_visibility()
 
-    def toggle_passwd_visibility(self):
+    def toggle_admin_passwd_visibility(self):
+        """Переключить видимость пароля администратора в полях ввода"""
         if self.admin_actions_panel.show_passwd_radio_button.isChecked():
             self.admin_actions_panel.passwd_line_edit.setEchoMode(QtWidgets.QLineEdit.Normal)
             self.admin_actions_panel.passwd_confirm_line_edit.setEchoMode(QtWidgets.QLineEdit.Normal)

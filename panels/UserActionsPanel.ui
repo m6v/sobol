@@ -29,7 +29,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_widget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="page_1">
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -274,6 +274,9 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="echoMode">
+            <enum>QLineEdit::Password</enum>
+           </property>
           </widget>
          </item>
          <item>
@@ -328,6 +331,9 @@
          </property>
          <property name="text">
           <string/>
+         </property>
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
          </property>
         </widget>
        </item>
