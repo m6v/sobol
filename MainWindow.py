@@ -443,8 +443,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_init_panel(self, index):
         """Показать выбранную панель инициализации с сохраненными настройками"""
-        self.init_panel.stacked_widget.setCurrentIndex(index)
         self.admin_actions_panel.stacked_widget.setCurrentIndex(0)
+        self.init_panel.stacked_widget.setCurrentIndex(index)
+
+        # Список меток, отоборажающих шаги инициализации (по 2 на шаг)
+        labels = (
+            self.init_panel.label_1,
+            self.init_panel.label_2,
+            self.init_panel.label_3,
+            self.init_panel.label_4,
+            self.init_panel.label_5,
+            self.init_panel.label_6,
+            self.init_panel.label_7,
+            self.init_panel.label_8,
+            self.init_panel.label_9,
+            self.init_panel.label_10,
+            self.init_panel.label_11,
+            self.init_panel.label_12
+            )
+        # Выделить метку, соответствующую текущему шагу (index) инициализации
+        for i in range(len(labels)):
+            if i == 2 * index or i == 2 * index + 1:
+                labels[i].setStyleSheet("""
+                    background-color: #48A23F;
+                    color: white;
+                """)
+            else:
+                labels[i].setStyleSheet("""
+                    background-color: white;
+                    color: black;
+                """)
 
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""

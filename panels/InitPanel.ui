@@ -28,6 +28,9 @@
    </property>
    <item>
     <layout class="QHBoxLayout" name="horizontal_layout" stretch="0,0,0,0,0,0,0,0,0,0,0,0">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <property name="leftMargin">
       <number>6</number>
      </property>
@@ -44,7 +47,7 @@
         </font>
        </property>
        <property name="text">
-        <string>1.</string>
+        <string>  1. </string>
        </property>
       </widget>
      </item>
@@ -71,7 +74,7 @@
         </font>
        </property>
        <property name="text">
-        <string>2.</string>
+        <string>  2. </string>
        </property>
       </widget>
      </item>
@@ -98,7 +101,7 @@
         </font>
        </property>
        <property name="text">
-        <string>3.</string>
+        <string>  3. </string>
        </property>
       </widget>
      </item>
@@ -125,7 +128,7 @@
         </font>
        </property>
        <property name="text">
-        <string>4.</string>
+        <string>  4. </string>
        </property>
       </widget>
      </item>
@@ -152,7 +155,7 @@
         </font>
        </property>
        <property name="text">
-        <string>5.</string>
+        <string>  5. </string>
        </property>
       </widget>
      </item>
@@ -179,7 +182,7 @@
         </font>
        </property>
        <property name="text">
-        <string>6.</string>
+        <string>  6. </string>
        </property>
       </widget>
      </item>
