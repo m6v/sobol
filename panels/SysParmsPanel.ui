@@ -10,6 +10,9 @@
     <height>672</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -86,7 +89,7 @@
      <item row="1" column="2">
       <widget class="QLabel" name="sys_volume_value">
        <property name="text">
-        <string>HDD1[1] FAT 8 GB Removable</string>
+        <string>SSD[1]</string>
        </property>
       </widget>
      </item>
@@ -113,14 +116,14 @@
      <item row="7" column="2">
       <widget class="QLabel" name="port_ctl_value">
        <property name="text">
-        <string>USB(0x4,0x0)</string>
+        <string>Sata (0x2,0xFFFF,0x0)</string>
        </property>
       </widget>
      </item>
      <item row="2" column="2">
       <widget class="QLabel" name="sys_loader_value">
        <property name="text">
-        <string>\EFI\BOOT\BOOTX64.EFI</string>
+        <string>astralinux</string>
        </property>
       </widget>
      </item>
@@ -140,7 +143,7 @@
      <item row="5" column="2">
       <widget class="QLabel" name="disk_model_value">
        <property name="text">
-        <string>USB FLASH DRIVE</string>
+        <string>SSD 1000 GB</string>
        </property>
       </widget>
      </item>

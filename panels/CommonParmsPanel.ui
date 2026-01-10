@@ -10,6 +10,9 @@
     <height>600</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -498,6 +501,21 @@
    <header>toggle</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>default_push_button</tabstop>
+  <tabstop>cancel_push_button</tabstop>
+  <tabstop>save_push_button</tabstop>
+  <tabstop>max_records_combo_box</tabstop>
+  <tabstop>rnd_testing_attempt_line_edit</tabstop>
+  <tabstop>show_stats_check_box</tabstop>
+  <tabstop>max_failed_logons_line_edit</tabstop>
+  <tabstop>time_limit_line_edit</tabstop>
+  <tabstop>autologon_time_line_edit</tabstop>
+  <tabstop>wait_timer_line_edit</tabstop>
+  <tabstop>timer_testing_period_line_edit</tabstop>
+  <tabstop>sound_signals_check_box</tabstop>
+  <tabstop>alrorithm_combo_box</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

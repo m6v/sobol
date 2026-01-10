@@ -10,6 +10,9 @@
     <height>661</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -402,6 +405,20 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>passwd_gen_push_button</tabstop>
+  <tabstop>passwd_line_edit</tabstop>
+  <tabstop>passwd_confirm_line_edit</tabstop>
+  <tabstop>show_passwd_radio_button</tabstop>
+  <tabstop>next_push_button_2</tabstop>
+  <tabstop>cancel_push_button_2</tabstop>
+  <tabstop>no_push_button</tabstop>
+  <tabstop>back_push_button</tabstop>
+  <tabstop>yes_push_button</tabstop>
+  <tabstop>table_widget</tabstop>
+  <tabstop>cancel_push_button_3</tabstop>
+  <tabstop>next_push_button_3</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

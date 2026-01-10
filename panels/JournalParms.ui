@@ -10,6 +10,9 @@
     <height>671</height>
    </rect>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::StrongFocus</enum>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
@@ -291,7 +294,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="back_push_button">
+       <widget class="QPushButton" name="cancel_push_button">
         <property name="minimumSize">
          <size>
           <width>120</width>
@@ -304,7 +307,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="next_push_button">
+       <widget class="QPushButton" name="save_push_button">
         <property name="minimumSize">
          <size>
           <width>120</width>
