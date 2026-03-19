@@ -365,7 +365,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.user_list_panel.user_list_widget.itemClicked.connect(self.show_user_parms)
             self.user_list_panel.user_list_widget.itemActivated.connect(self.show_user_parms)
             self.user_list_panel.save_push_button.clicked.connect(self.save_user_parms)
-            self.user_list_panel.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
+            # Была строка ниже, но ссылалась на отсутствующий атрибут show_passwd_radio_button
+            # self.user_list_panel.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
 
             self.timer = QtCore.QTimer()
             # Время до входа в систему, отображаемое в первых двух окнах
