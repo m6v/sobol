@@ -52,7 +52,8 @@ if __name__ == '__main__':
             window = MainWindow(args.config_file)
             sys.exit(app.exec_())
         else:
-            # Если виртуальная машина domain_name не запущена, запустить virt-viewer
-            sys.exit(subprocess.Popen(["virt-viewer", domain_name]))
+            # Если виртуальная машина domain_name запущена, запустить virt-viewer
+            # sys.exit(subprocess.Popen(["virt-viewer", domain_name]))
+            sys.exit(subprocess.Popen(["virt-manager", "--connect", "qemu:///system", "--show-domain-console", domain_name]))
     except libvirt.libvirtError as e:
         logging.error(e)

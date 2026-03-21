@@ -355,8 +355,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.passwd_line_edit.returnPressed.connect(self.auth_user)
             # Чтобы не писать отдельный обработчик вызываем метод setCurrentIndex с передачей ему номера панели
             self.go_settings_push_button.clicked.connect(functools.partial(self.main_stacked_widget.setCurrentIndex, SETTINGS_PAGE))
-            # Вызов метода запуска виртуальной машины
-            self.sys_load_push_button.clicked.connect(self.sys_load)
+            # Вызов метода запуска виртуальной машины (из стартового окна (администратора и пользователя) или из меню настроек)
+            self.admin_sys_load_push_button.clicked.connect(self.sys_load)
+            self.user_sys_load_push_button.clicked.connect(self.sys_load)
             self.sys_load_panel.sys_load_push_button.clicked.connect(self.sys_load)
 
             self.user_list_panel.add_user_push_button.clicked.connect(self.show_user_creation_wizard)
@@ -631,14 +632,17 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.presented_ibutton["id"] in self.admins:
                 # Заполнить поля в окне выбора действий, доступных администратору
                 self.failed_logins_value.setText(str(self.failed_logins))
-                # Найти пользователя входившего в систему последним
-                last_user = self.users[0]
-                for user in self.users:
-                    if user["last_login_datetime"] > last_user["last_login_datetime"]:
-                        last_user = user
-                self.last_user_name_value.setText(last_user["user_name"])
-                self.last_user_id_value.setText(last_user["id"])
-                self.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                # Если ни один пользователь не зарегистрирован, пропустить вывод сведений о последнем входе в систему
+                if self.users:
+                    # Найти пользователя входившего в систему последним
+                    last_user = self.users[0]
+                    for user in self.users:
+                        if user["last_login_datetime"] > last_user["last_login_datetime"]:
+                            last_user = user
+                    self.last_user_name_value.setText(last_user["user_name"])
+                    self.last_user_id_value.setText(last_user["id"])
+                    self.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+
                 self.admin_id_value.setText(self.presented_ibutton["id"])
                 self.admin_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
                 # Перейти на страницу выбора действий, доступных администратору
@@ -703,19 +707,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_actions_panel.cancel_push_button_4.setEnabled(True)
         self.user_actions_panel.finish_push_button_4.setEnabled(False)
 
-        self.stackedWidget.setCurrentWidget(self.user_actions_panel)
+        self.settings_stacked_widget.setCurrentWidget(self.user_actions_panel)
 
     def add_user(self, message: Dict[str, str]):
         """Добавить пользователя, id которого указана в словаре message"""
         # Метод вызывается по сигналу предъявления iButton,
-        # в message передается словарь с id, user_name и passwd, считанные изпредъявленной ibutton
+        # в message передается словарь с id, user_name и passwd, считанные из предъявленной ibutton
         logging.info(message)
         # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[dict].disconnect()
 
         # Добавить новую запись в список пользователей
         self.users.append({
-            "id": str(message["id"]),
+            "id": message["id"],
             "user_name": self.user_actions_panel.user_name.text(),
             "passwd_datetime": datetime.datetime.now(),
             "last_login_datetime": datetime.datetime(1, 1, 1, 0, 0),
@@ -731,7 +735,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Вызвать метод для записи в предъявленную ibutton имени и пароля пользователя
         self.service_object.SetIButtonData({
-            "id": str(message["id"]),
+            "id": message["id"],
             "user_name": self.user_actions_panel.user_name.text(),
             "passwd": self.user_actions_panel.passwd_line_edit.text()
         })
@@ -756,7 +760,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Отменить работу мастера создания нового пользователя,
         показать боковое меню и панель с списком пользователей"""
         self.settings_sidebar_widget.show()
-        self.stackedWidget.setCurrentWidget(self.user_list_panel)
+        self.settings_stacked_widget.setCurrentWidget(self.user_list_panel)
 
     def user_name_changed(self, text: str):
         """Изменить состояние кнопки "Вперед" при вводе имени нового пользователя"""
@@ -812,8 +816,10 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_user_list_panel(self):
         """Обновить панель со списком пользователей"""
         self.user_list_panel.user_list_widget.clear()
+        # Если зарегистрированных пользователей нет, например, сразу после инициализации, то выйти
+        if not self.users:
+            return
         for user in self.users:
-            # TODO Исключить из списка администратора безопасности
             self.user_list_panel.user_list_widget.addItem(user["user_name"])
         self.user_list_panel.user_list_widget.setCurrentRow(0)
         self.show_user_parms(self.user_list_panel.user_list_widget.currentItem())
@@ -884,19 +890,19 @@ class MainWindow(QtWidgets.QMainWindow):
             sobol_dialog = SobolDialog("Введенные пароли не совпадают, повторите ввод!")
             sobol_dialog.exec()
             return
-        # Перед открытием последней панели мастера дрегистрации администратора связать сигнал предъявления ibutton с обработчиком self.add_admin
+        # Перед открытием последней панели мастера регистрации администратора связать сигнал предъявления ibutton с обработчиком self.add_admin
         self.ibutton_present[dict].connect(self.add_admin)
         self.next_admin_action_panel()
 
     def add_admin(self, message: Dict[str, str]):
-        """Зарегистрировать администратора id которого указана в словаре message"""
+        """Зарегистрировать администратора id которого указан в словаре message"""
         # Метод вызывается по сигналу предъявления iButton,
         # в message передается словарь с id, user_name и passwd, считанные изпредъявленной ibutton
         logging.info(message)
         # Отключить обработчик "прикладывания" iButton
         self.ibutton_present[dict].disconnect()
 
-        self.admins.append(str(message["id"]))
+        self.admins.append(message["id"])
         # TODO Записать пароль администратора, для этого вызвать метод SetIButtonData, зарегистрированный в dbus
         message["user_name"] = "Администратор"
         message["passwd"] = self.admin_actions_panel.passwd_line_edit.text()
@@ -904,16 +910,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Вызвать метод для записи в предъявленную ibutton имени и пароля администратора
         self.service_object.SetIButtonData({
-            "id": str(message["id"]),
+            "id": message["id"],
             "user_name": "Администратор",
             "passwd": self.admin_actions_panel.passwd_line_edit.text()
         })
 
         row = self.admin_actions_panel.table_widget.rowCount() - 1
-        self.admin_actions_panel.table_widget.setItem(row, 1, QtWidgets.QTableWidgetItem(str(message["id"])))
+        self.admin_actions_panel.table_widget.setItem(row, 1, QtWidgets.QTableWidgetItem(message["id"]))
         self.admin_actions_panel.table_widget.setItem(row, 2, QtWidgets.QTableWidgetItem("Администратор зарегистирован"))
         self.admin_actions_panel.table_widget.resizeColumnsToContents()
         self.admin_actions_panel.next_push_button_3.setEnabled(True)
+
+    def format_id(self, message: Dict[str, str]):
+        """Форматировать идентификатор id которого указан в словаре message"""
+        # Вызвать метод для записи в предъявленную ibutton пустых имени и пароля пользователя
+        self.service_object.SetIButtonData({
+            "id": message["id"],
+            "user_name": "",
+            "passwd": ""
+        })
 
     def show_complete_dialog(self):
         sobol_dialog = SobolDialog("Включен контроль целостности, но не\nрассчитаны контрольные суммы.\nВы уверены, что хотите продолжить?")
@@ -938,7 +953,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.web_engine_view.load(url)
         return
         """
-        subprocess.Popen(["virt-viewer", self.domain_name])
+        # subprocess.Popen(["virt-viewer", self.domain_name])
+        subprocess.Popen(["virt-manager", "--connect", "qemu:///system", "--show-domain-console", self.domain_name])
         self.close()
 
     def closeEvent(self, event):
