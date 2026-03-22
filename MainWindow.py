@@ -13,7 +13,7 @@ import sys
 from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
+from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox, QDialogButtonBox, QHBoxLayout
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 import dbus
@@ -98,13 +98,29 @@ class CustomWebEngineView(QWebEngineView):
 
 
 class SobolDialog(QtWidgets.QDialog):
-    def __init__(self, text, caption="Внимание"):
-        super().__init__()
+    """Выводит кастомизированное диалоговое окно"""
+    def __init__(self, title, text, buttons=None, parent=None):
+        super().__init__(parent)
 
         self.loader = UiLoader()
         self.loader.loadUi("SobolDialog.ui", self)
+        
+        self.setWindowTitle(title)
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+        
+        # Если кнопки не переданы, отображать только [OK]
+        if buttons is None:
+            buttons = QDialogButtonBox.Ok
+        self.button_box = QDialogButtonBox(buttons)
+        
+        self.right_vertical_layout.addWidget(self.button_box)
+        
+        # Стандартные сигналы
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        # Перехват нажатий всех кнопок
+        self.button_box.clicked.connect(self.on_button_clicked)
 
-        # NB! Геометрия кнопок почему-то не устанавливается?!
         dialog_style_sheet = """
             QWidget {
                 font: 9pt "Monospace Regular";
@@ -124,12 +140,25 @@ class SobolDialog(QtWidgets.QDialog):
            }
         """
         self.setStyleSheet(dialog_style_sheet)
-        self.caption_label.setText(caption)
+        self.caption_label.setText(title)
         self.text_label.setText(text)
 
-        self.yes_push_button.clicked.connect(self.accept)
-        self.no_push_button.clicked.connect(self.reject)
+    def on_button_clicked(self, button):
+        role = self.button_box.buttonRole(button)
+        text = button.text()
+        logging.debug(f"Button: {text}, role: {role} is clicked")
 
+    def _center(self):
+        parent = self.parent()
+        if parent:
+            geometry = parent.geometry()
+        else:
+            geometry = QtWidgets.QApplication.primaryScreen().availableGeometry()
+        self.move((geometry.width() - self.width()) // 2, (geometry.height() - self.height()) // 2)
+
+    def exec_(self):
+        self._center()
+        return super().exec_()
 
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
@@ -177,10 +206,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # Прочитать имя и uuid загрузочного раздела
         context = pyudev.Context()
         for device in context.list_devices(subsystem="block", DEVTYPE="partition"):
-           if device.get("ID_PART_ENTRY_FLAGS"):
-               logging.debug(device.device_node)
-               bootable_partition = device.device_node
-               bootable_uuid = device.get("ID_FS_UUID")
+            if device.get("ID_PART_ENTRY_FLAGS"):
+                logging.debug(device.device_node)
+                bootable_partition = device.device_node
+                bootable_uuid = device.get("ID_FS_UUID")
         # logging.debug(subprocess.check_output(["efibootmgr"], text=True).split("\n"))
 
         try:
@@ -431,7 +460,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.admin_actions_panel.show_passwd_radio_button.clicked.connect(self.toggle_admin_passwd_visibility)
             self.admin_actions_panel.passwd_gen_push_button.clicked.connect(self.gen_admin_passwd)
             self.integrity_control_panel.save_push_button.clicked.connect(self.show_complete_dialog)
-            
+
             self.sys_parms_panel.sys_volume_value.setText(bootable_partition)
             self.sys_parms_panel.serial_ctl_value.setText(bootable_uuid)
 
@@ -625,6 +654,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except ValueError:
             index = None
 
+        # Проверить правильность введенного пароля
         if self.presented_ibutton["passwd"] == self.passwd_line_edit.text():
             # Веден правильный пароль, остановить таймер открыть панель выбора действия Загрузка ОС/Настройки
             self.timer.stop()
@@ -648,9 +678,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Перейти на страницу выбора действий, доступных администратору
                 self.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
             else:
-                # TODO Проверить, что пользователь не заблокирован
+                # TODO Проверить, что пользователь не заблокирован (user_status!=0)
                 pass
-                # TODO Показать статистику, только если установлен соответствующий параметр
+                # TODO Показать статистику, только если установлен соответствующий параметр (self.common_parms_panel.show_stats_check_box=True)
                 pass
                 # Заполнить поля в окне выбора действий, доступных пользователю
                 self.user_name_value.setText(self.users[index]["user_name"])
@@ -677,7 +707,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.users[index]["failed_logins"] += 1
                 # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
                 pass
-            QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
+            # QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
+            dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
+            result = dialog.exec_()
             self.ibutton_present[dict].connect(self.read_ibutton)
             self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
@@ -806,8 +838,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
         if self.user_actions_panel.passwd_line_edit.text() != self.user_actions_panel.passwd_confirm_line_edit.text():
             # QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
-            sobol_dialog = SobolDialog("Введенные пароли не совпадают, повторите ввод!")
-            sobol_dialog.exec()
+            dialog = SobolDialog("Ошибка", "Введенные пароли не совпадают, повторите ввод!")
+            dialog.exec_()
             return
         # Перед открытием последней панели мастера добавления пользователей связать сигнал предъявления ibutton с обработчиком self.add_user
         self.ibutton_present[dict].connect(self.add_user)
@@ -887,8 +919,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
         if self.admin_actions_panel.passwd_line_edit.text() != self.admin_actions_panel.passwd_confirm_line_edit.text():
             # QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
-            sobol_dialog = SobolDialog("Введенные пароли не совпадают, повторите ввод!")
-            sobol_dialog.exec()
+            dialog = SobolDialog("Ошибка", "Введенные пароли не совпадают, повторите ввод!")
+            dialog.exec_()
             return
         # Перед открытием последней панели мастера регистрации администратора связать сигнал предъявления ibutton с обработчиком self.add_admin
         self.ibutton_present[dict].connect(self.add_admin)
@@ -931,9 +963,8 @@ class MainWindow(QtWidgets.QMainWindow):
         })
 
     def show_complete_dialog(self):
-        sobol_dialog = SobolDialog("Включен контроль целостности, но не\nрассчитаны контрольные суммы.\nВы уверены, что хотите продолжить?")
-        result = sobol_dialog.exec()
-        if result == QtWidgets.QDialog.Accepted:
+        dialog = SobolDialog("Внимание", "Включен контроль целостности, но не\nрассчитаны контрольные суммы.\nВы уверены, что хотите продолжить?")
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.close()
 
     def sys_load(self):
