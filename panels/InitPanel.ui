@@ -27,7 +27,7 @@
     <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontal_layout" stretch="0,0,0,0,0,0,0,0,0,0,0,0">
+    <layout class="QHBoxLayout" name="horizontal_layout" stretch="0,0,0,0,0,0">
      <property name="spacing">
       <number>0</number>
      </property>
@@ -39,15 +39,17 @@
      </property>
      <item>
       <widget class="QLabel" name="label_1">
-       <property name="font">
-        <font>
-         <family>Arimo</family>
-         <pointsize>14</pointsize>
-         <italic>false</italic>
-        </font>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <property name="text">
-        <string>  1. </string>
+        <string>&lt;table&gt;&lt;tr&gt;&lt;td style=&quot;font-size: 18px; vertical-align: middle;&quot;&gt;1.&lt;/td&gt;&lt;td&gt;Системные&lt;br&gt;параметры&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
        </property>
       </widget>
      </item>
@@ -60,21 +62,23 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Системные
-параметры</string>
+        <string>&lt;table&gt;&lt;tr&gt;&lt;td style=&quot;font-size: 18px; vertical-align: middle;&quot;&gt;2.&lt;/td&gt;&lt;td&gt;Общие&lt;br&gt;параметры&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_3">
-       <property name="font">
-        <font>
-         <family>Arimo</family>
-         <pointsize>14</pointsize>
-        </font>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <property name="text">
-        <string>  2. </string>
+        <string>&lt;table&gt;&lt;tr&gt;&lt;td style=&quot;font-size: 18px; vertical-align: middle;&quot;&gt;3.&lt;/td&gt;&lt;td&gt;Параметры&lt;br&gt;журнала событий&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</string>
        </property>
       </widget>
      </item>
@@ -87,21 +91,20 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Общие
-параметры</string>
+        <string>&lt;table&gt;&lt;tr&gt;&lt;td style=&quot;font-size: 18px; vertical-align: middle;&quot;&gt;4.&lt;/td&gt;&lt;td&gt;Параметры&lt;br&gt;паролей&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_5">
-       <property name="font">
-        <font>
-         <family>Arimo</family>
-         <pointsize>14</pointsize>
-        </font>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <property name="text">
-        <string>  3. </string>
+        <string>&lt;table&gt;&lt;tr&gt;&lt;td style=&quot;font-size: 18px; vertical-align: middle;&quot;&gt;5.&lt;/td&gt;&lt;td&gt;Регистрация&lt;br&gt;администратора&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</string>
        </property>
       </widget>
      </item>
@@ -114,89 +117,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Параметры
-журнала событий</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_7">
-       <property name="font">
-        <font>
-         <family>Arimo</family>
-         <pointsize>14</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>  4. </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_8">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Параметры
-паролей</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_9">
-       <property name="font">
-        <font>
-         <family>Arimo</family>
-         <pointsize>14</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>  5. </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_10">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Регистрация
-администратора</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_11">
-       <property name="font">
-        <font>
-         <family>Arimo</family>
-         <pointsize>14</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>  6. </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_12">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Контроль
-целостности</string>
+        <string>&lt;table&gt;&lt;tr&gt;&lt;td style=&quot;font-size: 18px; vertical-align: middle;&quot;&gt;6.&lt;/td&gt;&lt;td&gt;Контроль&lt;br&gt;целостности&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</string>
        </property>
       </widget>
      </item>

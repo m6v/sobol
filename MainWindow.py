@@ -24,6 +24,7 @@ from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING
 from BackgroundedWidget import BackgroundedWidget
 from UiLoader import UiLoader
 from toggle import Toggle
+from SobolDialog import SobolDialog
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
@@ -53,6 +54,7 @@ def str2bool(s):
 
 
 def gen_password(length=8):
+    """Сгенерировать пароль заданной длины"""
     if length < 4:
         raise ValueError("Length must be >= 4")
 
@@ -96,69 +98,6 @@ class CustomWebEngineView(QWebEngineView):
         QWebEngineView.__init__(self, *args, **kwargs)
         self.setPage(WebEnginePage(self))
 
-
-class SobolDialog(QtWidgets.QDialog):
-    """Выводит кастомизированное диалоговое окно"""
-    def __init__(self, title, text, buttons=None, parent=None):
-        super().__init__(parent)
-
-        self.loader = UiLoader()
-        self.loader.loadUi("SobolDialog.ui", self)
-        
-        self.setWindowTitle(title)
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        
-        # Если кнопки не переданы, отображать только [OK]
-        if buttons is None:
-            buttons = QDialogButtonBox.Ok
-        self.button_box = QDialogButtonBox(buttons)
-        
-        self.right_vertical_layout.addWidget(self.button_box)
-        
-        # Стандартные сигналы
-        self.button_box.accepted.connect(self.accept)
-        self.button_box.rejected.connect(self.reject)
-        # Перехват нажатий всех кнопок
-        self.button_box.clicked.connect(self.on_button_clicked)
-
-        dialog_style_sheet = """
-            QWidget {
-                font: 9pt "Monospace Regular";
-                background-color: #F5F5F5;
-            }
-            QPushButton {
-                background-color: #48A23F;
-                width: 120px;
-                height: 48px;
-                color: white;
-           }
-           QPushButton:hover {
-                background: #3D8A36;
-           }
-           QPushButton:pressed {
-                background-color: #3D8A36;
-           }
-        """
-        self.setStyleSheet(dialog_style_sheet)
-        self.caption_label.setText(title)
-        self.text_label.setText(text)
-
-    def on_button_clicked(self, button):
-        role = self.button_box.buttonRole(button)
-        text = button.text()
-        logging.debug(f"Button: {text}, role: {role} is clicked")
-
-    def _center(self):
-        parent = self.parent()
-        if parent:
-            geometry = parent.geometry()
-        else:
-            geometry = QtWidgets.QApplication.primaryScreen().availableGeometry()
-        self.move((geometry.width() - self.width()) // 2, (geometry.height() - self.height()) // 2)
-
-    def exec_(self):
-        self._center()
-        return super().exec_()
 
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
@@ -212,6 +151,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 bootable_uuid = device.get("ID_FS_UUID")
         # logging.debug(subprocess.check_output(["efibootmgr"], text=True).split("\n"))
 
+        self.dom = None
         try:
             # Register the default event implementation
             libvirt.virEventRegisterDefaultImpl()
@@ -440,7 +380,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.passwd_parms_panel.cancel_push_button.setText("Назад")
             self.integrity_control_panel.save_push_button.setText("Вперед")
             self.integrity_control_panel.cancel_push_button.hide()
-
+            # Кнопки в мастере инициализации ПАК "Соболь"
             self.sys_parms_panel.next_push_button.clicked.connect(functools.partial(self.show_init_panel, 1))
             self.common_parms_panel.cancel_push_button.clicked.connect(functools.partial(self.show_init_panel, 0))
             self.common_parms_panel.save_push_button.clicked.connect(functools.partial(self.show_init_panel, 2))
@@ -494,34 +434,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.admin_actions_panel.stacked_widget.setCurrentIndex(0)
         self.init_panel.stacked_widget.setCurrentIndex(index)
 
-        # Список меток, отображающих шаги инициализации (по 2 на шаг)
-        labels = (
-            self.init_panel.label_1,
-            self.init_panel.label_2,
-            self.init_panel.label_3,
-            self.init_panel.label_4,
-            self.init_panel.label_5,
-            self.init_panel.label_6,
-            self.init_panel.label_7,
-            self.init_panel.label_8,
-            self.init_panel.label_9,
-            self.init_panel.label_10,
-            self.init_panel.label_11,
-            self.init_panel.label_12
-        )
-        # Выделить метку, соответствующую текущему шагу (index) инициализации
-        for i in range(len(labels)):
-            if i == 2 * index or i == 2 * index + 1:
-                labels[i].setStyleSheet("""
+        # Подсветить метку, соответствующую текущему шагу (index) инициализации
+        for i in range(self.init_panel.horizontal_layout.count()):
+            item = self.init_panel.horizontal_layout.itemAt(i).widget()
+            if i == index:
+                item.setStyleSheet("""
                     background-color: #48A23F;
                     color: white;
                 """)
             else:
-                labels[i].setStyleSheet("""
+                item.setStyleSheet("""
                     background-color: white;
                     color: black;
                 """)
-
+        # Уточнить в поле с временем и датой необходимо выполнять динамическое обновление
+        # или достаточно выставить текущее время при открытии панели
         if not index:
             self.sys_parms_panel.sys_datetime_line_edit.setText(datetime.datetime.now().strftime("%H:%M %d/%m/%Y"))
 
@@ -536,7 +463,7 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.debug(f"Set {panel_name} settings")
         try:
             # Прочитать значения сохраненных настроек в секции panel_name и
-            # в соответствии с ними установить значения элементов
+            # в соответствии с ними установить значения элементов QCheckBox, QLineEdit и QComboBox
             for widget_name, value in self.config.items(panel_name):
                 if isinstance(getattr(panel, widget_name), QCheckBox):
                     getattr(panel, widget_name).setChecked(str2bool(value))
@@ -626,9 +553,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ibutton_present[dict].connect(self.read_ibutton)
             self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
         else:
-            # TODO Перевести секунды в минуты и секунды
-            self.remaining_time_label_1.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
-            self.remaining_time_label_2.setText(f"До окончания входа в систему осталось: {self.remaining_time} сек.")
+            minutes, seconds = divmod(self.remaining_time, 60)
+            if minutes:
+                remaining_time = f"{minutes} мин. {seconds} сек."
+            else:
+                remaining_time = f"{seconds} сек."
+            self.remaining_time_label_1.setText(f"До окончания входа в систему осталось: {remaining_time}")
+            self.remaining_time_label_2.setText(f"До окончания входа в систему осталось: {remaining_time}")
 
     def read_ibutton(self, message):
         """Сохранить предъявленный идентификатор пользователя и перейти на панель ввода пароля"""
@@ -968,24 +899,25 @@ class MainWindow(QtWidgets.QMainWindow):
             self.close()
 
     def sys_load(self):
-        """Запустить виртуальную машину и открыть virt-viewer"""
-        try:
-            self.dom.create()
-            logging.info("Domain %s created" % self.domain_name)
-        except libvirt.libvirtError as e:
-            logging.error(e)
-        """
-        # Вариант с отображением рабочего стола виртуальной машины во встроенном QWebEngineView
-        self.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
-        # Если url вводится пользователем, лучше использовать метод QtCore.QUrl.fromUserInput(url),
-        # чтобы при необходимости добавить название протокола и т.п.
-        url = QtCore.QUrl(self.config.get("general", "vnc_url"))
-        logging.debug(f"Open {url}")
-        self.web_engine_view.load(url)
-        return
-        """
-        # subprocess.Popen(["virt-viewer", self.domain_name])
-        subprocess.Popen(["virt-manager", "--connect", "qemu:///system", "--show-domain-console", self.domain_name])
+        """Если виртуальная машина есть, запустить ее и открыть в virt-manager"""
+        if self.dom:
+            try:
+                self.dom.create()
+                logging.info("Domain %s created" % self.domain_name)
+                """
+                # Вариант с отображением рабочего стола виртуальной машины во встроенном QWebEngineView
+                self.main_stacked_widget.setCurrentIndex(WEB_VIEW_PAGE)
+                # Если url вводится пользователем, лучше использовать метод QtCore.QUrl.fromUserInput(url),
+                # чтобы при необходимости добавить название протокола и т.п.
+                url = QtCore.QUrl(self.config.get("general", "vnc_url"))
+                logging.debug(f"Open {url}")
+                self.web_engine_view.load(url)
+                return
+                """
+                # subprocess.Popen(["virt-viewer", self.domain_name])
+                subprocess.Popen(["virt-manager", "--connect", "qemu:///system", "--show-domain-console", self.domain_name])
+            except libvirt.libvirtError as e:
+                logging.error(e)
         self.close()
 
     def closeEvent(self, event):

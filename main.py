@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-__author__ = 'Sergey Maksimov'
-__mail__ = 'm6v@mail.ru'
-__version__ = '1.2'
-__date__ = '2025-10-02'
-__copyright__ = 'Copyright © 2025 Sergey Maksimov'
-__licence__ = 'GNU Public Licence (GPL) v3'
+__author__ = "Sergey Maksimov"
+__mail__ = "m6v@mail.ru"
+__version__ = '1.3'
+__date__ = "2026-03-24"
+__copyright__ = "Copyright © 2026 Sergey Maksimov"
+__licence__ = "GNU Public Licence (GPL) v3"
 
 import argparse
 import configparser
@@ -17,12 +17,18 @@ from PySide2.QtWidgets import QApplication
 
 from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING
 from MainWindow import MainWindow
+from SobolDialog import SobolDialog
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt='%Y-%m-%d %H:%M:%S')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Тренажер администратора безопасности')
-    parser.add_argument('config_file', help='Конфигурационный файл')
+def main():
+    app = QApplication(sys.argv)
+    window = MainWindow(args.config_file)
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Тренажер администратора безопасности")
+    parser.add_argument("config_file", help="Конфигурационный файл")
     args = parser.parse_args()
 
     config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), args.config_file)
@@ -46,14 +52,12 @@ if __name__ == '__main__':
         # reason - причина перехода в определённое состояние (число из перечисления virDomain*Reason)
         state, reason = dom.state()
         logging.info(f"Domain {dom.name()}, state: {VIR_DOMAIN_STATE_MAPPING.get(state)}, reason: {reason}")
+        # Если виртуальная машина domain_name не запущена, запустить имитатор ПАК "Соболь", иначе запустить virt-manager
         if state != libvirt.VIR_DOMAIN_RUNNING:
-            # Если виртуальная машина domain_name не запущена, запустить имитатор ПАК "Соболь"
-            app = QApplication(sys.argv)
-            window = MainWindow(args.config_file)
-            sys.exit(app.exec_())
+            main()
         else:
-            # Если виртуальная машина domain_name запущена, запустить virt-viewer
-            # sys.exit(subprocess.Popen(["virt-viewer", domain_name]))
             sys.exit(subprocess.Popen(["virt-manager", "--connect", "qemu:///system", "--show-domain-console", domain_name]))
     except libvirt.libvirtError as e:
-        logging.error(e)
+        # Исключение выбрасывается, если среда виртуализации не установлена, в этом случае все равно запускаем программу
+        logging.debug(e)
+        main()
