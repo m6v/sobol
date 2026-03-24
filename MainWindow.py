@@ -1,4 +1,5 @@
 import configparser
+import csv
 import datetime
 import functools
 import inspect
@@ -20,7 +21,7 @@ import dbus
 import dbus.mainloop.glib
 import pyudev
 
-from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING
+from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING, EVENTS_TYPE
 from BackgroundedWidget import BackgroundedWidget
 from UiLoader import UiLoader
 from toggle import Toggle
@@ -272,6 +273,11 @@ class MainWindow(QtWidgets.QMainWindow):
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
             self.settings_stacked_widget.addWidget(getattr(self, panel_name))
+        
+        # Заполнить таблицу фильтрации событий по типу
+        for item in EVENTS_TYPE.values():
+            self.event_journal_panel.events_type_list_widget.addItem(item)
+        self.update_journal()
 
         if self.admins:
             # При запуске открыть панель WAIT_ID_PAGE
@@ -919,6 +925,24 @@ class MainWindow(QtWidgets.QMainWindow):
             except libvirt.libvirtError as e:
                 logging.error(e)
         self.close()
+
+    def update_journal(self):
+        """Обновить журнал событий из файла domain_name.csv"""
+        with open(self.domain_name + ".csv", newline="", encoding="utf-8") as f:
+            reader = csv.reader(f, delimiter=";")
+            data = list(reader)
+        
+        self.event_journal_panel.table_widget.setRowCount(0)
+        for row_data in data:
+            row = self.event_journal_panel.table_widget.rowCount()
+            self.event_journal_panel.table_widget.insertRow(row)
+
+            for col, value in enumerate(row_data):
+                self.event_journal_panel.table_widget.setItem(row, col, QtWidgets.QTableWidgetItem(value))
+    
+    def append_journal(self, user, ibutton, event_type, status):
+        """Добавить запись в журнал событий"""
+        pass
 
     def closeEvent(self, event):
         """Сохранить настройки приложения"""
