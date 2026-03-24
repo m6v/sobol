@@ -63,7 +63,7 @@ QPushButton:hover {
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../icons/plus.png</normaloff>../icons/plus.png</iconset>
+          <normaloff>../img/plus.png</normaloff>../img/plus.png</iconset>
         </property>
        </widget>
       </item>
@@ -74,7 +74,7 @@ QPushButton:hover {
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../icons/cross.png</normaloff>../icons/cross.png</iconset>
+          <normaloff>../img/cross.png</normaloff>../img/cross.png</iconset>
         </property>
        </widget>
       </item>
@@ -85,7 +85,7 @@ QPushButton:hover {
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../icons/all_users.png</normaloff>../icons/all_users.png</iconset>
+          <normaloff>../img/all_users.png</normaloff>../img/all_users.png</iconset>
         </property>
        </widget>
       </item>
@@ -96,7 +96,7 @@ QPushButton:hover {
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../icons/lock.png</normaloff>../icons/lock.png</iconset>
+          <normaloff>../img/lock.png</normaloff>../img/lock.png</iconset>
         </property>
        </widget>
       </item>

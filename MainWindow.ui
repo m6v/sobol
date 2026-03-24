@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>icons/sobol.png</normaloff>icons/sobol.png</iconset>
+    <normaloff>img/sobol.png</normaloff>img/sobol.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
@@ -34,7 +34,7 @@
     <item row="0" column="0">
      <widget class="QStackedWidget" name="main_stacked_widget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>4</number>
       </property>
       <widget class="BackgroundedWidget" name="wait_id_page">
        <property name="styleSheet">
@@ -931,7 +931,7 @@ QLineEdit {
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap>top_left.png</pixmap>
+              <pixmap>img/top_left.png</pixmap>
              </property>
             </widget>
            </item>
@@ -966,7 +966,7 @@ QLineEdit {
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap>top_right.png</pixmap>
+              <pixmap>img/top_right.png</pixmap>
              </property>
             </widget>
            </item>

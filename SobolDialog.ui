@@ -35,7 +35,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap>icons/warning.png</pixmap>
+        <pixmap>img/warning.png</pixmap>
        </property>
        <property name="margin">
         <number>6</number>

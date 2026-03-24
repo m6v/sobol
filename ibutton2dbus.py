@@ -27,7 +27,7 @@ appname = os.path.splitext(os.path.basename(__file__))[0]
 logfile = appname + ".log"
 
 # Если требуется логирование в файл добавить аргумент filename=logfile
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logging.info("%s started" % appname)
 
 with open("ibuttons.json") as file:
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     service_object = IButtonService(bus_name, "/com/example/IButtonService")
 
     tray_icon = QtWidgets.QSystemTrayIcon()
-    tray_icon.setIcon(QIcon("icons/ibutton.png"))
+    tray_icon.setIcon(QIcon("img/ibutton.png"))
     tray_icon.show()
 
     def ibutton_action_triggered(item):

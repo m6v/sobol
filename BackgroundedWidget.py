@@ -14,7 +14,7 @@ class BackgroundedWidget(QWidget):
 
     def resizeEvent(self, event):
         palette = QPalette()
-        img = QImage("background.png")
+        img = QImage("img/background.png")
         # Если нужно сохранять пропорции, то вместо IgnoreAspectRatio использовать KeepAspectRatioByExpanding
         scaled = img.scaled(self.size(), Qt.IgnoreAspectRatio, transformMode = Qt.SmoothTransformation)
         palette.setBrush(QPalette.Window, QBrush(scaled))
