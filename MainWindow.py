@@ -26,6 +26,7 @@ from BackgroundedWidget import BackgroundedWidget
 from UiLoader import UiLoader
 from toggle import Toggle
 from SobolDialog import SobolDialog
+from JournalTableView import CsvTableModel, DateTimeFilterProxy
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
@@ -926,19 +927,32 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.error(e)
         self.close()
 
+    def update_journal_filters(self):
+        """Обновить фильтры журнала событий"""
+        # TODO Вместо None считать значения из соответствующих полей ввода
+        date_from = None  # self.event_journal_panel.events_start_time_line_edit.text()
+        date_to = None  # self.event_journal_panel.events_end_time_line_edit.text()
+        status = None
+
+        self.proxy.setRange(date_from, date_to)
+        self.proxy.setStatusFilter(status)
+
     def update_journal(self):
         """Обновить журнал событий из файла domain_name.csv"""
         with open(self.domain_name + ".csv", newline="", encoding="utf-8") as f:
             reader = csv.reader(f, delimiter=";")
             data = list(reader)
-        
-        self.event_journal_panel.table_widget.setRowCount(0)
-        for row_data in data:
-            row = self.event_journal_panel.table_widget.rowCount()
-            self.event_journal_panel.table_widget.insertRow(row)
 
-            for col, value in enumerate(row_data):
-                self.event_journal_panel.table_widget.setItem(row, col, QtWidgets.QTableWidgetItem(value))
+        headers = ["Время", "Пользователь", "Номер ЭИ", "Описание", "Статус"]
+        
+        self.model = CsvTableModel(data, headers)
+
+        self.proxy = DateTimeFilterProxy()
+        self.proxy.setSourceModel(self.model)
+
+        self.event_journal_panel.journal_table_view.setModel(self.proxy)
+        
+        self.update_journal_filters()
     
     def append_journal(self, user, ibutton, event_type, status):
         """Добавить запись в журнал событий"""

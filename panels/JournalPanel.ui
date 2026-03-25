@@ -55,7 +55,7 @@
    <item>
     <widget class="QStackedWidget" name="journal_stacked_widget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="view_journal_page">
       <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -121,38 +121,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QTableWidget" name="table_widget">
-         <column>
-          <property name="text">
-           <string>Время</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Дата</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Пользователь</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Номер ЭИ</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Описание</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Статус</string>
-          </property>
-         </column>
-        </widget>
+        <widget class="QTableView" name="journal_table_view"/>
        </item>
        <item>
         <widget class="QWidget" name="view_buttons_widget" native="true">
