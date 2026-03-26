@@ -3,46 +3,21 @@ import csv
 from datetime import datetime
 
 from PySide2.QtWidgets import QApplication, QMainWindow, QTableView
-from PySide2.QtCore import Qt, QAbstractTableModel, QSortFilterProxyModel
+from PySide2.QtCore import Qt, QAbstractTableModel, QSortFilterProxyModel, QModelIndex
 
 from constants import EVENTS_TYPE
 
-class CsvTableModel(QAbstractTableModel):
-    def __init__(self, data, headers):
+class JournalTableModel(QAbstractTableModel):
+    def __init__(self, journal_file):
         super().__init__()
-        self._headers = headers
+        self._journal_file = journal_file
+        self._headers = ["Время", "Пользователь", "Номер ЭИ", "Описание", "Статус"]
+
+        with open(self._journal_file, newline="", encoding="utf-8") as f:
+            reader = csv.reader(f, delimiter=";")
+            data = list(reader)
+
         self._data = data
-        # Если нужна предобработка данных, то self._data = self.parse_data(data)
-
-    def parse_data(self, data):
-        """Метод предобработки исходных данных"""
-        parsed = []
-
-        for row in data:
-            # Дата и время события
-            try:
-                dt = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
-                event_time = dt.strftime("%H:%M:%S")
-                event_date = dt.strftime("%d.%m.%Y")
-            except Exception:
-                event_time = "Неизвестно"
-                event_date = "Неизвестно"
-
-            # Тип событий
-            evevt_type = EVENTS_TYPE[int(row[3])]
-
-            # Статус событий
-            status_raw = row[4]
-            if status_raw == "1":
-                event_status = "Успех"
-            elif status_raw == "0":
-                event_status = "Ошибка"
-            else:
-                event_status = "Неизвестно"
-
-            parsed.append([event_time, event_date] + row[1:3] + [evevt_type] + [event_status])
-
-        return parsed
 
     def rowCount(self, parent=None):
         return len(self._data)
@@ -77,21 +52,34 @@ class CsvTableModel(QAbstractTableModel):
             return self._headers[section]
         else:
             return str(section + 1)
+            
+    def add_event(self, event):
+        """Добавить событие в журнал"""
+        row = len(self._data)
+        self.beginInsertRows(QModelIndex(), row, row)
+        # Первым элементом всегда добавляем текущее время
+        self._data.append([datetime.now().strftime("%H:%M %d/%m/%Y")] + event)
+        self.endInsertRows()
+        
+    def save(self):
+        with open(self._journal_file, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f, delimiter=";")
+            writer.writerows(self._data)
 
 
-class DateTimeFilterProxy(QSortFilterProxyModel):
+class JournalProxyModel(QSortFilterProxyModel):
     def __init__(self):
         super().__init__()
         self.date_from = None
         self.date_to = None
         self.status_filter = None
 
-    def setRange(self, date_from, date_to):
+    def setDateTimeFilter(self, date_from=None, date_to=None):
         self.date_from = date_from
         self.date_to = date_to
         self.invalidateFilter()
 
-    def setStatusFilter(self, status):
+    def setStatusFilter(self, status=None):
         self.status_filter = status
         self.invalidateFilter()
 

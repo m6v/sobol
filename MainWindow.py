@@ -26,7 +26,7 @@ from BackgroundedWidget import BackgroundedWidget
 from UiLoader import UiLoader
 from toggle import Toggle
 from SobolDialog import SobolDialog
-from JournalTableView import CsvTableModel, DateTimeFilterProxy
+from JournalTableView import JournalTableModel, JournalProxyModel
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
@@ -131,6 +131,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.failed_logins = int(self.config.get("general", "failed_logins"))
             # Имя виртуальной машины
             self.domain_name = self.config.get("general", "domain_name")
+            self.journal_file = self.config.get("general", "journal_file")
 
             self.setWindowTitle(self.config.get("window", "title"))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
@@ -274,11 +275,24 @@ class MainWindow(QtWidgets.QMainWindow):
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
             self.settings_stacked_widget.addWidget(getattr(self, panel_name))
-        
+
+        # TODO Сейчас не восстанавливаем и не сохраняем список фильтруемых событий, а нужно это сделать!
+        self.set_saved_settings(self.event_journal_panel)
         # Заполнить таблицу фильтрации событий по типу
         for item in EVENTS_TYPE.values():
             self.event_journal_panel.events_type_list_widget.addItem(item)
-        self.update_journal()
+
+        # Подготовить журнал событий
+        self.model = JournalTableModel(self.journal_file)
+
+        self.proxy_model = JournalProxyModel()
+        self.proxy_model.setSourceModel(self.model)
+
+        self.event_journal_panel.journal_table_view.setModel(self.proxy_model)
+        # Работа с фильтрами событий:
+        # Сбросить фильтры событий по дате и статусу
+        # self.proxy_model.setDateTimeFilter()
+        # self.proxy_model.setStatusFilter()
 
         if self.admins:
             # При запуске открыть панель WAIT_ID_PAGE
@@ -462,7 +476,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""
         self.event_journal_panel.journal_stacked_widget.setCurrentIndex(index)
-        self.set_saved_settings(self.event_journal_panel)
+        self.save_panel_settings(self.event_journal_panel)
 
     def set_saved_settings(self, panel):
         """Установить сохраненные настройки panel"""
@@ -598,6 +612,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.timer.stop()
             # Если входящий пользователь в списке self.admins, открыть страницу настроек и выйти
             if self.presented_ibutton["id"] in self.admins:
+                # Добавить в журнал запись об успешном входе администратора (key="4")
+                self.model.add_event(["Администратор",self.presented_ibutton["id"],"4","1"])
                 # Заполнить поля в окне выбора действий, доступных администратору
                 self.failed_logins_value.setText(str(self.failed_logins))
                 # Если ни один пользователь не зарегистрирован, пропустить вывод сведений о последнем входе в систему
@@ -620,6 +636,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
                 # TODO Показать статистику, только если установлен соответствующий параметр (self.common_parms_panel.show_stats_check_box=True)
                 pass
+                # Добавить в журнал запись об успешном входе пользователя (key="5")
+                self.model.add_event([self.presented_ibutton["user_name"],self.presented_ibutton["id"],"5","1"])
+                
                 # Заполнить поля в окне выбора действий, доступных пользователю
                 self.user_name_value.setText(self.users[index]["user_name"])
                 self.user_id_value.setText(self.users[index]["id"])
@@ -642,10 +661,15 @@ class MainWindow(QtWidgets.QMainWindow):
             self.failed_logins += 1
             # Если это обычный пользователь, то увеличить число неудачных попыток входа
             if index is not None:
+                # Добавить в журнал запись об неуспешном входе пользователя (key="5")
+                self.model.add_event([self.presented_ibutton["user_name"],self.presented_ibutton["id"],"5","0"])
+                
                 self.users[index]["failed_logins"] += 1
                 # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
                 pass
-            # QtWidgets.QMessageBox.warning(self, "Quit", "Неверный идентификатор или пароль", QtWidgets.QMessageBox.Ok)
+            else:
+                # Добавить в журнал запись об неуспешном входе администратора (key="4")
+                self.model.add_event(["Администратор",self.presented_ibutton["id"],"4","0"])
             dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
             result = dialog.exec_()
             self.ibutton_present[dict].connect(self.read_ibutton)
@@ -927,37 +951,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 logging.error(e)
         self.close()
 
-    def update_journal_filters(self):
-        """Обновить фильтры журнала событий"""
-        # TODO Вместо None считать значения из соответствующих полей ввода
-        date_from = None  # self.event_journal_panel.events_start_time_line_edit.text()
-        date_to = None  # self.event_journal_panel.events_end_time_line_edit.text()
-        status = None
-
-        self.proxy.setRange(date_from, date_to)
-        self.proxy.setStatusFilter(status)
-
-    def update_journal(self):
-        """Обновить журнал событий из файла domain_name.csv"""
-        with open(self.domain_name + ".csv", newline="", encoding="utf-8") as f:
-            reader = csv.reader(f, delimiter=";")
-            data = list(reader)
-
-        headers = ["Время", "Пользователь", "Номер ЭИ", "Описание", "Статус"]
-        
-        self.model = CsvTableModel(data, headers)
-
-        self.proxy = DateTimeFilterProxy()
-        self.proxy.setSourceModel(self.model)
-
-        self.event_journal_panel.journal_table_view.setModel(self.proxy)
-        
-        self.update_journal_filters()
-    
-    def append_journal(self, user, ibutton, event_type, status):
-        """Добавить запись в журнал событий"""
-        pass
-
     def closeEvent(self, event):
         """Сохранить настройки приложения"""
         # Получить кортеж с элементами QRect геометрии главного окна
@@ -971,3 +964,4 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("general", "failed_logins", str(self.failed_logins))
         with open(self.config_file, "w") as file:
             self.config.write(file)
+        self.model.save()
