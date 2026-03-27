@@ -1,9 +1,11 @@
 import sys
 import csv
 from datetime import datetime
+import logging
 
 from PySide2.QtWidgets import QApplication, QMainWindow, QTableView
 from PySide2.QtCore import Qt, QAbstractTableModel, QSortFilterProxyModel, QModelIndex
+from PySide2.QtGui import QColor
 
 from constants import EVENTS_TYPE
 
@@ -42,6 +44,11 @@ class JournalTableModel(QAbstractTableModel):
 
             return str(value)
 
+        if role == Qt.ForegroundRole:
+            status = self._data[index.row()][-1]
+            if status == "0":
+                return QColor("red")
+
         return None
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -72,9 +79,11 @@ class JournalProxyModel(QSortFilterProxyModel):
         super().__init__()
         self.date_from = None
         self.date_to = None
+        self.event_type_filter = None
         self.status_filter = None
 
     def setDateTimeFilter(self, date_from=None, date_to=None):
+        logging.debug(f"Set datetime filter with date_from: {date_from}, date_to: {date_to}")
         self.date_from = date_from
         self.date_to = date_to
         self.invalidateFilter()
@@ -83,14 +92,20 @@ class JournalProxyModel(QSortFilterProxyModel):
         self.status_filter = status
         self.invalidateFilter()
 
+    def setTypeFilter(self, event_type=None):
+        logging.debug(f"Set type filter: {event_type}")
+        self.event_type_filter = event_type
+        self.invalidateFilter()
+
     def filterAcceptsRow(self, source_row, source_parent):
         """Метод должен вернуть true, если элемент в строке source_row и источнике source_parent должен быть включен в модель"""
         model = self.sourceModel()
 
-        dt = model._data[source_row][0]
+        dt = datetime.strptime(model._data[source_row][0], "%H:%M %d/%m/%Y")
+        event_type = model._data[source_row][-2]
         status = model._data[source_row][-1]
 
-        # Пример фильтра по дате
+        # Фильтр по дате
         if dt is None:
             return False
 
@@ -100,7 +115,11 @@ class JournalProxyModel(QSortFilterProxyModel):
         if self.date_to and dt > self.date_to:
             return False
 
-        # Пример фильтра по статусу события
+        # Фильтр по типу события
+        if self.event_type_filter and (int(event_type) not in self.event_type_filter):
+            return False
+
+        # Фильтр по статусу события
         if self.status_filter is not None and status != self.status_filter:
             return False
 

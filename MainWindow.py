@@ -3,6 +3,7 @@ import csv
 import datetime
 import functools
 import inspect
+import json
 import libvirt
 import logging
 import os
@@ -132,6 +133,9 @@ class MainWindow(QtWidgets.QMainWindow):
             # Имя виртуальной машины
             self.domain_name = self.config.get("general", "domain_name")
             self.journal_file = self.config.get("general", "journal_file")
+
+            # Список из индексов строк с типами фильтруемых событий
+            self.evet_type_filter = json.loads(self.config.get("event_journal_panel", "evet_type_filter"))
 
             self.setWindowTitle(self.config.get("window", "title"))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
@@ -289,10 +293,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.proxy_model.setSourceModel(self.model)
 
         self.event_journal_panel.journal_table_view.setModel(self.proxy_model)
-        # Работа с фильтрами событий:
-        # Сбросить фильтры событий по дате и статусу
-        # self.proxy_model.setDateTimeFilter()
-        # self.proxy_model.setStatusFilter()
+
+        datetime_regex = QtCore.QRegExp(
+            r"([01][0-9]|2[0-3]):([0-5][0-9])\s"
+            r"(0[1-9]|[12][0-9]|3[01])/"
+            r"(0[1-9]|1[0-2])/"
+            r"(\d{4})"
+            )
+        validator = QtGui.QRegExpValidator(datetime_regex)
+        self.event_journal_panel.events_start_time_line_edit.setValidator(validator)
+        self.event_journal_panel.events_end_time_line_edit.setValidator(validator)
+
+        journal_size_regex = QtCore.QRegExp(r"(1000|[1-9]\d{2})")
+        validator = QtGui.QRegExpValidator(journal_size_regex)
+        self.event_journal_panel.journal_max_size_line_edit.setValidator(validator)
+        # Установить состояние полей ввода в зависимости от сохраненного значения переключателей
+        self.event_journal_panel.events_start_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
+        self.event_journal_panel.events_end_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
+        self.event_journal_panel.events_type_list_widget.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
+        # Восстановить список выбранных строк фильтрации событий по типам
+        for row in self.evet_type_filter:
+            self.event_journal_panel.events_type_list_widget.item(row).setSelected(True)
 
         if self.admins:
             # При запуске открыть панель WAIT_ID_PAGE
@@ -327,8 +348,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.event_journal_panel.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 1))
             self.event_journal_panel.parms_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 2))
             self.event_journal_panel.search_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 3))
-            self.event_journal_panel.select_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
-            self.event_journal_panel.cancel_parms_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
+            self.event_journal_panel.select_parms_push_button.clicked.connect(self.apply_event_filter)
+            self.event_journal_panel.cancel_parms_push_button.clicked.connect(self.cancel_event_filter)
             self.event_journal_panel.select_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.selectAll)
             self.event_journal_panel.clear_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.clearSelection)
             self.event_journal_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.event_journal_panel))
@@ -929,6 +950,36 @@ class MainWindow(QtWidgets.QMainWindow):
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.close()
 
+    def apply_event_filter(self):
+        """Приметить выбранные фильтры журнала событий"""
+        if self.event_journal_panel.events_time_search_check_box.isChecked():
+            try:
+                date_from = datetime.datetime.strptime(self.event_journal_panel.events_start_time_line_edit.text(), "%H:%M %d/%m/%Y")
+                date_to = datetime.datetime.strptime(self.event_journal_panel.events_end_time_line_edit.text(), "%H:%M %d/%m/%Y")
+                self.proxy_model.setDateTimeFilter(date_from, date_to)
+            except ValueError as e:
+                # TODO Показать диалоговое окно с ошибкой формата даты и времени
+                logging.error(e)
+        else:
+            self.proxy_model.setDateTimeFilter()
+
+        if self.event_journal_panel.events_type_search_check_box.isChecked():
+            self.evet_type_filter = [
+                self.event_journal_panel.events_type_list_widget.row(item)
+                for item in self.event_journal_panel.events_type_list_widget.selectedItems()
+                ]
+            self.proxy_model.setTypeFilter(self.evet_type_filter)
+        else:
+            self.proxy_model.setTypeFilter(None)
+        self.show_journal_panel(0)
+
+    def cancel_event_filter(self):
+        """Отметить выбранные фильтры журнала событий"""
+        logging.debug("Cancel datetime filter")
+        self.proxy_model.setDateTimeFilter()
+        self.proxy_model.setTypeFilter()
+        self.show_journal_panel(0)
+
     def sys_load(self):
         """Если виртуальная машина есть, запустить ее и открыть в virt-manager"""
         if self.dom:
@@ -962,6 +1013,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("general", "users", str(self.users))
         self.config.set("general", "admins", str(self.admins))
         self.config.set("general", "failed_logins", str(self.failed_logins))
+        # Сохранить выбор фильтрации событий в журнале
+        self.evet_type_filter = [
+            self.event_journal_panel.events_type_list_widget.row(item)
+            for item in self.event_journal_panel.events_type_list_widget.selectedItems()
+            ]
+        self.config.set("event_journal_panel", "evet_type_filter", str(self.evet_type_filter))
+
         with open(self.config_file, "w") as file:
             self.config.write(file)
         self.model.save()
