@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>img/sobol.png</normaloff>img/sobol.png</iconset>
+    <normaloff>../img/sobol.png</normaloff>../img/sobol.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
@@ -931,7 +931,7 @@ QLineEdit {
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap>img/top_left.png</pixmap>
+              <pixmap>../img/top_left.png</pixmap>
              </property>
             </widget>
            </item>
@@ -966,7 +966,7 @@ QLineEdit {
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap>img/top_right.png</pixmap>
+              <pixmap>../img/top_right.png</pixmap>
              </property>
             </widget>
            </item>

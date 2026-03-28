@@ -190,7 +190,7 @@ class MainWindow(QtWidgets.QMainWindow):
         sidebar_style_sheet = """
             QWidget {
                 font: 9pt "Monospace Regular";
-                background-image: url(img/sidebar.png);
+                background-image: url(../img/sidebar.png);
                 background-repeat: no-repeat;
                 background-position: up;
                 background-color: #48A23F;
@@ -223,42 +223,42 @@ class MainWindow(QtWidgets.QMainWindow):
         # Если зарегистрирован хоть один администратор, считаем, что комплекс инициализирован
         if self.admins:
             self.buttons = {
-                "Загрузка ОС": "img/sys_load.png",
-                "Режим работы": "img/work_mode.png",
-                "Список пользователей": "img/users_list.png",
-                "Журнал событий": "img/journal.png",
-                "Общие параметры": "img/common_parms.png",
-                "Параметры паролей": "img/passwd_parms.png",
-                "Контроль целостности": "img/integrity_control.png",
-                "Смена пароля": "img/passwd_change.png",
-                "Смена аутентификатора": "img/user_id_change.png",
-                "Диагностика платы": "img/diagnostic.png",
-                "Служебные операции": "img/service_operations.png"
+                "Загрузка ОС": "../img/sys_load.png",
+                "Режим работы": "../img/work_mode.png",
+                "Список пользователей": "../img/users_list.png",
+                "Журнал событий": "../img/journal.png",
+                "Общие параметры": "../img/common_parms.png",
+                "Параметры паролей": "../img/passwd_parms.png",
+                "Контроль целостности": "../img/integrity_control.png",
+                "Смена пароля": "../img/passwd_change.png",
+                "Смена аутентификатора": "../img/user_id_change.png",
+                "Диагностика платы": "../img/diagnostic.png",
+                "Служебные операции": "../img/service_operations.png"
             }
             self.settings_panels = {
-                "sys_load_panel": "panels/SysLoadPanel.ui",
-                "work_mode_panel": "panels/WorkModePanel.ui",
-                "user_list_panel": "panels/UserListPanel.ui",
-                "event_journal_panel": "panels/JournalPanel.ui",
-                "common_parms_panel": "panels/CommonParmsPanel.ui",
-                "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
-                "integrity_control_panel": "panels/IntegrityControlPanel.ui",
-                "passwd_change_panel": "panels/PasswdChangePanel.ui",
-                "id_change_panel": "panels/IdChangePanel.ui",
-                "diagnostic_panel": "panels/DiagnosticPanel.ui",
-                "service_operations_panel": "panels/ServiceOperationsPanel.ui",
-                "user_actions_panel": "panels/UserActionsPanel.ui"
+                "sys_load_panel": "../panels/SysLoadPanel.ui",
+                "work_mode_panel": "../panels/WorkModePanel.ui",
+                "user_list_panel": "../panels/UserListPanel.ui",
+                "event_journal_panel": "../panels/JournalPanel.ui",
+                "common_parms_panel": "../panels/CommonParmsPanel.ui",
+                "passwd_parms_panel": "../panels/PasswdParmsPanel.ui",
+                "integrity_control_panel": "../panels/IntegrityControlPanel.ui",
+                "passwd_change_panel": "../panels/PasswdChangePanel.ui",
+                "id_change_panel": "../panels/IdChangePanel.ui",
+                "diagnostic_panel": "../panels/DiagnosticPanel.ui",
+                "service_operations_panel": "../panels/ServiceOperationsPanel.ui",
+                "user_actions_panel": "../panels/UserActionsPanel.ui"
             }
         else:
             self.buttons = {
-                "Инициализация платы": "img/sys_load.png",
-                "Диагностика платы": "img/diagnostic.png",
-                "Служебные операции": "img/service_operations.png"
+                "Инициализация платы": "../img/sys_load.png",
+                "Диагностика платы": "../img/diagnostic.png",
+                "Служебные операции": "../img/service_operations.png"
             }
             self.settings_panels = {
-                "init_panel": "panels/InitPanel.ui",
-                "diagnostic_panel": "panels/DiagnosticPanel.ui",
-                "service_operations_panel": "panels/ServiceOperationsPanel.ui",
+                "init_panel": "../panels/InitPanel.ui",
+                "diagnostic_panel": "../panels/DiagnosticPanel.ui",
+                "service_operations_panel": "../panels/ServiceOperationsPanel.ui",
             }
 
         verticalSpacer = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Fixed)
@@ -397,12 +397,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.main_stacked_widget.setCurrentIndex(SETTINGS_PAGE)
 
             self.init_panels = {
-                "sys_parms_panel": "panels/SysParmsPanel.ui",
-                "common_parms_panel": "panels/CommonParmsPanel.ui",
-                "journal_parms_panel": "panels/JournalParms.ui",
-                "passwd_parms_panel": "panels/PasswdParmsPanel.ui",
-                "admin_actions_panel": "panels/AdminActionsPanel.ui",
-                "integrity_control_panel": "panels/IntegrityControlPanel.ui"
+                "sys_parms_panel": "../panels/SysParmsPanel.ui",
+                "common_parms_panel": "../panels/CommonParmsPanel.ui",
+                "journal_parms_panel": "../panels/JournalParms.ui",
+                "passwd_parms_panel": "../panels/PasswdParmsPanel.ui",
+                "admin_actions_panel": "../panels/AdminActionsPanel.ui",
+                "integrity_control_panel": "../panels/IntegrityControlPanel.ui"
             }
             for panel_name, ui_file in self.init_panels.items():
                 panel = self.loader.loadUi(os.path.join(CURRENT_DIR, ui_file))

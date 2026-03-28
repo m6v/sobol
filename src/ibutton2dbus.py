@@ -67,7 +67,7 @@ if __name__ == "__main__":
     service_object = IButtonService(bus_name, "/com/example/IButtonService")
 
     tray_icon = QtWidgets.QSystemTrayIcon()
-    tray_icon.setIcon(QIcon("img/ibutton.png"))
+    tray_icon.setIcon(QIcon("../img/ibutton.png"))
     tray_icon.show()
 
     def ibutton_action_triggered(item):
