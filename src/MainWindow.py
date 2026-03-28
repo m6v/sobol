@@ -1,5 +1,4 @@
 import configparser
-import csv
 import datetime
 import functools
 import inspect
@@ -15,14 +14,14 @@ import sys
 from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox, QDialogButtonBox, QHBoxLayout
+from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 import dbus
 import dbus.mainloop.glib
 import pyudev
 
-from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING, EVENTS_TYPE
+from constants import VIR_DOMAIN_STATE_MAPPING, EVENTS_TYPE
 from BackgroundedWidget import BackgroundedWidget
 from UiLoader import UiLoader
 from toggle import Toggle
@@ -280,18 +279,15 @@ class MainWindow(QtWidgets.QMainWindow):
             setattr(self, panel_name, panel)
             self.settings_stacked_widget.addWidget(getattr(self, panel_name))
 
-        # TODO Сейчас не восстанавливаем и не сохраняем список фильтруемых событий, а нужно это сделать!
         self.set_saved_settings(self.event_journal_panel)
         # Заполнить таблицу фильтрации событий по типу
         for item in EVENTS_TYPE.values():
             self.event_journal_panel.events_type_list_widget.addItem(item)
 
-        # Подготовить журнал событий
+        # Создать, загрузить модель, связать ее с таблицей журнала событийПодготовить журнал событий
         self.model = JournalTableModel(self.journal_file)
-
         self.proxy_model = JournalProxyModel()
         self.proxy_model.setSourceModel(self.model)
-
         self.event_journal_panel.journal_table_view.setModel(self.proxy_model)
 
         datetime_regex = QtCore.QRegExp(
@@ -299,7 +295,7 @@ class MainWindow(QtWidgets.QMainWindow):
             r"(0[1-9]|[12][0-9]|3[01])/"
             r"(0[1-9]|1[0-2])/"
             r"(\d{4})"
-            )
+        )
         validator = QtGui.QRegExpValidator(datetime_regex)
         self.event_journal_panel.events_start_time_line_edit.setValidator(validator)
         self.event_journal_panel.events_end_time_line_edit.setValidator(validator)
@@ -634,7 +630,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Если входящий пользователь в списке self.admins, открыть страницу настроек и выйти
             if self.presented_ibutton["id"] in self.admins:
                 # Добавить в журнал запись об успешном входе администратора (key="4")
-                self.model.add_event(["Администратор",self.presented_ibutton["id"],"4","1"])
+                self.model.add_event(["Администратор", self.presented_ibutton["id"], "4", "1"])
                 # Заполнить поля в окне выбора действий, доступных администратору
                 self.failed_logins_value.setText(str(self.failed_logins))
                 # Если ни один пользователь не зарегистрирован, пропустить вывод сведений о последнем входе в систему
@@ -658,8 +654,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 # TODO Показать статистику, только если установлен соответствующий параметр (self.common_parms_panel.show_stats_check_box=True)
                 pass
                 # Добавить в журнал запись об успешном входе пользователя (key="5")
-                self.model.add_event([self.presented_ibutton["user_name"],self.presented_ibutton["id"],"5","1"])
-                
+                self.model.add_event([self.presented_ibutton["user_name"], self.presented_ibutton["id"], "5", "1"])
+
                 # Заполнить поля в окне выбора действий, доступных пользователю
                 self.user_name_value.setText(self.users[index]["user_name"])
                 self.user_id_value.setText(self.users[index]["id"])
@@ -683,16 +679,16 @@ class MainWindow(QtWidgets.QMainWindow):
             # Если это обычный пользователь, то увеличить число неудачных попыток входа
             if index is not None:
                 # Добавить в журнал запись об неуспешном входе пользователя (key="5")
-                self.model.add_event([self.presented_ibutton["user_name"],self.presented_ibutton["id"],"5","0"])
-                
+                self.model.add_event([self.presented_ibutton["user_name"], self.presented_ibutton["id"], "5", "0"])
+
                 self.users[index]["failed_logins"] += 1
                 # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
                 pass
             else:
                 # Добавить в журнал запись об неуспешном входе администратора (key="4")
-                self.model.add_event(["Администратор",self.presented_ibutton["id"],"4","0"])
+                self.model.add_event(["Администратор", self.presented_ibutton["id"], "4", "0"])
             dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
-            result = dialog.exec_()
+            dialog.exec_()
             self.ibutton_present[dict].connect(self.read_ibutton)
             self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
@@ -967,7 +963,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.evet_type_filter = [
                 self.event_journal_panel.events_type_list_widget.row(item)
                 for item in self.event_journal_panel.events_type_list_widget.selectedItems()
-                ]
+            ]
             self.proxy_model.setTypeFilter(self.evet_type_filter)
         else:
             self.proxy_model.setTypeFilter(None)
@@ -1017,7 +1013,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.evet_type_filter = [
             self.event_journal_panel.events_type_list_widget.row(item)
             for item in self.event_journal_panel.events_type_list_widget.selectedItems()
-            ]
+        ]
         self.config.set("event_journal_panel", "evet_type_filter", str(self.evet_type_filter))
 
         with open(self.config_file, "w") as file:

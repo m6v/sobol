@@ -15,16 +15,17 @@ import subprocess
 import sys
 from PySide2.QtWidgets import QApplication
 
-from constants import VIR_DOMAIN_EVENT_MAPPING, VIR_DOMAIN_STATE_MAPPING
+from constants import VIR_DOMAIN_STATE_MAPPING
 from MainWindow import MainWindow
-from SobolDialog import SobolDialog
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+
 
 def main():
     app = QApplication(sys.argv)
     window = MainWindow(args.config_file)
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Тренажер администратора безопасности")

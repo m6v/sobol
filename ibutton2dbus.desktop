@@ -2,9 +2,9 @@
 Name=Имитатор считывателя iButton
 Type=Application
 NoDisplay=false
-Exec=/opt/sobol/ibutton2dbus.py
-Icon=/opt/sobol/img/ibutton.png
+Exec=/opt/sobol4/ibutton2dbus.py
+Icon=/opt/sobol4/img/ibutton.png
 Hidden=false
-Path=/opt/sobol/
+Path=/opt/sobol4/
 Terminal=false
 StartupNotify=false

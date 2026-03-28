@@ -9,20 +9,20 @@ sudo cp ibutton2dbus.desktop /etc/xdg/autostart
 ```
 
 ## Особенности версии с novnc
-1. Установить пакеты `novnc` и `python3-websockify`
+1. установить пакеты `novnc` и `python3-websockify`
 2. в настройках виртуальной машины добавить Display VNC с портом, например, 5901
-2. запустить
+2. сделать автозапуск
 ```
-websockify  6080 127.0.0.1:5901 --web /usr/share/novnc
+websockify 6080 127.0.0.1:5901 --web /usr/share/novnc
 python3 -m http.server
 ```
 
-# Установка зависимостей
+## Установка зависимостей
 Если нет pip, то зависимости из requirements.txt можно установить командой
 ```
 sed -E '/^\s*#/d;s/[=<>].*//' requirements.txt | tr '\n' ' ' | xargs sudo apt install
 ```
 
 ## Видеоруководства
-https://yandex.ru/video/preview/11134341846140738338
-https://dzen.ru/video/watch/610957f659eaef364db52115
+[[https://yandex.ru/video/preview/11134341846140738338]]
+[[https://dzen.ru/video/watch/610957f659eaef364db52115]]

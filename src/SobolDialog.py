@@ -1,7 +1,8 @@
 import logging
 
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2 import QtCore, QtWidgets
 from UiLoader import UiLoader
+
 
 class SobolDialog(QtWidgets.QDialog):
     """Выводит кастомизированное диалоговое окно"""

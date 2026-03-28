@@ -1,5 +1,6 @@
 from PySide2 import QtCore, QtUiTools
 
+
 class UiLoader(QtUiTools.QUiLoader):
     """Класс, позволяющий загружать пользовательский интерфейс в виджет
     верхнего уровня, а не в переменную, как это выполняет "классический" QUiLoader"""
