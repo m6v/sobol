@@ -1,3 +1,11 @@
+__author__ = "Sergey Maksimov"
+__mail__ = "m6v@mail.ru"
+__version__ = '1.3'
+__date__ = "2026-03-24"
+__copyright__ = "Copyright © 2026 Sergey Maksimov"
+__licence__ = "GNU Public Licence (GPL) v3"
+__application__ = "sobol4"
+
 import configparser
 import functools
 import inspect
@@ -11,6 +19,7 @@ import subprocess
 import sys
 
 from datetime import datetime
+from pathlib import Path
 from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -124,25 +133,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.read(self.config_file)
         try:
             # Список из словарей с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
-            self.users = json.loads(self.config.get("general", "users"))
+            self.users = json.loads(self.config.get("general", "users", fallback="[]"))
             # Список из идентификаторов iButton зарегистрированных администраторов
-            self.admins = json.loads(self.config.get("general", "admins"))
+            self.admins = json.loads(self.config.get("general", "admins", fallback="[]"))
 
             # Суммарное кол-во неудачных попыток входа (с момента инициализации)
-            self.failed_logins = int(self.config.get("general", "failed_logins"))
+            self.failed_logins = int(self.config.get("general", "failed_logins", fallback="0"))
             # Имя виртуальной машины
-            self.domain_name = self.config.get("general", "domain_name")
-            self.journal_file = self.config.get("general", "journal_file")
-
+            self.domain_name = self.config.get("general", "domain_name", fallback="")
+            # Имя файла с журналом событий
+            self.journal_file = self.config.get("general", "journal_file", fallback="")
             # Список из индексов строк с типами фильтруемых событий
-            self.evet_type_filter = json.loads(self.config.get("event_journal_panel", "evet_type_filter"))
+            self.event_type_filter = json.loads(self.config.get("event_journal_panel", "event_type_filter", fallback="[]"))
 
-            self.setWindowTitle(self.config.get("window", "title"))
+            self.setWindowTitle(self.config.get("window", "title", fallback='ПАК "Соболь"'))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
-            geometry = QtCore.QRect(*map(int, self.config.get("window", "geometry").split(";")))
+            geometry = QtCore.QRect(*map(int, self.config.get("window", "geometry", fallback="0;0;1200;800").split(";")))
             # Восстановить геометрию и состояние главного окна
             self.setGeometry(geometry)
-            state = int(self.config.get("window", "state"))
+            state = int(self.config.get("window", "state", fallback="0"))
             self.restoreState(bytearray(state))
         except configparser.NoOptionError as e:
             logging.warning(e)
@@ -280,38 +289,6 @@ class MainWindow(QtWidgets.QMainWindow):
             setattr(self, panel_name, panel)
             self.settings_stacked_widget.addWidget(getattr(self, panel_name))
 
-        self.set_saved_settings(self.event_journal_panel)
-        # Заполнить таблицу фильтрации событий по типу
-        for item in EVENTS_TYPE.values():
-            self.event_journal_panel.events_type_list_widget.addItem(item)
-
-        # Создать, загрузить модель, связать ее с таблицей журнала событийПодготовить журнал событий
-        self.model = JournalTableModel(self.journal_file)
-        self.proxy_model = JournalProxyModel()
-        self.proxy_model.setSourceModel(self.model)
-        self.event_journal_panel.journal_table_view.setModel(self.proxy_model)
-
-        datetime_regex = QtCore.QRegExp(
-            r"([01][0-9]|2[0-3]):([0-5][0-9])\s"
-            r"(0[1-9]|[12][0-9]|3[01])/"
-            r"(0[1-9]|1[0-2])/"
-            r"(\d{4})"
-        )
-        validator = QtGui.QRegExpValidator(datetime_regex)
-        self.event_journal_panel.events_start_time_line_edit.setValidator(validator)
-        self.event_journal_panel.events_end_time_line_edit.setValidator(validator)
-
-        journal_size_regex = QtCore.QRegExp(r"(1000|[1-9]\d{2})")
-        validator = QtGui.QRegExpValidator(journal_size_regex)
-        self.event_journal_panel.journal_max_size_line_edit.setValidator(validator)
-        # Установить состояние полей ввода в зависимости от сохраненного значения переключателей
-        self.event_journal_panel.events_start_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
-        self.event_journal_panel.events_end_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
-        self.event_journal_panel.events_type_list_widget.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
-        # Восстановить список выбранных строк фильтрации событий по типам
-        for row in self.evet_type_filter:
-            self.event_journal_panel.events_type_list_widget.item(row).setSelected(True)
-
         if self.admins:
             # При запуске открыть панель WAIT_ID_PAGE
             self.show_main_panel(WAIT_ID_PAGE)
@@ -377,9 +354,50 @@ class MainWindow(QtWidgets.QMainWindow):
             # Была строка ниже, но ссылалась на отсутствующий атрибут show_passwd_radio_button
             # self.user_list_panel.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
 
+            self.set_saved_settings(self.event_journal_panel)
+            # Заполнить таблицу фильтрации событий по типу
+            for item in EVENTS_TYPE.values():
+                self.event_journal_panel.events_type_list_widget.addItem(item)
+
+            # Создать, загрузить модель, связать ее с таблицей журнала событий
+            if not self.journal_file:
+                # Если в конфиге имя файла журнала не задано,
+                # используем имя конфига, но с расширением .log
+                self.journal_file = Path(self.config_file).with_suffix('.log')
+            # Если файла журнала нет, то создать его
+            Path.touch(self.journal_file)
+            self.model = JournalTableModel(self.journal_file)
+            self.proxy_model = JournalProxyModel()
+            self.proxy_model.setSourceModel(self.model)
+            self.event_journal_panel.journal_table_view.setModel(self.proxy_model)
+
+            datetime_regex = QtCore.QRegExp(
+                r"([01][0-9]|2[0-3]):([0-5][0-9])\s"
+                r"(0[1-9]|[12][0-9]|3[01])/"
+                r"(0[1-9]|1[0-2])/"
+                r"(\d{4})"
+            )
+            validator = QtGui.QRegExpValidator(datetime_regex)
+            self.event_journal_panel.events_start_time_line_edit.setValidator(validator)
+            self.event_journal_panel.events_end_time_line_edit.setValidator(validator)
+
+            journal_size_regex = QtCore.QRegExp(r"(1000|[1-9]\d{2})")
+            validator = QtGui.QRegExpValidator(journal_size_regex)
+            self.event_journal_panel.journal_max_size_line_edit.setValidator(validator)
+            # Установить состояние полей ввода в зависимости от сохраненного значения переключателей
+            self.event_journal_panel.events_start_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
+            self.event_journal_panel.events_end_time_line_edit.setEnabled(self.event_journal_panel.events_time_search_check_box.isChecked())
+            self.event_journal_panel.events_type_list_widget.setEnabled(self.event_journal_panel.events_type_search_check_box.isChecked())
+            # Восстановить список выбранных строк фильтрации событий по типам
+            for row in self.event_type_filter:
+                self.event_journal_panel.events_type_list_widget.item(row).setSelected(True)
+
             self.timer = QtCore.QTimer()
             # Время до входа в систему, отображаемое в первых двух окнах
-            self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
+            try:
+                self.remaining_time = int(self.config.get("common_parms_panel", "time_limit_line_edit")) * 60
+            except configparser.NoSectionError:
+                self.remaining_time = 0
             # Если 0, то не обрабатывать таймаут
             if self.remaining_time:
                 self.timer.timeout.connect(self.decrease_remaining_time)
@@ -508,6 +526,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             # Прочитать значения сохраненных настроек в секции panel_name и
             # в соответствии с ними установить значения элементов QCheckBox, QLineEdit и QComboBox
+            # TODO Сделать здесь восстановление выбранных элементов в QListvidget!
             for widget_name, value in self.config.items(panel_name):
                 if isinstance(getattr(panel, widget_name), QCheckBox):
                     getattr(panel, widget_name).setChecked(str2bool(value))
@@ -524,7 +543,7 @@ class MainWindow(QtWidgets.QMainWindow):
         parent = panel.parentWidget()
         index = parent.indexOf(panel)
         if index == -1:
-            logging.error(f"Index of {panel.objectName()} is't founded")
+            logging.error(f"Index of {panel.objectName()} is't found")
             return
         # Получить имя ui-файла
         panel_name = panel.objectName()
@@ -562,6 +581,7 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.debug(f"Save {panel_name} settings")
         for name, obj in inspect.getmembers(getattr(self, panel_name)):
             # Сохранить установки только для элементов перечисленных типов
+            # TODO Сделать здесь сохранение выбранных элементов в QListvidget!
             if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
                 widget_name = obj.objectName()
                 if isinstance(obj, QCheckBox):
@@ -966,11 +986,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.proxy_model.setDateTimeFilter()
 
         if self.event_journal_panel.events_type_search_check_box.isChecked():
-            self.evet_type_filter = [
+            self.event_type_filter = [
                 self.event_journal_panel.events_type_list_widget.row(item)
                 for item in self.event_journal_panel.events_type_list_widget.selectedItems()
             ]
-            self.proxy_model.setTypeFilter(self.evet_type_filter)
+            self.proxy_model.setTypeFilter(self.event_type_filter)
         else:
             self.proxy_model.setTypeFilter(None)
         self.show_journal_panel(0)
@@ -1006,6 +1026,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, event):
         """Сохранить настройки приложения"""
+        # Создать обязательные секции, если отсутствуют
+        for section in ["window", "general"]:
+            if not self.config.has_section(section):
+                self.config.add_section(section)
+
         # Получить кортеж с элементами QRect геометрии главного окна
         geometry = self.geometry().getRect()
         # Преобразовать элементы кортежа в строки и разделить символом ;
@@ -1015,13 +1040,24 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
         self.config.set("general", "admins", json.dumps(self.admins, ensure_ascii=False))
         self.config.set("general", "failed_logins", str(self.failed_logins))
+
+        '''
+        TODO Это сохранение нужно делать не здесь, а там же где и др. элементы
         # Сохранить выбор фильтрации событий в журнале
-        self.evet_type_filter = [
+        self.event_type_filter = [
             self.event_journal_panel.events_type_list_widget.row(item)
             for item in self.event_journal_panel.events_type_list_widget.selectedItems()
         ]
-        self.config.set("event_journal_panel", "evet_type_filter", str(self.evet_type_filter))
+        self.config.set("event_journal_panel", "event_type_filter", str(self.event_type_filter))
+        '''
 
         with open(self.config_file, "w") as file:
             self.config.write(file)
-        self.model.save()
+
+        # Сохранить журнал событий
+        try:
+            self.model.save()
+        except AttributeError as e:
+            # Исключение выбрасывается в режиме инициализации, когда журнала событий еще нет
+            logging.debug(e)
+

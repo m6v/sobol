@@ -5,6 +5,7 @@ __version__ = '1.3'
 __date__ = "2026-03-24"
 __copyright__ = "Copyright © 2026 Sergey Maksimov"
 __licence__ = "GNU Public Licence (GPL) v3"
+__application__ = "sobol4"
 
 import argparse
 import configparser
@@ -13,6 +14,7 @@ import logging
 import os
 import subprocess
 import sys
+from pathlib import Path
 from PySide2.QtWidgets import QApplication
 
 from constants import VIR_DOMAIN_STATE_MAPPING
@@ -23,25 +25,36 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(file
 
 def main():
     app = QApplication(sys.argv)
-    window = MainWindow(args.config_file)
+    window = MainWindow(path)
     sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Эмулятор ПАК "Соболь"')
-    parser.add_argument("config_file", help="Конфигурационный файл")
+    parser.add_argument("config", nargs="?", help="Конфигурационный файл")
     args = parser.parse_args()
 
-    config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), args.config_file)
-    if not os.path.isfile(config_file):
-        logging.error(f"Config {config_file} not found")
-        sys.exit(1)
+    # Если конфиг не задан, используем $HOME/.config/sobol4/default.conf
+    if not args.config:
+        path = Path.home() / ".config" / __application__ / "default.conf"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+        logging.warning(f"No config file specified, using {path}")
+    else:
+        path = Path(args.config)
+        # Если путь к конфигу не задан, ищем в $HOME/.config/sobol4
+        if len(path.parts) == 1:
+            path = Path.home() / ".config" / __application__ / args.config
+
+        if not path.exists():
+                logging.error(f"Config {path} not found")
+                sys.exit(1)
 
     config = configparser.ConfigParser(allow_no_value=True)
     # Установить чувствительность ключей к регистру
     config.optionxform = str
-    config.read(config_file)
-    domain_name = config.get("general", "domain_name")
+    config.read(path)
+    domain_name = config.get("general", "domain_name", fallback="")
 
     try:
         # Регистрация стандартной реализации цикла событий
