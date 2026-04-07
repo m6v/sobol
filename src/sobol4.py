@@ -28,7 +28,7 @@ def main():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Тренажер администратора безопасности")
+    parser = argparse.ArgumentParser(description='Эмулятор ПАК "Соболь"')
     parser.add_argument("config_file", help="Конфигурационный файл")
     args = parser.parse_args()
 

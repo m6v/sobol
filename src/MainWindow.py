@@ -1,5 +1,4 @@
 import configparser
-import datetime
 import functools
 import inspect
 import json
@@ -11,6 +10,7 @@ import string
 import subprocess
 import sys
 
+from datetime import datetime
 from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -123,10 +123,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.optionxform = str
         self.config.read(self.config_file)
         try:
-            # Список с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
-            self.users = eval(self.config.get("general", "users"))
-            # Список с идентификаторами iButton зарегистрированных администраторов
-            self.admins = eval(self.config.get("general", "admins"))
+            # Список из словарей с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
+            self.users = json.loads(self.config.get("general", "users"))
+            # Список из идентификаторов iButton зарегистрированных администраторов
+            self.admins = json.loads(self.config.get("general", "admins"))
+
             # Суммарное кол-во неудачных попыток входа (с момента инициализации)
             self.failed_logins = int(self.config.get("general", "failed_logins"))
             # Имя виртуальной машины
@@ -453,12 +454,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Содержание предъявленной iButton
         self.presented_ibutton = ""
-        # Установить функцию обратного вызова для обработки сигнала IButtonSignal
-        bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name="IButtonSignal")
-        # Получить объект шины
-        self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
+        try:
+            # Установить функцию обратного вызова для обработки сигнала IButtonSignal
+            bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name="IButtonSignal")
+            # Получить объект шины
+            self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
 
-        self.show()
+            self.show()
+        except dbus.exceptions.DBusException as e:
+            # Если имитатор считывателя iButton не запущен обработать исключения и завершить программу
+            logging.error(e)
+            sys.exit()
 
     def show_main_panel(self, index: int):
         """Показать выбранную панель настроек с сохраненными настройками"""
@@ -488,7 +494,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Уточнить в поле с временем и датой необходимо выполнять динамическое обновление
         # или достаточно выставить текущее время при открытии панели
         if not index:
-            self.sys_parms_panel.sys_datetime_line_edit.setText(datetime.datetime.now().strftime("%H:%M %d/%m/%Y"))
+            self.sys_parms_panel.sys_datetime_line_edit.setText(datetime.now().strftime("%H:%M %d/%m/%Y"))
 
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""
@@ -638,14 +644,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     # Найти пользователя входившего в систему последним
                     last_user = self.users[0]
                     for user in self.users:
-                        if user["last_login_datetime"] > last_user["last_login_datetime"]:
+                        if datetime.strptime(user["last_login_datetime"], "%H:%M %Y/%m/%d") > datetime.strptime(last_user["last_login_datetime"], "%H:%M %Y/%m/%d"):
                             last_user = user
                     self.last_user_name_value.setText(last_user["user_name"])
                     self.last_user_id_value.setText(last_user["id"])
-                    self.last_user_datetime_value.setText(last_user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                    self.last_user_datetime_value.setText(last_user["last_login_datetime"])
 
                 self.admin_id_value.setText(self.presented_ibutton["id"])
-                self.admin_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
+                self.admin_datetime_value.setText(datetime.now().strftime("%H:%M %Y/%m/%d"))
                 # Перейти на страницу выбора действий, доступных администратору
                 self.main_stacked_widget.setCurrentIndex(ADMIN_CHOICE_PAGE)
             else:
@@ -659,17 +665,17 @@ class MainWindow(QtWidgets.QMainWindow):
                 # Заполнить поля в окне выбора действий, доступных пользователю
                 self.user_name_value.setText(self.users[index]["user_name"])
                 self.user_id_value.setText(self.users[index]["id"])
-                self.user_datetime_value.setText(datetime.datetime.now().strftime("%H:%M %Y/%m/%d"))
-                self.user_last_datetime_value.setText(self.users[index]["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+                self.user_datetime_value.setText(datetime.now().strftime("%H:%M %Y/%m/%d"))
+                self.user_last_datetime_value.setText(self.users[index]["last_login_datetime"])
                 self.user_logins_count_value.setText(str(self.users[index]["total_logins"]))
                 # Вычислить срок действия пароля и число дней до устаревания
-                passwd_age = (datetime.datetime.now() - self.users[index]["passwd_datetime"]).days
+                passwd_age = (datetime.now() - datetime.strptime(self.users[index]["passwd_datetime"], ("%H:%M %Y/%m/%d"))).days
                 remaining_days = int(self.config.get("passwd_parms_panel", "passwd_age_line_edit")) - passwd_age
                 self.user_remaining_days_value.setText(str(remaining_days))
                 # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик общего количества попыток входа
                 self.users[index]["failed_logins"] = 0
                 self.users[index]["total_logins"] += 1
-                self.users[index]["last_login_datetime"] = datetime.datetime.now()
+                self.users[index]["last_login_datetime"] = datetime.now().strftime("%H:%M %Y/%m/%d")
                 # Перейти на страницу выбора действий, доступных пользователю
                 self.main_stacked_widget.setCurrentIndex(USER_CHOICE_PAGE)
         else:
@@ -732,8 +738,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.users.append({
             "id": message["id"],
             "user_name": self.user_actions_panel.user_name.text(),
-            "passwd_datetime": datetime.datetime.now(),
-            "last_login_datetime": datetime.datetime(1, 1, 1, 0, 0),
+            "passwd_datetime": datetime.now().strftime("%H:%M %Y/%m/%d"),
+            "last_login_datetime": "00:00 1970/01/01",
             "total_logins": 0,
             "failed_logins": 0,
             "ext_media_prohib": True,
@@ -843,7 +849,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             self.user_list_panel.user_id.setText(user["id"])
             self.user_list_panel.user_name.setText(user["user_name"])
-            self.user_list_panel.last_login_datetime.setText(user["last_login_datetime"].strftime("%H:%M %Y/%m/%d"))
+            self.user_list_panel.last_login_datetime.setText(user["last_login_datetime"])
             self.user_list_panel.total_logins.setText(str(user["total_logins"]))
             self.user_list_panel.failed_logins.setText(str(user["failed_logins"]))
             self.user_list_panel.ext_media_prohib.setChecked(bool(user["ext_media_prohib"]))
@@ -950,8 +956,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """Приметить выбранные фильтры журнала событий"""
         if self.event_journal_panel.events_time_search_check_box.isChecked():
             try:
-                date_from = datetime.datetime.strptime(self.event_journal_panel.events_start_time_line_edit.text(), "%H:%M %d/%m/%Y")
-                date_to = datetime.datetime.strptime(self.event_journal_panel.events_end_time_line_edit.text(), "%H:%M %d/%m/%Y")
+                date_from = datetime.strptime(self.event_journal_panel.events_start_time_line_edit.text(), "%H:%M %d/%m/%Y")
+                date_to = datetime.strptime(self.event_journal_panel.events_end_time_line_edit.text(), "%H:%M %d/%m/%Y")
                 self.proxy_model.setDateTimeFilter(date_from, date_to)
             except ValueError as e:
                 # TODO Показать диалоговое окно с ошибкой формата даты и времени
@@ -1006,8 +1012,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
         self.config.set("window", "state", str(int(self.windowState())))
         # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
-        self.config.set("general", "users", str(self.users))
-        self.config.set("general", "admins", str(self.admins))
+        self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
+        self.config.set("general", "admins", json.dumps(self.admins, ensure_ascii=False))
         self.config.set("general", "failed_logins", str(self.failed_logins))
         # Сохранить выбор фильтрации событий в журнале
         self.evet_type_filter = [
