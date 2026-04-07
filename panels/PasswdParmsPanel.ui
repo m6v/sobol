@@ -341,6 +341,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="text">
+          <string>0</string>
+         </property>
          <property name="maxLength">
           <number>3</number>
          </property>
@@ -372,6 +375,9 @@
            <width>60</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="text">
+          <string>999</string>
          </property>
          <property name="maxLength">
           <number>3</number>
