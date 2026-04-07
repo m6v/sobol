@@ -58,6 +58,10 @@ USER_CHOICE_PAGE = 3
 SETTINGS_PAGE = 4
 WEB_VIEW_PAGE = 5
 
+VIEW_JOURNAL_PAGE = 0
+EXPORT_JOURNAL_PAGE = 1
+PARMS_JOURNAL_PAGE = 2
+SEARCH_JOURNAL_PAGE = 3
 
 def str2bool(s):
     """Преобразовать строковое предстваление истины в boolean"""
@@ -289,11 +293,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.settings_stacked_widget.addWidget(getattr(self, panel_name))
 
         if self.admins:
-            # При запуске открыть панель WAIT_ID_PAGE
-            self.show_main_panel(WAIT_ID_PAGE)
-
-            self.show_journal_panel(0)
-
             self.sys_load_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.sys_load_panel))
 
             self.integrity_control_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.integrity_control_panel))
@@ -317,10 +316,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.user_actions_panel.passwd_gen_push_button.clicked.connect(self.gen_user_passwd)
             self.user_actions_panel.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
 
-            self.event_journal_panel.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 0))
-            self.event_journal_panel.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 1))
-            self.event_journal_panel.parms_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 2))
-            self.event_journal_panel.search_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, 3))
+            self.event_journal_panel.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, VIEW_JOURNAL_PAGE))
+            self.event_journal_panel.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, EXPORT_JOURNAL_PAGE))
+            self.event_journal_panel.parms_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, PARMS_JOURNAL_PAGE))
+            self.event_journal_panel.search_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, SEARCH_JOURNAL_PAGE))
             self.event_journal_panel.select_parms_push_button.clicked.connect(self.apply_event_filter)
             self.event_journal_panel.cancel_parms_push_button.clicked.connect(self.cancel_event_filter)
             self.event_journal_panel.select_all_push_button.clicked.connect(self.event_journal_panel.events_type_list_widget.selectAll)
@@ -404,8 +403,12 @@ class MainWindow(QtWidgets.QMainWindow):
             # Запустить таймер ожидания чтения идентификатора iButton
             self.ibutton_present[dict].connect(self.read_ibutton)
             self.timer.start(1000)
-            # Открыть страницу ожидания предъявления идентификатора
+
+            # Установить панели, отображаемые при запуске в режиме "Работа"
+            self.show_main_panel(WAIT_ID_PAGE)
+            self.show_journal_panel(VIEW_JOURNAL_PAGE)
             self.main_stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
+
         else:
             # Открыть страницу инициализации
             self.main_stacked_widget.setCurrentIndex(SETTINGS_PAGE)
@@ -515,8 +518,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""
+        self.set_saved_settings(self.event_journal_panel)
         self.event_journal_panel.journal_stacked_widget.setCurrentIndex(index)
-        self.save_panel_settings(self.event_journal_panel)
 
     def set_saved_settings(self, panel):
         """Установить сохраненные настройки panel"""
@@ -997,7 +1000,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.proxy_model.setTypeFilter(self.event_type_filter)
         else:
             self.proxy_model.setTypeFilter(None)
-        self.show_journal_panel(0)
+        # Сохранить фильтры событий и переключиться на панель поиска
+        self.save_panel_settings(self.event_journal_panel)
+        self.show_journal_panel(VIEW_JOURNAL_PAGE)
 
     def cancel_event_filter(self):
         """Отметить выбранные фильтры журнала событий"""
