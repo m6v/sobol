@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Dict
 
 from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox
+from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox, QListWidget
 from PySide2.QtWebEngineWidgets import QWebEngineView, QWebEnginePage
 
 import dbus
@@ -122,11 +122,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.loader.registerCustomWidget(Toggle)
         self.loader.registerCustomWidget(QWebEngineView)
         self.loader.loadUi("MainWindow.ui", self)
-        # Если config_file отсутствует, добавить к нему текущий путь в надежде, что найдется там
-        # TODO Сделать проверку наличия конфига, иначе дальше вываливаемся с неочевидным исключением
-        if not os.path.isfile(config_file):
-            config_file = os.path.join(INITIAL_DIR, config_file)
-        self.config_file = os.path.join(INITIAL_DIR, config_file)
+        # Наличие конфига проверяется в в основном файле приложения и сюда всегда передается корректное!
+        self.config_file = config_file
         self.config = configparser.ConfigParser(allow_no_value=True)
         # Установить чувствительность ключей к регистру
         self.config.optionxform = str
@@ -143,8 +140,10 @@ class MainWindow(QtWidgets.QMainWindow):
             self.domain_name = self.config.get("general", "domain_name", fallback="")
             # Имя файла с журналом событий
             self.journal_file = self.config.get("general", "journal_file", fallback="")
+
+            # TODO Убрать это отсюда и сделать так же как и для остальных форм!
             # Список из индексов строк с типами фильтруемых событий
-            self.event_type_filter = json.loads(self.config.get("event_journal_panel", "event_type_filter", fallback="[]"))
+            self.event_type_filter = json.loads(self.config.get("event_journal_panel", "events_type_list_widget", fallback="[]"))
 
             self.setWindowTitle(self.config.get("window", "title", fallback='ПАК "Соболь"'))
             # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
@@ -526,7 +525,6 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             # Прочитать значения сохраненных настроек в секции panel_name и
             # в соответствии с ними установить значения элементов QCheckBox, QLineEdit и QComboBox
-            # TODO Сделать здесь восстановление выбранных элементов в QListvidget!
             for widget_name, value in self.config.items(panel_name):
                 if isinstance(getattr(panel, widget_name), QCheckBox):
                     getattr(panel, widget_name).setChecked(str2bool(value))
@@ -534,6 +532,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     getattr(panel, widget_name).setText(value)
                 elif isinstance(getattr(panel, widget_name), QComboBox):
                     getattr(panel, widget_name).setCurrentIndex(int(value))
+                # TODO Сделать здесь восстановление выбранных элементов в QListWidget!
+                elif isinstance(getattr(panel, widget_name), QListWidget):
+                    pass
         except (configparser.NoSectionError, AttributeError) as e:
             logging.debug(e)
 
@@ -582,7 +583,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for name, obj in inspect.getmembers(getattr(self, panel_name)):
             # Сохранить установки только для элементов перечисленных типов
             # TODO Сделать здесь сохранение выбранных элементов в QListvidget!
-            if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox)):
+            if any(isinstance(obj, t) for t in (QLineEdit, QCheckBox, QComboBox, QListWidget)):
                 widget_name = obj.objectName()
                 if isinstance(obj, QCheckBox):
                     value = obj.isChecked()
@@ -590,6 +591,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     value = obj.text()
                 elif isinstance(obj, QComboBox):
                     value = obj.currentIndex()
+                elif isinstance(obj, QListWidget):
+                    value = [ obj.row(item) for item in obj.selectedItems() ]
+
                 # Если отсутствует, то создать секцию с именем, соответствующим названию панели
                 if not self.config.has_section(panel_name):
                     self.config.add_section(panel_name)
