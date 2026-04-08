@@ -37,6 +37,8 @@ from toggle import Toggle
 from SobolDialog import SobolDialog
 from JournalTableView import JournalTableModel, JournalProxyModel
 
+from UserActionsPanel import UserActionsPanel
+
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
 
@@ -291,6 +293,10 @@ class MainWindow(QtWidgets.QMainWindow):
             panel.setObjectName(panel_name)
             setattr(self, panel_name, panel)
             self.settings_stacked_widget.addWidget(getattr(self, panel_name))
+
+        self.custom_user_actions_panel = UserActionsPanel()
+        self.settings_stacked_widget.addWidget(self.custom_user_actions_panel)
+        self.custom_user_actions_panel.close.connect(self.close_user_ctl_wizard)
 
         if self.admins:
             self.sys_load_panel.save_push_button.clicked.connect(functools.partial(self.save_panel_settings, self.sys_load_panel))
@@ -654,11 +660,13 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             index = [i["id"] for i in self.users].index(self.presented_ibutton["id"])
         except ValueError:
+            # TODO ЗДЕСЬ ЛОГИКУ НУЖНО ПЕРЕДЕЛАТЬ! ЕСЛИ ВВЕДЕН ПРАВИЛЬНЫЙ ПАРОЛЬ, НО ПОЛЬЗОВАТЕЛЬ НЕ ЗАРЕГИСТРИРОВАН, БУДЕТ ИСКЛЮЧЕНИЕ
+            # ПРИ ПОПЫТКЕ ДАЛЕЕ ОПРЕДЕЛИТЬ ИМЯ ПОЛЬЗОВАТЕЛЯ, Т.К. ЗДЕСЬ Index=None
             index = None
 
         # Проверить правильность введенного пароля
         if self.presented_ibutton["passwd"] == self.passwd_line_edit.text():
-            # Веден правильный пароль, остановить таймер открыть панель выбора действия Загрузка ОС/Настройки
+            # Веден правильный пароль, остановить таймер
             self.timer.stop()
             # Если входящий пользователь в списке self.admins, открыть страницу настроек и выйти
             if self.presented_ibutton["id"] in self.admins:
@@ -718,7 +726,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
                 pass
             else:
-                # Добавить в журнал запись об неуспешном входе администратора (key="4")
+                # Добавить в журнал запись о неуспешном входе администратора (key="4")
                 self.model.add_event(["Администратор", self.presented_ibutton["id"], "4", "0"])
             dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
             dialog.exec_()
@@ -742,6 +750,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_user_creation_wizard(self):
         """Скрыть боковое меню и показать первую панель мастера создания нового пользователя"""
         self.settings_sidebar_widget.hide()
+
         self.user_actions_panel.stacked_widget.setCurrentWidget(self.user_actions_panel.page_1)
         # Установить исходные значения виджетов
         self.user_actions_panel.user_name.setText("")
@@ -751,7 +760,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_actions_panel.cancel_push_button_4.setEnabled(True)
         self.user_actions_panel.finish_push_button_4.setEnabled(False)
 
+        # Реализация функционала в основном окне программы
         self.settings_stacked_widget.setCurrentWidget(self.user_actions_panel)
+
+        # Реализация функционала в классе мастера добавления пользователей (custom_user_actions_panel)
+        # self.custom_user_actions_panel.show_first_page()
+        # self.settings_stacked_widget.setCurrentWidget(self.custom_user_actions_panel)
 
     def add_user(self, message: Dict[str, str]):
         """Добавить пользователя, id которого указана в словаре message"""
