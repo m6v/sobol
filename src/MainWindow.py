@@ -482,9 +482,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.presented_ibutton = ""
         try:
             # Установить функцию обратного вызова для обработки сигнала IButtonSignal
-            bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='com.example.IButtonService', signal_name="IButtonSignal")
+            bus.add_signal_receiver(self.ibutton_signal_handler, bus_name='ru.navis.ibutton2dbus', signal_name="IButtonSignal")
             # Получить объект шины
-            self.service_object = bus.get_object('com.example.IButtonService', '/com/example/IButtonService')
+            self.service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus')
 
             self.show()
         except dbus.exceptions.DBusException as e:

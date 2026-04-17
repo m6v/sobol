@@ -85,16 +85,16 @@ class IButtonApp(dbus.service.Object):
             try:
                 with open(self.config_path, "w", encoding="utf-8") as f:
                     json.dump(self.ibuttons, f, ensure_ascii=False, indent=4)
-                logging.info(f"iButton data for '{item_id}' updated successfully.")
+                logging.info(f"iButton data for '{item_id}' updated successfully")
                 return True
             except IOError as e:
                 logging.error(f"File write error: {e}")
         else:
-            logging.warning(f"Update failed: ID '{item_id}' not found in configuration.")
+            logging.warning(f"Update failed: ID '{item_id}' not found in configuration")
         return False
 
     def cleanup(self):
-        logging.info("Application session ended.")
+        logging.info("Application session ended")
 
 
 if __name__ == "__main__":
@@ -109,8 +109,10 @@ if __name__ == "__main__":
 
     try:
         bus = dbus.SessionBus()
-        name = dbus.service.BusName("com.example.IButtonService", bus)
-        service = IButtonApp(name, "/com/example/IButtonService")
+        # Регистрация имени в шине
+        name = dbus.service.BusName("ru.navis.ibutton2dbus", bus)
+        # Создание объекта по пути
+        service = IButtonApp(name, "/ru/navis/ibutton2dbus")
         sys.exit(app.exec_())
     except Exception as e:
         logging.critical(f"D-Bus service startup failed: {e}")
