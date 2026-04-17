@@ -17,8 +17,9 @@ import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 
-from PyQt5 import QtWidgets
-from PyQt5.Qt import QApplication, QIcon, QAction
+from PySide2 import QtWidgets
+from PySide2.QtGui import QIcon
+from PySide2.QtWidgets import QApplication, QAction
 
 DBusGMainLoop(set_as_default=True)
 
@@ -54,6 +55,12 @@ class IButtonService(dbus.service.Object):
             json.dump(ibuttons, file, ensure_ascii=False)
         return True
 
+    @dbus.service.method("com.example.IButtonInterface", in_signature="", out_signature="")
+    def Quit(self):
+        """Метод для чистого завершения через dbus-send"""
+        logging.info("Remote quit requested")
+        QApplication.instance().quit()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -84,6 +91,11 @@ if __name__ == "__main__":
         tray_menu.addAction(action)
         actions.append(action)
 
+    tray_menu.addSeparator()
+    exit_action = QAction("Выйти")
+    exit_action.triggered.connect(QApplication.instance().quit)
+    tray_menu.addAction(exit_action)
+
     tray_icon.setContextMenu(tray_menu)
 
-    sys.exit(app.exec())
+    sys.exit(app.exec_())
