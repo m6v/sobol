@@ -12,16 +12,12 @@ import json
 import os
 import signal
 import sys
-
 import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 
-from PySide2 import QtWidgets
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QApplication, QAction
-
-DBusGMainLoop(set_as_default=True)
+from PySide2 import QtGui
+from PySide2.QtWidgets import QApplication, QAction, QMenu, QSystemTrayIcon
 
 # Получить имя скрипта без расширения
 appname = os.path.splitext(os.path.basename(__file__))[0]
@@ -31,71 +27,90 @@ logfile = appname + ".log"
 logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logging.info("%s started" % appname)
 
-with open("ibuttons.json") as file:
-    ibuttons = json.load(file)
 
-
-class IButtonService(dbus.service.Object):
+class IButtonApp(dbus.service.Object):
     def __init__(self, bus_name, object_path):
-        dbus.service.Object.__init__(self, bus_name, object_path)
+        super().__init__(bus_name, object_path)
+        self.config_path = "ibuttons.json"
+
+        # Load data once
+        self.ibuttons = self.load_data()
+
+        # Tray setup
+        self.tray_icon = QSystemTrayIcon(QtGui.QIcon("../img/ibutton.png"))
+        self.tray_menu = QMenu()
+
+        # Create static buttons
+        for item_id in self.ibuttons:
+            action = QAction(str(item_id), self.tray_menu)
+            action.triggered.connect(functools.partial(self.send_signal, item_id))
+            self.tray_menu.addAction(action)
+
+        self.tray_menu.addSeparator()
+        exit_action = QAction("Exit", self.tray_menu)
+        exit_action.triggered.connect(QApplication.instance().quit)
+        self.tray_menu.addAction(exit_action)
+
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self.tray_icon.show()
+
+        QApplication.instance().aboutToQuit.connect(self.cleanup)
+        logging.info("Application initialized successfully.")
+
+    def load_data(self):
+        try:
+            with open(self.config_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logging.error(f"Failed to load JSON config: {e}")
+            return {}
 
     @dbus.service.signal("com.example.IButtonInterface", signature="a{sv}")
     def IButtonSignal(self, message):
-        """Отправить сигнал, содержащий словарь"""
-        logging.info(f"Emitting IButtonSignal with message: {message}")
+        logging.info(f"D-Bus signal emitted: {message}")
+
+    def send_signal(self, item_id):
+        if item_id in self.ibuttons:
+            message = dict(self.ibuttons[item_id], id=item_id)
+            self.IButtonSignal(message)
 
     @dbus.service.method("com.example.IButtonInterface", in_signature="a{sv}", out_signature="b")
     def SetIButtonData(self, data):
-        """Записать данные в ibutton"""
-        logging.info(f"Calling SetIButtonData method with data: {data}")
-        ibuttons[str(data["id"])] = {"user_name": str(data["user_name"]), "passwd": str(data["passwd"])}
-        logging.info(f"IButtons is {ibuttons}")
-        # Записать измененный словарь ibuttons в файл
-        with open("ibuttons.json", "w") as file:
-            json.dump(ibuttons, file, ensure_ascii=False)
-        return True
+        item_id = str(data.get("id"))
+        if item_id in self.ibuttons:
+            self.ibuttons[item_id] = {
+                "user_name": str(data.get("user_name", "")),
+                "passwd": str(data.get("passwd", ""))
+            }
+            try:
+                with open(self.config_path, "w", encoding="utf-8") as f:
+                    json.dump(self.ibuttons, f, ensure_ascii=False, indent=4)
+                logging.info(f"iButton data for '{item_id}' updated successfully.")
+                return True
+            except IOError as e:
+                logging.error(f"File write error: {e}")
+        else:
+            logging.warning(f"Update failed: ID '{item_id}' not found in configuration.")
+        return False
 
-    @dbus.service.method("com.example.IButtonInterface", in_signature="", out_signature="")
-    def Quit(self):
-        """Метод для чистого завершения через dbus-send"""
-        logging.info("Remote quit requested")
-        QApplication.instance().quit()
+    def cleanup(self):
+        logging.info("Application session ended.")
 
 
 if __name__ == "__main__":
+    DBusGMainLoop(set_as_default=True)
+
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+
     # Явная обработка сигнала SIGINT с подключением его к механизму завершения работы приложения,
     # иначе из консоли не завершить приложение нажатием Ctrl+C
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    # Установить соединение с сессионной шиной D-Bus
-    bus = dbus.SessionBus()
-    bus_name = dbus.service.BusName("com.example.IButtonService", bus)
-    service_object = IButtonService(bus_name, "/com/example/IButtonService")
-
-    tray_icon = QtWidgets.QSystemTrayIcon()
-    tray_icon.setIcon(QIcon("../img/ibutton.png"))
-    tray_icon.show()
-
-    def ibutton_action_triggered(item):
-        """Отправить сигнал, содержащий словарь item"""
-        logging.info(f"Reading iButton: {item}")
-        message = dict(ibuttons[item], id=item)
-        service_object.IButtonSignal(message)
-
-    tray_menu = QtWidgets.QMenu()
-    actions = []
-    for item in ibuttons:
-        action = QAction(item)
-        action.triggered.connect(functools.partial(ibutton_action_triggered, item))
-        tray_menu.addAction(action)
-        actions.append(action)
-
-    tray_menu.addSeparator()
-    exit_action = QAction("Выйти")
-    exit_action.triggered.connect(QApplication.instance().quit)
-    tray_menu.addAction(exit_action)
-
-    tray_icon.setContextMenu(tray_menu)
-
-    sys.exit(app.exec_())
+    try:
+        bus = dbus.SessionBus()
+        name = dbus.service.BusName("com.example.IButtonService", bus)
+        service = IButtonApp(name, "/com/example/IButtonService")
+        sys.exit(app.exec_())
+    except Exception as e:
+        logging.critical(f"D-Bus service startup failed: {e}")
