@@ -1,1 +1,42 @@
-{"iButton_0": {"user_name": "Администратор", "passwd": "11111111"}, "iButton_1": {"user_name": "Maksimov", "passwd": "11111111"}, "iButton_2": {"user_name": "Иванов", "passwd": "11111111"}, "iButton_3": {"user_name": "", "passwd": ""}, "iButton_4": {"user_name": "Петров", "passwd": "123456"}, "iButton_5": {"user_name": "Кузнецов", "passwd": "11111111"}, "iButton_6": {"user_name": "", "passwd": ""}, "iButton_7": {"user_name": "", "passwd": ""}, "iButton_8": {"user_name": "", "passwd": ""}, "iButton_9": {"user_name": "Пушкин", "passwd": "123456"}}
+{
+    "iButton_0": {
+        "user_name": "Администратор",
+        "passwd": "11111111"
+    },
+    "iButton_1": {
+        "user_name": "Maksimov",
+        "passwd": "11111111"
+    },
+    "iButton_2": {
+        "user_name": "Иванов",
+        "passwd": "11111111"
+    },
+    "iButton_3": {
+        "user_name": "",
+        "passwd": ""
+    },
+    "iButton_4": {
+        "user_name": "Петров",
+        "passwd": "123456"
+    },
+    "iButton_5": {
+        "user_name": "Кузнецов",
+        "passwd": "11111111"
+    },
+    "iButton_6": {
+        "user_name": "",
+        "passwd": ""
+    },
+    "iButton_7": {
+        "user_name": "",
+        "passwd": ""
+    },
+    "iButton_8": {
+        "user_name": "",
+        "passwd": ""
+    },
+    "iButton_9": {
+        "user_name": "Пушкин",
+        "passwd": "123456"
+    }
+}

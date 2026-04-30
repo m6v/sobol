@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 __author__ = 'Sergey Maksimov'
 __mail__ = 'm6v@mail.ru'
-__version__ = '0.2'
-__date__ = '2025-10-03'
-__copyright__ = 'Copyright © 2025 Sergey Maksimov'
+__version__ = '0.3'
+__date__ = '2026-04-18'
+__copyright__ = 'Copyright © 2026 Sergey Maksimov'
 __licence__ = 'GNU Public Licence (GPL) v3'
 
 import functools
@@ -47,7 +47,7 @@ class IButtonApp(dbus.service.Object):
             self.tray_menu.addAction(action)
 
         self.tray_menu.addSeparator()
-        exit_action = QAction("Exit", self.tray_menu)
+        exit_action = QAction("Выход", self.tray_menu)
         exit_action.triggered.connect(QApplication.instance().quit)
         self.tray_menu.addAction(exit_action)
 

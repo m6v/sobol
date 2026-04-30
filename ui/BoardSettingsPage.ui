@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BoardSettingsWidget</class>
+ <widget class="QWidget" name="BoardSettingsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>998</width>
+    <height>790</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="top_horizontal_layout" stretch="0,1,0">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="left_label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>../../sobol/img/top_left.png</pixmap>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="middle_label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: white</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="right_label">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>../../sobol/img/top_right.png</pixmap>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="main_horizontal_layout" stretch="0,0">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="side_bar_widget" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>230</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>230</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget {
+    font: 9pt &quot;Monospace Regular&quot;;
+    background-image: url(../img/sidebar.png);
+    background-repeat: no-repeat;
+    background-position: up;
+    background-color: #48A23F;
+}
+QPushButton {
+    background-color: #48A23F;
+    width: 75px ;
+    height: 47px;
+    border: none;
+    text-align: left;
+    padding: 0px 0px 0px 10px;
+    color: white;
+}
+QPushButton:hover {
+    background: #3D8A36;
+}
+QPushButton:pressed {
+    background-color: #3D8A36;
+}</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="sys_load_push_button">
+          <property name="text">
+           <string>Загрузка ОС</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/sys_load.png</normaloff>../img/sys_load.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="work_mode_push_button">
+          <property name="text">
+           <string>Режим работы</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/work_mode.png</normaloff>../img/work_mode.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="user_list_push_button">
+          <property name="text">
+           <string>Список пользователей</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/users_list.png</normaloff>../img/users_list.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>2</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="events_journal_push_button">
+          <property name="text">
+           <string>Журнал событий</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/events_journal.png</normaloff>../img/events_journal.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>3</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="common_parms_push_button">
+          <property name="text">
+           <string>Общие параметры</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/common_parms.png</normaloff>../img/common_parms.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>4</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="passwd_parms_push_button">
+          <property name="text">
+           <string>Параметры паролей</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/passwd_parms.png</normaloff>../img/passwd_parms.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>5</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="intergity_control_push_button">
+          <property name="text">
+           <string>Контроль целостности</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/integrity_control.png</normaloff>../img/integrity_control.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>6</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="passwd_change_push_button">
+          <property name="text">
+           <string>Смена пароля</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/passwd_change.png</normaloff>../img/passwd_change.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>7</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="authenticator_change_push_button">
+          <property name="text">
+           <string>Смена аутентификатора</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/authenticator_change.png</normaloff>../img/authenticator_change.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>8</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="board_diagnostic_push_button">
+          <property name="text">
+           <string>Диагностика платы</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/board_diagnostic.png</normaloff>../img/board_diagnostic.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>9</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="service_operations_push_button">
+          <property name="text">
+           <string>Служебные операции</string>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>../img/service_operations.png</normaloff>../img/service_operations.png</iconset>
+          </property>
+          <property name="id" stdset="0">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>184</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QStackedWidget" name="stacked_widget"/>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="settings_bottom_label">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>32</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">            QWidget {
+                font: 8pt 'Monospace Regular';
+                color: white;
+                background-color: #30363F;
+            }
+</string>
+     </property>
+     <property name="text">
+      <string>Ctrl+1 - Меню   Ctrl+2 - Основное окно   Tab - Переместить курсор   F1 - Справка   F2 - О программе</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
