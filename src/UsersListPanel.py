@@ -1,4 +1,5 @@
 import configparser
+from datetime import datetime
 import json
 import logging
 
@@ -13,6 +14,7 @@ from UiLoader import UiLoader
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
+service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus')
 
 
 class UsersListPanel(QtWidgets.QWidget):
@@ -28,10 +30,10 @@ class UsersListPanel(QtWidgets.QWidget):
         # Загружаем интерфейс и регистрируем кастомный класс Toggle
         self.loader.loadUi("../ui/UsersListPanel.ui", self, Toggle)
         
+        self.add_user_push_button.clicked.connect(self.userRegistrationRequested.emit)
+        
         # Список из словарей с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
         self.users = json.loads(self.config.get("general", "users", fallback="[]"))
-
-        self.add_user_push_button.clicked.connect(self.userRegistrationRequested.emit)
 
     def show_user_parms(self, item):
         """Показать настройки выбранного в списке пользователя"""
@@ -75,6 +77,29 @@ class UsersListPanel(QtWidgets.QWidget):
             self.user_list_widget.addItem(user["user_name"])
         self.user_list_widget.setCurrentRow(0)
         self.show_user_parms(self.user_list_widget.currentItem())
+
+    def add_user(self, user_name, passwd, message):
+        self.users.append({
+            "id": message["id"],
+            "user_name": user_name,
+            "passwd_datetime": datetime.now().strftime("%H:%M %Y/%m/%d"),
+            "last_login_datetime": "00:00 1970/01/01",
+            "total_logins": 0,
+            "failed_logins": 0,
+            "ext_media_prohib": True,
+            "ch_passwd_prohib": False,
+            "passwd_age_limit": True,
+            "user_id_change": True,
+            "user_status": 0,
+            "integrity_ctl_mode": 0
+        })
+
+        # Вызвать метод для записи в предъявленную ibutton имени и пароля пользователя
+        service_object.SetIButtonData({
+            "id": message["id"],
+            "user_name": user_name,
+            "passwd": passwd
+        })
 
     def del_user(self):
         """Удалить выбранного пользователя"""

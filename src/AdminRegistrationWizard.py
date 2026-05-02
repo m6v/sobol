@@ -14,10 +14,6 @@ from UiLoader import UiLoader
 
 from SobolDialog import SobolDialog
 
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-bus = dbus.SessionBus()
-service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus')
-
 def gen_password(length=8):
     """Сгенерировать пароль заданной длины"""
     if length < 4:
@@ -45,8 +41,8 @@ def gen_password(length=8):
 
 
 class AdminRegistrationWizard(QtWidgets.QWidget):
-    """Страница регистрации администратора"""
-    adminRegistrationСompleted = QtCore.Signal()
+    """Мастер регистрации администратора"""
+    adminRegistrationСompleted = QtCore.Signal(str, str, dict)
 
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -56,15 +52,18 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
         self.loader = UiLoader()
         self.loader.loadUi("../ui/AdminRegistrationWizard.ui", self)
         
-        # Список из идентификаторов iButton зарегистрированных администраторов
-        self.admins = json.loads(self.config.get("general", "admins", fallback="[]"))
-
         self.passwd_line_edit.textChanged[str].connect(self.passwd_changed)
         self.passwd_confirm_line_edit.textChanged[str].connect(self.passwd_changed)
         self.next_push_button.clicked.connect(self.check_passwd)
         self.finish_push_button.clicked.connect(self.complete_admin_registration)
         self.passwd_gen_push_button.clicked.connect(self.gen_passwd)
         self.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
+
+        # Настроить таблицу со списком операций при регистрации администратора
+        self.table_widget.verticalHeader().hide()
+        self.table_widget.insertRow(0)
+        self.table_widget.setItem(0, 0, QtWidgets.QTableWidgetItem("Предъявите персональный идентификатор"))
+        self.table_widget.resizeColumnsToContents()
 
     def check_passwd(self):
         """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
@@ -78,19 +77,15 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
     def on_ibutton_presented(self, message):
         # Сохранить идентификатор предъявленной ibutton
         self.message = message
+        row = self.table_widget.rowCount() - 1
+        self.table_widget.setItem(row, 1, QtWidgets.QTableWidgetItem(message["id"]))
+        self.table_widget.setItem(row, 2, QtWidgets.QTableWidgetItem("Администратор зарегистирован"))
+        self.table_widget.resizeColumnsToContents()
         self.finish_push_button.setEnabled(True)
 
     def complete_admin_registration(self):
-        """Зарегистрировать администратора и подать сигнал о завершении работы мастера"""
-        self.admins.append(self.message['id'])
-        # Вызвать метод SetIButtonData, зарегистрированный в dbus
-        # для записи в предъявленную ibutton имени и пароля администратора
-        service_object.SetIButtonData({
-            "id": self.message["id"],
-            "user_name": "Администратор",
-            "passwd": self.passwd_line_edit.text()
-        })
-        self.adminRegistrationСompleted.emit()
+        """Подать сигнал о завершении работы мастера"""
+        self.adminRegistrationСompleted.emit("Администратор", self.passwd_line_edit.text(), self.message)
 
     def toggle_user_passwd_visibility(self):
         """Переключить видимость пароля пользователя в полях ввода"""

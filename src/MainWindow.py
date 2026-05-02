@@ -18,7 +18,7 @@ from UserRegistrationWizard import UserRegistrationWizard
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
-
+service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus')
 
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
@@ -50,13 +50,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.board_settings_page = BoardSettingsPage(config)
         self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
-        self.board_settings_page.users_list_panel.userRegistrationRequested.connect(lambda: self.set_page(self.user_registration_wizard))
+        self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
 
         self.admin_registration_wizard = AdminRegistrationWizard(config)
-        self.admin_registration_wizard.adminRegistrationСompleted.connect(lambda: self.set_page(self.board_init_page))
+        self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
 
         self.user_registration_wizard = UserRegistrationWizard(config)
-        self.user_registration_wizard.userRegistrationСompleted[dict].connect(self.register_user)
+        self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
+        self.user_registration_wizard.userRegistrationСanceled.connect(self.cancel_user_registration)
 
         self.stack.addWidget(self.board_init_page)
         self.stack.addWidget(self.id_wait_page)
@@ -66,8 +67,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stack.addWidget(self.user_registration_wizard)
 
         try:
-            # Список из словарей с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
-            self.users = json.loads(self.config.get("general", "users", fallback="[]"))
             # Список из идентификаторов iButton зарегистрированных администраторов
             self.admins = json.loads(self.config.get("general", "admins", fallback="[]"))
             # Суммарное кол-во неудачных попыток входа (с момента инициализации)
@@ -132,34 +131,38 @@ class MainWindow(QtWidgets.QMainWindow):
         except AttributeError as e:
             logging.debug(e)
 
+    def show_user_registration_wizard(self):
+        """Запустить мастер регистрации пользователя"""
+        self.set_page(self.user_registration_wizard)
+
+    def complete_user_registration(self, user_name, passwd, message):
+        """Завершить регистрацию пользователя"""
+        # Методы по управлению пользователями реализованы в self.board_settings_page.users_list_panel
+        self.board_settings_page.users_list_panel.add_user(user_name, passwd, message)
+        self.set_page(self.board_settings_page)
+
+    def cancel_user_registration(self):
+        """Отменить регистрацию пользователя"""
+        self.set_page(self.board_settings_page)
+
     def show_admin_registration_wizard(self, is_primary_admin_registration):
         """Запустить мастер регистрации администратора"""
+        # TODO В зависимости от is_primary_admin_registration разные действия
+        # при первичной регистрации запрашивается и записывается новый пароль,
+        # при повторной регистрации запрашивается и проверяется записанный пароль
         self.set_page(self.admin_registration_wizard)
 
-    def register_user(self, message):
-        """Добавить пользователя"""
-        self.users.append({
-            "id": message["id"],
-            "user_name": self.user_registration_wizard.user_name.text(),
-            "passwd_datetime": datetime.now().strftime("%H:%M %Y/%m/%d"),
-            "last_login_datetime": "00:00 1970/01/01",
-            "total_logins": 0,
-            "failed_logins": 0,
-            "ext_media_prohib": True,
-            "ch_passwd_prohib": False,
-            "passwd_age_limit": True,
-            "user_id_change": True,
-            "user_status": 0,
-            "integrity_ctl_mode": 0
+    def complete_admin_registration(self, user_name, passwd, message):
+        """Зарегистрировать администратора"""
+        self.admins.append(message["id"])
+        # Вызвать метод SetIButtonData, зарегистрированный в dbus
+        # для записи в предъявленную ibutton имени и пароля администратора
+        service_object.SetIButtonData({
+            "id": self.message["id"],
+            "user_name": user_name,
+            "passwd": passwd
         })
-
-        # Вызвать метод для записи в предъявленную ibutton имени и пароля пользователя
-        self.service_object.SetIButtonData({
-            "id": message["id"],
-            "user_name": self.user_registration_wizard.user_name.text(),
-            "passwd": self.user_registration_wizard.passwd_line_edit.text()
-        })
-        self.set_page(self.board_settings_page)
+        self.set_page(self.board_init_page)
 
     def sys_load(self):
         """Завершить работу имитатора"""
@@ -179,6 +182,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("window", "state", str(int(self.windowState())))
 
         # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
-        self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
-        self.config.set("general", "admins", json.dumps(self.admin_registration_wizard.admins, ensure_ascii=False))
+        self.config.set("general", "users", json.dumps(self.board_settings_page.users_list_panel.users, ensure_ascii=False))
+        self.config.set("general", "admins", json.dumps(self.admins, ensure_ascii=False))
         self.config.set("general", "failed_logins", str(self.failed_logins))
