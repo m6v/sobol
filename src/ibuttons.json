@@ -1,11 +1,11 @@
 {
     "iButton_0": {
         "user_name": "Администратор",
-        "passwd": "11111111"
+        "passwd": "44444444"
     },
     "iButton_1": {
-        "user_name": "Maksimov",
-        "passwd": "11111111"
+        "user_name": "Администратор",
+        "passwd": "33333333"
     },
     "iButton_2": {
         "user_name": "Иванов",
@@ -32,11 +32,11 @@
         "passwd": ""
     },
     "iButton_8": {
-        "user_name": "",
-        "passwd": ""
+        "user_name": "Администратор",
+        "passwd": "77777777"
     },
     "iButton_9": {
-        "user_name": "Пушкин",
-        "passwd": "123456"
+        "user_name": "Администратор",
+        "passwd": "99999999"
     }
 }

@@ -6,15 +6,15 @@ from PySide2.QtGui import QShowEvent
 from UiLoader import UiLoader
 
 
-class AdminRegistrationPage(QtWidgets.QWidget):
+class UserRegistrationWizard(QtWidgets.QWidget):
     """Страница регистрации пользователя"""
-    registrationСompleted = QtCore.Signal()
+    userRegistrationСompleted = QtCore.Signal(dict)
 
     def __init__(self, config, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()
-        self.loader.loadUi("../ui/AdminRegistrationPage.ui", self)
+        self.loader.loadUi("../ui/UserRegistrationWizard.ui", self)
 
         self.user_name.textChanged[str].connect(self.user_name_changed)
         self.next_push_button_1.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(1))
@@ -22,15 +22,15 @@ class AdminRegistrationPage(QtWidgets.QWidget):
         self.next_push_button_3.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(3))
         self.passwd_line_edit.textChanged[str].connect(self.passwd_changed)
         self.passwd_confirm_line_edit.textChanged[str].connect(self.passwd_changed)
-        self.finish_push_button_4.clicked.connect(self.finish_registration)
+        self.finish_push_button_4.clicked.connect(self.complete_user_registration)
 
     def on_ibutton_presented(self, message):
-        # TODO здесь нужно сохранить идентификатор предъявленной ibutton
+        self.message = message
         self.finish_push_button_4.setEnabled(True)
 
-    def finish_registration(self):
+    def complete_user_registration(self):
         # TODO Здесь нужно либо сохранить учетку, либо подать сигнал о сохранении
-        self.registrationСompleted.emit()
+        self.userRegistrationСompleted.emit(self.message)
 
     def user_name_changed(self, text: str):
         """Изменить состояние кнопки "Вперед" при вводе имени нового пользователя"""
@@ -45,6 +45,6 @@ class AdminRegistrationPage(QtWidgets.QWidget):
 
     def showEvent(self, event: QShowEvent):
         self.stacked_widget.setCurrentIndex(0)
-        # TODO Далее нужно очистить все элементы ввода от предыдущих итераций
+        # TODO Очистить все элементы ввода от предыдущих итераций
         # Обязательно вызываем базовый класс, чтобы не нарушить цепочку Qt
         super().showEvent(event)
