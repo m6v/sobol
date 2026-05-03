@@ -13,6 +13,7 @@ from BoardInitPage import BoardInitPage
 from BoardSettingsPage import BoardSettingsPage
 from IdWaitPage import IdWaitPage
 from PasswdWaitPage import PasswdWaitPage
+from UserChoicePage import UserChoicePage
 
 from AdminRegistrationWizard import AdminRegistrationWizard
 from UserRegistrationWizard import UserRegistrationWizard
@@ -54,6 +55,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.admin_choice_page = AdminChoicePage(config)
         self.admin_choice_page.sys_load_requested.connect(self.sys_load)
         self.admin_choice_page.show_settings_requested.connect(lambda: self.set_page(self.board_settings_page))
+        
+        self.user_choice_page = UserChoicePage(config)
+        self.user_choice_page.sys_load_requested.connect(self.sys_load)
+        # self.user_choice_page.change_passwd_requested.connect()
 
         self.board_settings_page = BoardSettingsPage(config)
         self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
@@ -66,10 +71,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
         self.user_registration_wizard.userRegistrationСanceled.connect(self.cancel_user_registration)
 
+        # TODO Создавать панели по мере надобности, а не все подряд
         self.stack.addWidget(self.board_init_page)
         self.stack.addWidget(self.id_wait_page)
         self.stack.addWidget(self.passwd_wait_page)
         self.stack.addWidget(self.admin_choice_page)
+        self.stack.addWidget(self.user_choice_page)
         self.stack.addWidget(self.board_settings_page)
         self.stack.addWidget(self.admin_registration_wizard)
         self.stack.addWidget(self.user_registration_wizard)
@@ -142,9 +149,9 @@ class MainWindow(QtWidgets.QMainWindow):
             logging.debug(e)
 
     def auth_person(self, passwd):
-        """Аутентифицировать пользователя и открыть панель выбора действия"""
+        """Аутентифицировать пользователя(администратора) и открыть панель выбора действия"""
         logging.debug(f"{passwd}, {self.message}")
-        # Проверить, что введенный пароль и пароль записанный в ibutton совпадают
+        # Проверить, что введенный пароль и пароль, записанный в ibutton, совпадают
         if passwd == self.message["passwd"]: 
             # Проверить, есть ли идентификатор ibutton в списках admins и users
             is_admin = any(item.get("id") == self.message["id"] for item in self.admins)
@@ -154,7 +161,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
             if is_user:
                 # TODO Заменить на self.user_choice_page
-                self.set_page(self.admin_choice_page)
+                self.set_page(self.user_choice_page)
                 return
         dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
         dialog.exec_()
