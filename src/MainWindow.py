@@ -10,11 +10,15 @@ from PySide2 import QtCore, QtWidgets
 
 from AdminChoicePage import AdminChoicePage
 from BoardInitPage import BoardInitPage
-from IdWaitPage import IdWaitPage
 from BoardSettingsPage import BoardSettingsPage
+from IdWaitPage import IdWaitPage
+from PasswdWaitPage import PasswdWaitPage
 
 from AdminRegistrationWizard import AdminRegistrationWizard
 from UserRegistrationWizard import UserRegistrationWizard
+
+from SobolDialog import SobolDialog
+
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
@@ -42,7 +46,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board_init_page.adminRegistrationRequested[bool].connect(self.show_admin_registration_wizard)
 
         self.id_wait_page = IdWaitPage(config)
-        self.id_wait_page.ibutton_presented.connect(lambda: self.set_page(self.admin_choice_page))
+        self.id_wait_page.ibutton_presented.connect(lambda: self.set_page(self.passwd_wait_page))
+        
+        self.passwd_wait_page = PasswdWaitPage(config)
+        self.passwd_wait_page.passwdEntered[str].connect(self.auth_person)
 
         self.admin_choice_page = AdminChoicePage(config)
         self.admin_choice_page.sys_load_requested.connect(self.sys_load)
@@ -61,6 +68,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.stack.addWidget(self.board_init_page)
         self.stack.addWidget(self.id_wait_page)
+        self.stack.addWidget(self.passwd_wait_page)
         self.stack.addWidget(self.admin_choice_page)
         self.stack.addWidget(self.board_settings_page)
         self.stack.addWidget(self.admin_registration_wizard)
@@ -69,6 +77,8 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             # Список из идентификаторов iButton зарегистрированных администраторов
             self.admins = json.loads(self.config.get("general", "admins", fallback="[]"))
+            # Список из идентификаторов iButton зарегистрированных пользователей
+            self.users = json.loads(self.config.get("general", "users", fallback="[]"))
             # Суммарное кол-во неудачных попыток входа (с момента инициализации)
             self.failed_logins = int(self.config.get("general", "failed_logins", fallback="0"))
             # Имя файла с журналом событий
@@ -131,6 +141,25 @@ class MainWindow(QtWidgets.QMainWindow):
         except AttributeError as e:
             logging.debug(e)
 
+    def auth_person(self, passwd):
+        """Аутентифицировать пользователя и открыть панель выбора действия"""
+        logging.debug(f"{passwd}, {self.message}")
+        # Проверить, что введенный пароль и пароль записанный в ibutton совпадают
+        if passwd == self.message["passwd"]: 
+            # Проверить, есть ли идентификатор ibutton в списках admins и users
+            is_admin = any(item.get("id") == self.message["id"] for item in self.admins)
+            is_user = any(item.get("id") == self.message["id"] for item in self.users)
+            if is_admin:
+                self.set_page(self.admin_choice_page)
+                return
+            if is_user:
+                # TODO Заменить на self.user_choice_page
+                self.set_page(self.admin_choice_page)
+                return
+        dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
+        dialog.exec_()
+        self.set_page(self.id_wait_page)
+            
     def show_user_registration_wizard(self):
         """Запустить мастер регистрации пользователя"""
         self.set_page(self.user_registration_wizard)
@@ -154,7 +183,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def complete_admin_registration(self, user_name, passwd, message):
         """Зарегистрировать администратора"""
-        self.admins.append(message["id"])
+        self.admins.append({
+            "id": message["id"],
+            "user_name": user_name,
+            "passwd_datetime": datetime.now().strftime("%H:%M %Y/%m/%d"),
+            "last_login_datetime": "00:00 1970/01/01",
+            "total_logins": 0,
+            "failed_logins": 0
+        })
+
         # Вызвать метод SetIButtonData, зарегистрированный в dbus
         # для записи в предъявленную ibutton имени и пароля администратора
         service_object.SetIButtonData({
