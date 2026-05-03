@@ -8,8 +8,8 @@ from UiLoader import UiLoader
 
 
 class IdWaitPage(QtWidgets.QWidget):
-    """Страница настроек"""
-    ibutton_presented = QtCore.Signal()
+    """Страница ожидания предъявления ibutton"""
+    ibuttonPresented = QtCore.Signal()
 
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -33,4 +33,5 @@ class IdWaitPage(QtWidgets.QWidget):
         self.setPalette(palette)
 
     def on_ibutton_presented(self, message):
-        self.ibutton_presented.emit()
+        """Ретранслироввать полученный сигнал"""
+        self.ibuttonPresented.emit()

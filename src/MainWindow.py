@@ -27,7 +27,7 @@ service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus
 
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
-    ibutton_present = QtCore.Signal(dict)
+    ibuttonPresented = QtCore.Signal(dict)
 
     def __init__(self, config):
         super().__init__()
@@ -47,7 +47,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board_init_page.adminRegistrationRequested[bool].connect(self.show_admin_registration_wizard)
 
         self.id_wait_page = IdWaitPage(config)
-        self.id_wait_page.ibutton_presented.connect(lambda: self.set_page(self.passwd_wait_page))
+        self.id_wait_page.ibuttonPresented.connect(lambda: self.set_page(self.passwd_wait_page))
         
         self.passwd_wait_page = PasswdWaitPage(config)
         self.passwd_wait_page.passwdEntered[str].connect(self.auth_person)
@@ -131,38 +131,69 @@ class MainWindow(QtWidgets.QMainWindow):
         logging.debug(f"Recieve message: {message}")
         # Запомнили последний предъявленный ibutton и оптравили сигнал
         self.message = message
-        self.ibutton_present.emit(message)
+        self.ibuttonPresented.emit(message)
 
     def set_page(self, widget):
+        """Отобразить страницу widget"""
         # Отключить сигнал у предыдущего виджета
         try:
-            self.ibutton_present[dict].disconnect(self.stack.currentWidget().on_ibutton_presented)
+            self.ibuttonPresented[dict].disconnect(self.stack.currentWidget().on_ibutton_presented)
         except (AttributeError, RuntimeError) as e:
             logging.debug(e)
         # Сделать текщим widget и установить сигнал
         self.stack.setCurrentWidget(widget)
         try:
-            # Соединяем сигнал предъявления ibutton с методом нового виджета
+            # Соединяить сигнал предъявления ibutton с методом нового виджета
             # Если обработчика нет, игнорируем исключение
-            self.ibutton_present[dict].connect(widget.on_ibutton_presented)
+            self.ibuttonPresented[dict].connect(widget.on_ibutton_presented)
         except AttributeError as e:
             logging.debug(e)
 
     def auth_person(self, passwd):
         """Аутентифицировать пользователя(администратора) и открыть панель выбора действия"""
-        logging.debug(f"{passwd}, {self.message}")
-        # Проверить, что введенный пароль и пароль, записанный в ibutton, совпадают
-        if passwd == self.message["passwd"]: 
-            # Проверить, есть ли идентификатор ibutton в списках admins и users
-            is_admin = any(item.get("id") == self.message["id"] for item in self.admins)
-            is_user = any(item.get("id") == self.message["id"] for item in self.users)
-            if is_admin:
+        # Получить индекс элемента с предъявленным идентификатором в списке users или None, если не найден
+        index = next((i for i, user in enumerate(self.users) if user.get("id") == self.message["id"]), None)
+        # Проверить, что введенный и записанный в ibutton пароли совпадают
+        if passwd == self.message["passwd"]:
+            # Проверить принадлежность предъявленного id администратору
+            if self.message["id"] in self.admins:
+                # Добавить в журнал запись об успешном входе администратора (key="4")
+                self.board_settings_page.events_journal_panel.model.add_event(["Администратор", self.message["id"], "4", "1"])
+                self.admin_choice_page.admin_id_value.setText(self.message["id"])
+                # Перейти на страницу выбора действий, доступных администратору
                 self.set_page(self.admin_choice_page)
                 return
-            if is_user:
-                # TODO Заменить на self.user_choice_page
+            # Проверить принадлежность предъявленного id пользователю
+            if index is not None:
+                # TODO Проверить, что пользователь не заблокирован (user_status!=0)
+                pass
+                # TODO Показать статистику, только если установлен соответствующий параметр (self.common_parms_panel.show_stats_check_box=True)
+                pass
+                # Добавить в журнал запись об успешном входе пользователя (key="5")
+                self.board_settings_page.events_journal_panel.model.add_event([self.presented_ibutton["user_name"], self.presented_ibutton["id"], "5", "1"])
+
+                # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик
+                # количества успешных попыток входа, изменить время последнего входа
+                self.users[index]["failed_logins"] = 0
+                self.users[index]["total_logins"] += 1
+                self.users[index]["last_login_datetime"] = datetime.now().strftime("%H:%M %Y/%m/%d")
                 self.set_page(self.user_choice_page)
                 return
+        # Неправильный пароль или идентификатор отсутсвует в списках admins и users
+        logging.info(f"Fail login, user index {index}")
+        self.failed_logins += 1
+        # Если это пользователь, то увеличить число неудачных попыток входа
+        if index is not None:
+            # Добавить в журнал запись об неуспешном входе пользователя (key="5")
+            self.board_settings_page.events_journal_panel.model.add_event([self.message["user_name"], self.message["id"], "5", "0"])
+
+            self.users[index]["failed_logins"] += 1
+            # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
+            pass
+        elif self.message["id"] in self.admins:
+            # Добавить в журнал запись о неуспешном входе администратора (key="4")
+            self.board_settings_page.events_journal_panel.model.add_event(["Администратор", self.message["id"], "4", "0"])
+            
         dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
         dialog.exec_()
         self.set_page(self.id_wait_page)
@@ -190,14 +221,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def complete_admin_registration(self, user_name, passwd, message):
         """Зарегистрировать администратора"""
-        self.admins.append({
-            "id": message["id"],
-            "user_name": user_name,
-            "passwd_datetime": datetime.now().strftime("%H:%M %Y/%m/%d"),
-            "last_login_datetime": "00:00 1970/01/01",
-            "total_logins": 0,
-            "failed_logins": 0
-        })
+        self.admins.append(message["id"])
 
         # Вызвать метод SetIButtonData, зарегистрированный в dbus
         # для записи в предъявленную ibutton имени и пароля администратора
@@ -226,6 +250,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("window", "state", str(int(self.windowState())))
 
         # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
+        # TODO Плохая затея использовать список пользвателей из self.board_settings_page.users_list_panel
         self.config.set("general", "users", json.dumps(self.board_settings_page.users_list_panel.users, ensure_ascii=False))
         self.config.set("general", "admins", json.dumps(self.admins, ensure_ascii=False))
         self.config.set("general", "failed_logins", str(self.failed_logins))
+
+        self.board_settings_page.events_journal_panel.model.save()

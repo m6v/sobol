@@ -1,7 +1,7 @@
 {
     "iButton_0": {
         "user_name": "Администратор",
-        "passwd": "12345678"
+        "passwd": "11111111"
     },
     "iButton_1": {
         "user_name": "Новичок",
@@ -16,8 +16,8 @@
         "passwd": "11111111"
     },
     "iButton_4": {
-        "user_name": "Петров",
-        "passwd": "123456"
+        "user_name": "Иванов",
+        "passwd": "22222222"
     },
     "iButton_5": {
         "user_name": "Кузнецов",

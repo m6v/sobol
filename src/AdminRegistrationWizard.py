@@ -52,8 +52,8 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
         self.loader = UiLoader()
         self.loader.loadUi("../ui/AdminRegistrationWizard.ui", self)
         
-        self.passwd_line_edit.textChanged[str].connect(self.passwd_changed)
-        self.passwd_confirm_line_edit.textChanged[str].connect(self.passwd_changed)
+        self.passwd_line_edit.textChanged[str].connect(self.on_passwd_changed)
+        self.passwd_confirm_line_edit.textChanged[str].connect(self.on_passwd_changed)
         self.next_push_button.clicked.connect(self.check_passwd)
         self.finish_push_button.clicked.connect(self.complete_admin_registration)
         self.passwd_gen_push_button.clicked.connect(self.gen_passwd)
@@ -105,7 +105,7 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
         self.show_passwd_radio_button.setChecked(True)
         self.toggle_user_passwd_visibility()
 
-    def passwd_changed(self):
+    def on_passwd_changed(self):
         """Изменить состояние кнопки "Вперед" при наличии символов в обоих полях ввода пароля"""
         if len(self.passwd_line_edit.text()) != 0 and len(self.passwd_confirm_line_edit.text()) != 0:
             self.next_push_button.setEnabled(True)
