@@ -149,6 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except AttributeError as e:
             logging.debug(e)
 
+    # TODO Перенести всю логику аутентифкации в PasswdWaitPage, а оттуда возвращать успех или неудача!
     def auth_person(self, passwd):
         """Аутентифицировать пользователя(администратора) и открыть панель выбора действия"""
         # Получить индекс элемента с предъявленным идентификатором в списке users или None, если не найден
@@ -170,7 +171,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # TODO Показать статистику, только если установлен соответствующий параметр (self.common_parms_panel.show_stats_check_box=True)
                 pass
                 # Добавить в журнал запись об успешном входе пользователя (key="5")
-                self.board_settings_page.events_journal_panel.model.add_event([self.presented_ibutton["user_name"], self.presented_ibutton["id"], "5", "1"])
+                self.board_settings_page.events_journal_panel.model.add_event([self.message["user_name"], self.message["id"], "5", "1"])
 
                 # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик
                 # количества успешных попыток входа, изменить время последнего входа
@@ -182,7 +183,8 @@ class MainWindow(QtWidgets.QMainWindow):
         # Неправильный пароль или идентификатор отсутсвует в списках admins и users
         logging.info(f"Fail login, user index {index}")
         self.failed_logins += 1
-        # Если это пользователь, то увеличить число неудачных попыток входа
+        self.config.set("general", "failed_logins", str(self.failed_logins))
+        # Проверить принадлежность предъявленного id пользователю
         if index is not None:
             # Добавить в журнал запись об неуспешном входе пользователя (key="5")
             self.board_settings_page.events_journal_panel.model.add_event([self.message["user_name"], self.message["id"], "5", "0"])
@@ -190,6 +192,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.users[index]["failed_logins"] += 1
             # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
             pass
+        # Проверить принадлежность предъявленного id администратору
         elif self.message["id"] in self.admins:
             # Добавить в журнал запись о неуспешном входе администратора (key="4")
             self.board_settings_page.events_journal_panel.model.add_event(["Администратор", self.message["id"], "4", "0"])
@@ -197,6 +200,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
         dialog.exec_()
         self.set_page(self.id_wait_page)
+        # TODO Видимо нужно добавить сохранение self.users в конфиге
             
     def show_user_registration_wizard(self):
         """Запустить мастер регистрации пользователя"""
@@ -222,7 +226,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def complete_admin_registration(self, user_name, passwd, message):
         """Зарегистрировать администратора"""
         self.admins.append(message["id"])
-
+        self.config.set("general", "admins", json.dumps(self.admins, ensure_ascii=False))
         # Вызвать метод SetIButtonData, зарегистрированный в dbus
         # для записи в предъявленную ibutton имени и пароля администратора
         service_object.SetIButtonData({
@@ -248,11 +252,5 @@ class MainWindow(QtWidgets.QMainWindow):
         # Преобразовать элементы кортежа в строки и разделить символом ;
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
         self.config.set("window", "state", str(int(self.windowState())))
-
-        # Сохранить учетные записи пользователей и суммарное кол-во неудачных попыток входа
-        # TODO Плохая затея использовать список пользвателей из self.board_settings_page.users_list_panel
-        self.config.set("general", "users", json.dumps(self.board_settings_page.users_list_panel.users, ensure_ascii=False))
-        self.config.set("general", "admins", json.dumps(self.admins, ensure_ascii=False))
-        self.config.set("general", "failed_logins", str(self.failed_logins))
 
         self.board_settings_page.events_journal_panel.model.save()

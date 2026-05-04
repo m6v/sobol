@@ -32,6 +32,7 @@ class UsersListPanel(QtWidgets.QWidget):
         
         self.add_user_push_button.clicked.connect(self.userRegistrationRequested.emit)
         self.del_user_push_button.clicked.connect(self.del_user)
+        self.save_push_button.clicked.connect(self.save_user_parms)
         
         # Список из словарей с параметрами зарегистрированных пользователей (идентификатор iButton, имя и др.)
         self.users = json.loads(self.config.get("general", "users", fallback="[]"))
@@ -59,7 +60,6 @@ class UsersListPanel(QtWidgets.QWidget):
     def save_user_parms(self):
         """Сохранить настройки выбранного в списке пользователя"""
         index = self.user_list_widget.currentRow()
-        logging.info(f"Selected user is {self.users[index]}")
         self.users[index]["ext_media_prohib"] = self.ext_media_prohib.isChecked()
         self.users[index]["ch_passwd_prohib"] = self.ch_passwd_prohib.isChecked()
         self.users[index]["passwd_age_limit"] = self.passwd_age_limit.isChecked()
@@ -69,13 +69,15 @@ class UsersListPanel(QtWidgets.QWidget):
 
     def update_user_list_panel(self):
         """Обновить панель со списком пользователей"""
+        # Сохранить список пользователей в конфигурации
+        self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
         self.user_list_widget.clear()
-        # Если зарегистрированных пользователей нет, например,
-        # сразу после инициализации, то выйти
         self.del_user_push_button.setEnabled(bool(self.users))
         self.del_all_users_push_button.setEnabled(bool(self.users))
         self.change_passwd_push_button.setEnabled(bool(self.users))
+        # Если зарегистрированных пользователей нет, то выйти
         if not self.users:
+            # TODO Установить дефолтные настройки пользователя и отключить панель настроек 
             return
         for user in self.users:
             self.user_list_widget.addItem(user["user_name"])
@@ -118,5 +120,5 @@ class UsersListPanel(QtWidgets.QWidget):
 
     def showEvent(self, event: QShowEvent):
         self.update_user_list_panel()
-        # Обязательно вызываем базовый класс, чтобы не нарушить цепочку Qt
+        # Вызывать базовый класс, чтобы не нарушить цепочку Qt
         super().showEvent(event)
