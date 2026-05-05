@@ -49,8 +49,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.id_wait_page = IdWaitPage(config)
         self.id_wait_page.ibuttonPresented.connect(lambda: self.set_page(self.passwd_wait_page))
         
-        self.passwd_wait_page = PasswdWaitPage(config)
-        self.passwd_wait_page.passwdEntered[str].connect(self.auth_person)
+        self.passwd_wait_page = PasswdWaitPage(config, self)
+        self.passwd_wait_page.passwdEntered[str].connect(self.authenticate_credentials)
+        # self.passwd_wait_page.adminAuthenticated.connect(lambda: set_page(self.admin_choice_page))
+        # self.passwd_wait_page.userAuthenticated.connect(lambda: set_page(self.user_choice_page))
+        # self.passwd_wait_page.authenticationFailed.connect(lambda: set_page(self.self.id_wait_page))
 
         self.admin_choice_page = AdminChoicePage(config)
         self.admin_choice_page.sys_load_requested.connect(self.sys_load)
@@ -71,7 +74,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
         self.user_registration_wizard.userRegistrationСanceled.connect(self.cancel_user_registration)
 
-        # TODO Создавать панели по мере надобности, а не все подряд
         self.stack.addWidget(self.board_init_page)
         self.stack.addWidget(self.id_wait_page)
         self.stack.addWidget(self.passwd_wait_page)
@@ -88,8 +90,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.users = json.loads(self.config.get("general", "users", fallback="[]"))
             # Суммарное кол-во неудачных попыток входа (с момента инициализации)
             self.failed_logins = int(self.config.get("general", "failed_logins", fallback="0"))
-            # Имя файла с журналом событий
-            self.journal_file = self.config.get("general", "journal_file", fallback="")
         except configparser.NoOptionError as e:
             logging.warning(e)
         except configparser.NoSectionError as e:
@@ -149,9 +149,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except AttributeError as e:
             logging.debug(e)
 
-    # TODO Перенести всю логику аутентифкации в PasswdWaitPage, а оттуда возвращать успех или неудача!
-    def auth_person(self, passwd):
-        """Аутентифицировать пользователя(администратора) и открыть панель выбора действия"""
+    def authenticate_credentials(self, passwd):
         # Получить индекс элемента с предъявленным идентификатором в списке users или None, если не найден
         index = next((i for i, user in enumerate(self.users) if user.get("id") == self.message["id"]), None)
         # Проверить, что введенный и записанный в ibutton пароли совпадают
@@ -201,7 +199,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog.exec_()
         self.set_page(self.id_wait_page)
         # TODO Видимо нужно добавить сохранение self.users в конфиге
-            
+
     def show_user_registration_wizard(self):
         """Запустить мастер регистрации пользователя"""
         self.set_page(self.user_registration_wizard)

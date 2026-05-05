@@ -38,14 +38,6 @@ class EventsJournalPanel(QtWidgets.QWidget):
         self.loader.loadUi("../ui/EventsJournalPanel.ui", self, Toggle)
         self.setObjectName("events_journal_panel")
 
-        """
-        loader = QUiLoader()
-        self.ui = loader.load("../ui/EventsJournalPanel.ui", self)
-        # Установить имя объекта, которое будет использоваться
-        # в качестве имени секции с состоянием виджетов
-        self.ui.setObjectName("events_journal_panel")
-        """
-
         # Заполнить таблицу фильтрации событий по типу
         for item in EVENTS_TYPE.values():
             self.events_type_list_widget.addItem(item)
@@ -55,20 +47,9 @@ class EventsJournalPanel(QtWidgets.QWidget):
         # Установить состояние списка событий в зависимости от переключателя "Поик по типу событий"
         self.events_type_list_widget.setEnabled(self.events_type_search_check_box.isChecked())
 
-        """
-        # Имя файла с журналом событий
-        self.journal_file = config.get("general", "journal_file", fallback="")
-        # Создать, загрузить модель, связать ее с таблицей журнала событий
-        if not self.journal_file:
-            # Если в конфиге имя файла журнала не задано,
-            # используем имя конфига, но с расширением .log
-            self.journal_file = Path(self.config_file).with_suffix('.log')
-        """
-        # TODO Заменить временную заглушку с определением файла журнала
-        self.journal_file = Path("/tmp/default.log")
         # Если файла журнала нет, то создать его
-        Path.touch(self.journal_file)
-        self.model = JournalTableModel(self.journal_file)
+        Path.touch(self.config.journal_file)
+        self.model = JournalTableModel(self.config.journal_file)
 
         self.proxy_model = JournalProxyModel()
         self.proxy_model.setSourceModel(self.model)

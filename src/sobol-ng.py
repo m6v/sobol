@@ -40,6 +40,10 @@ if __name__ == "__main__":
     config.optionxform = str
     config.read(config_path)
 
+    # Считываем имя файла с журналом событий здесь, для того, чтобы при отсутствии параметра
+    # использовать имя файла конфигурации с расширением log
+    config.journal_file = config.get("general", "journal_file", fallback=Path(config_path).with_suffix('.log'))
+
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow(config)
     window.show()

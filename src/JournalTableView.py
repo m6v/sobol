@@ -69,6 +69,7 @@ class JournalTableModel(QAbstractTableModel):
         self.endInsertRows()
         
     def save(self):
+        logging.debug(f"Save joutnal to {self._journal_file}")
         with open(self._journal_file, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f, delimiter=";")
             writer.writerows(self._data)

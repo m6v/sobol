@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>973</width>
-    <height>741</height>
+    <width>961</width>
+    <height>772</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,18 @@
    <string notr="true"/>
   </property>
   <layout class="QGridLayout" name="gridLayout_2" rowstretch="3,0,1">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item row="0" column="1">
     <spacer name="verticalSpacer_1">
      <property name="orientation">
@@ -53,12 +65,15 @@
        <property name="sizeConstraint">
         <enum>QLayout::SetFixedSize</enum>
        </property>
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item row="3" column="0">
         <widget class="QLabel" name="last_user_id_label">
          <property name="minimumSize">
           <size>
            <width>450</width>
-           <height>26</height>
+           <height>0</height>
           </size>
          </property>
          <property name="text">
@@ -71,7 +86,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>26</height>
+           <height>0</height>
           </size>
          </property>
          <property name="text">
@@ -91,7 +106,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>26</height>
+           <height>0</height>
           </size>
          </property>
          <property name="text">
@@ -111,7 +126,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>26</height>
+           <height>0</height>
           </size>
          </property>
          <property name="text">
@@ -138,7 +153,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>26</height>
+           <height>0</height>
           </size>
          </property>
          <property name="text">
@@ -165,7 +180,7 @@
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>26</height>
+           <height>0</height>
           </size>
          </property>
          <property name="text">
