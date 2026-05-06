@@ -8,6 +8,7 @@ import dbus.mainloop.glib
 
 from PySide2 import QtCore, QtWidgets
 
+import constants
 from AdminChoicePage import AdminChoicePage
 from BoardInitPage import BoardInitPage
 from BoardSettingsPage import BoardSettingsPage
@@ -69,6 +70,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.admin_registration_wizard = AdminRegistrationWizard(config)
         self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
+        self.admin_registration_wizard.adminRegistrationСanceled.connect(self.cancel_admin_registration)
 
         self.user_registration_wizard = UserRegistrationWizard(config)
         self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
@@ -157,7 +159,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Проверить принадлежность предъявленного id администратору
             if self.message["id"] in self.admins:
                 # Добавить в журнал запись об успешном входе администратора (key="4")
-                self.board_settings_page.events_journal_panel.model.add_event(["Администратор", self.message["id"], "4", "1"])
+                self.board_settings_page.events_journal_panel.add_event(["Администратор", self.message["id"], "4", "1"])
                 self.admin_choice_page.admin_id_value.setText(self.message["id"])
                 # Перейти на страницу выбора действий, доступных администратору
                 self.set_page(self.admin_choice_page)
@@ -169,7 +171,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 # TODO Показать статистику, только если установлен соответствующий параметр (self.common_parms_panel.show_stats_check_box=True)
                 pass
                 # Добавить в журнал запись об успешном входе пользователя (key="5")
-                self.board_settings_page.events_journal_panel.model.add_event([self.message["user_name"], self.message["id"], "5", "1"])
+                self.board_settings_page.events_journal_panel.add_event([self.message["user_name"], self.message["id"], "5", "1"])
 
                 # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик
                 # количества успешных попыток входа, изменить время последнего входа
@@ -185,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Проверить принадлежность предъявленного id пользователю
         if index is not None:
             # Добавить в журнал запись об неуспешном входе пользователя (key="5")
-            self.board_settings_page.events_journal_panel.model.add_event([self.message["user_name"], self.message["id"], "5", "0"])
+            self.board_settings_page.events_journal_panel.add_event([self.message["user_name"], self.message["id"], "5", "0"])
 
             self.users[index]["failed_logins"] += 1
             # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
@@ -193,7 +195,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Проверить принадлежность предъявленного id администратору
         elif self.message["id"] in self.admins:
             # Добавить в журнал запись о неуспешном входе администратора (key="4")
-            self.board_settings_page.events_journal_panel.model.add_event(["Администратор", self.message["id"], "4", "0"])
+            self.board_settings_page.events_journal_panel.add_event(["Администратор", self.message["id"], "4", "0"])
             
         dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
         dialog.exec_()
@@ -232,6 +234,11 @@ class MainWindow(QtWidgets.QMainWindow):
             "user_name": user_name,
             "passwd": passwd
         })
+        self.set_page(self.board_init_page)
+
+    def cancel_admin_registration(self):
+        """Отменить регистрацию администратора"""
+        self.board_init_page.show_init_panel(constants.ADMIN_REGISTRATION_PANEL)
         self.set_page(self.board_init_page)
 
     def sys_load(self):

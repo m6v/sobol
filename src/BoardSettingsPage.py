@@ -50,10 +50,11 @@ class BoardSettingsPage(QtWidgets.QWidget):
         self.stacked_widget.addWidget(self.service_operations_panel)
 
         # Перебрать все кнопки в боковой панели и назначить единый обработчик события clicked,
-        # передавая ему значение динамического свойства "id"
+        # передавая ему значение динамического свойства "id" кнопки
         for button in self.side_bar_widget.findChildren(QtWidgets.QPushButton):
             button.clicked.connect(functools.partial(self.show_panel, int(button.property("id"))))
 
     def show_panel(self, id=0):
+        """Сделать виджет id текущим"""
         self.stacked_widget.setCurrentIndex(id)
         self.updateGeometry()

@@ -137,5 +137,9 @@ class EventsJournalPanel(QtWidgets.QWidget):
         self.select_all_push_button.setEnabled(self.events_type_search_check_box.isChecked())
         self.clear_all_push_button.setEnabled(self.events_type_search_check_box.isChecked())
 
+    def add_event(self, event):
+        """Добавить событие в журнал"""
+        self.model.add_event(event)
+
     def save_panel_settings(self):
         self.widget_state_manager.save_state(self)

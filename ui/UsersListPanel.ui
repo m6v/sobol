@@ -274,7 +274,7 @@ QPushButton:hover {
                  </size>
                 </property>
                 <property name="text">
-                 <string>user</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -300,7 +300,7 @@ QPushButton:hover {
                  </size>
                 </property>
                 <property name="text">
-                 <string>iButton</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -326,7 +326,7 @@ QPushButton:hover {
                  </size>
                 </property>
                 <property name="text">
-                 <string>00:00 00/00/00</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -352,7 +352,7 @@ QPushButton:hover {
                  </size>
                 </property>
                 <property name="text">
-                 <string>0</string>
+                 <string/>
                 </property>
                </widget>
               </item>
@@ -378,7 +378,7 @@ QPushButton:hover {
                  </size>
                 </property>
                 <property name="text">
-                 <string>0</string>
+                 <string/>
                 </property>
                </widget>
               </item>

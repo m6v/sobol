@@ -43,6 +43,7 @@ def gen_password(length=8):
 class AdminRegistrationWizard(QtWidgets.QWidget):
     """Мастер регистрации администратора"""
     adminRegistrationСompleted = QtCore.Signal(str, str, dict)
+    adminRegistrationСanceled = QtCore.Signal()
 
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -54,7 +55,9 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
         
         self.passwd_line_edit.textChanged[str].connect(self.on_passwd_changed)
         self.passwd_confirm_line_edit.textChanged[str].connect(self.on_passwd_changed)
+        self.cancel_push_button_1.clicked.connect(self.adminRegistrationСanceled.emit)
         self.next_push_button.clicked.connect(self.check_passwd)
+        self.cancel_push_button_2.clicked.connect(self.adminRegistrationСanceled.emit)
         self.finish_push_button.clicked.connect(self.complete_admin_registration)
         self.passwd_gen_push_button.clicked.connect(self.gen_passwd)
         self.show_passwd_radio_button.clicked.connect(self.toggle_user_passwd_visibility)
@@ -98,7 +101,7 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
 
     def gen_passwd(self):
         """Сгенерировать пароль пользователя и показать его в полях ввода"""
-        # TODO Считать из начтроек длину пароля и подставить параметром в gen_password
+        # TODO Считать из настроек длину пароля и подставить параметром в gen_password
         passwd = gen_password()
         self.passwd_line_edit.setText(passwd)
         self.passwd_confirm_line_edit.setText(passwd)
