@@ -5,7 +5,7 @@ import logging
 
 from PySide2.QtCore import Qt
 from PySide2 import QtCore, QtWidgets
-from PySide2.QtGui import QPalette, QImage, QBrush
+from PySide2.QtGui import QPalette, QImage, QBrush, QShowEvent
 
 from UiLoader import UiLoader
 
@@ -116,3 +116,9 @@ class PasswdWaitPage(QtWidgets.QWidget):
         scaled = img.scaled(self.size(), Qt.IgnoreAspectRatio)
         palette.setBrush(QPalette.Window, QBrush(scaled))
         self.setPalette(palette)
+
+    def showEvent(self, event: QShowEvent):
+        """Стереть введенный во время предыдущей попытки аутентификации пароль"""
+        self.passwd_line_edit.setText("")
+        # Вызываем базовый класс, чтобы не нарушить цепочку Qt
+        super().showEvent(event)

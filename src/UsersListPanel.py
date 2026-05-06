@@ -29,7 +29,10 @@ class UsersListPanel(QtWidgets.QWidget):
         self.loader = UiLoader()
         # Загружаем интерфейс и регистрируем кастомный класс Toggle
         self.loader.loadUi("../ui/UsersListPanel.ui", self, Toggle)
-        
+
+        self.user_list_widget.itemClicked.connect(self.show_user_parms)
+        self.user_list_widget.itemActivated.connect(self.show_user_parms)
+
         self.add_user_push_button.clicked.connect(self.userRegistrationRequested.emit)
         self.del_user_push_button.clicked.connect(self.del_user)
         self.save_push_button.clicked.connect(self.save_user_parms)
@@ -66,6 +69,7 @@ class UsersListPanel(QtWidgets.QWidget):
         self.users[index]["user_id_change"] = self.user_id_change.isChecked()
         self.users[index]["user_status"] = self.user_status.currentIndex()
         self.users[index]["integrity_ctl_mode"] = self.integrity_ctl_mode.currentIndex()
+        self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
 
     def update_user_list_panel(self):
         """Обновить панель со списком пользователей"""

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>648</width>
-    <height>545</height>
+    <width>782</width>
+    <height>676</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,7 +63,7 @@
         <number>0</number>
        </property>
        <property name="verticalSpacing">
-        <number>6</number>
+        <number>12</number>
        </property>
        <item row="3" column="0">
         <widget class="QLabel" name="user_last_datetime_label">
@@ -201,7 +201,7 @@
            <property name="minimumSize">
             <size>
              <width>200</width>
-             <height>0</height>
+             <height>26</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -229,7 +229,7 @@
            <property name="minimumSize">
             <size>
              <width>200</width>
-             <height>0</height>
+             <height>26</height>
             </size>
            </property>
            <property name="maximumSize">
