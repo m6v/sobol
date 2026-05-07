@@ -5,6 +5,9 @@ import logging
 import sys
 from pathlib import Path
 
+import faulthandler
+faulthandler.enable()
+
 from PySide2 import QtWidgets
 
 from MainWindow import MainWindow

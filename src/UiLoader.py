@@ -9,7 +9,8 @@ class UiLoader(QtUiTools.QUiLoader):
         self._baseinstance = baseinstance
         # Регистрируем кастомные виджеты, если они переданы
         for widget_class in custom_widgets:
-            self.registerCustomWidget(widget_class)
+            if widget_class is not None:
+                self.registerCustomWidget(widget_class)
 
     def createWidget(self, classname, parent=None, name=''):
         # Если это корневой виджет
@@ -18,6 +19,8 @@ class UiLoader(QtUiTools.QUiLoader):
 
         # Создаем дочерний виджет
         widget = super().createWidget(classname, parent, name)
+        if widget is None:
+            return None
 
         # Привязываем его к нашему классу, только если задано имя в Designer
         if self._baseinstance is not None and name:
@@ -26,6 +29,7 @@ class UiLoader(QtUiTools.QUiLoader):
 
     @classmethod
     def loadUi(cls, uifile, baseinstance, custom_widgets=None):
+        baseinstance._ui_loader = cls(baseinstance, custom_widgets)
         loader = cls(baseinstance, custom_widgets)
         ui_file = QtCore.QFile(uifile)
         ui_file.open(QtCore.QFile.ReadOnly)

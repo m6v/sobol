@@ -11,7 +11,6 @@ from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QShowEvent
 
 from UiLoader import UiLoader
-
 from SobolDialog import SobolDialog
 
 def gen_password(length=8):
@@ -118,5 +117,5 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
     def showEvent(self, event: QShowEvent):
         self.stacked_widget.setCurrentIndex(0)
         # TODO Далее нужно очистить все элементы ввода от предыдущих итераций
-        # Обязательно вызываем базовый класс, чтобы не нарушить цепочку Qt
+        # Вызывать базовый класс, чтобы не нарушить цепочку Qt
         super().showEvent(event)

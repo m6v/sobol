@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>727</width>
-    <height>596</height>
+    <width>757</width>
+    <height>576</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -38,7 +38,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontal_layout_2">
      <property name="spacing">
-      <number>8</number>
+      <number>0</number>
      </property>
      <item>
       <widget class="QPushButton" name="view_journal_push_button">
@@ -169,13 +169,13 @@
            <number>0</number>
           </property>
           <property name="topMargin">
-           <number>0</number>
+           <number>8</number>
           </property>
           <property name="rightMargin">
            <number>0</number>
           </property>
           <property name="bottomMargin">
-           <number>0</number>
+           <number>8</number>
           </property>
           <item>
            <widget class="QPushButton" name="clear_journal_push_button">

@@ -11,7 +11,7 @@ from UiLoader import UiLoader
 class UserChoicePage(QtWidgets.QWidget):
     """Страница настроек"""
     sys_load_requested = QtCore.Signal()
-    change_passwd_requested = QtCore.Signal()
+    user_passwd_change_requested = QtCore.Signal()
 
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -26,7 +26,7 @@ class UserChoicePage(QtWidgets.QWidget):
             """)
 
         self.sys_load_push_button.clicked.connect(self.sys_load_requested.emit)
-        self.change_passwd_push_button.clicked.connect(self.change_passwd_requested.emit)
+        self.change_passwd_push_button.clicked.connect(self.user_passwd_change_requested.emit)
 
     def resizeEvent(self, event):
         palette = QPalette()

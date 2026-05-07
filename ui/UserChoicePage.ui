@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
-    <height>676</height>
+    <width>630</width>
+    <height>547</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -163,7 +163,7 @@
         <enum>Qt::Vertical</enum>
        </property>
        <property name="sizeType">
-        <enum>QSizePolicy::Maximum</enum>
+        <enum>QSizePolicy::Fixed</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -190,6 +190,9 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_10">
+         <property name="spacing">
+          <number>6</number>
+         </property>
          <item>
           <widget class="QPushButton" name="sys_load_push_button">
            <property name="sizePolicy">

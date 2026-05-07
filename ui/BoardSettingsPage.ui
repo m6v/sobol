@@ -52,7 +52,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap>../../sobol/img/top_left.png</pixmap>
+        <pixmap>../img/top_left.png</pixmap>
        </property>
       </widget>
      </item>
@@ -96,7 +96,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap>../../sobol/img/top_right.png</pixmap>
+        <pixmap>../img/top_right_a.png</pixmap>
        </property>
       </widget>
      </item>

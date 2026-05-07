@@ -6,7 +6,8 @@ import logging
 import dbus
 import dbus.mainloop.glib
 
-from PySide2 import QtCore, QtWidgets
+from PySide2 import QtCore, QtGui, QtWidgets
+
 
 import constants
 from AdminChoicePage import AdminChoicePage
@@ -15,6 +16,8 @@ from BoardSettingsPage import BoardSettingsPage
 from IdWaitPage import IdWaitPage
 from PasswdWaitPage import PasswdWaitPage
 from UserChoicePage import UserChoicePage
+from AdminPasswdChangePage import AdminPasswdChangePage
+from UserPasswdChangePage import UserPasswdChangePage
 
 from AdminRegistrationWizard import AdminRegistrationWizard
 from UserRegistrationWizard import UserRegistrationWizard
@@ -35,6 +38,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.config = config
 
+        self.setWindowIcon(QtGui.QIcon("../img/sobol.png"))
         self.central_widget = QtWidgets.QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QtWidgets.QVBoxLayout(self.central_widget)
@@ -62,15 +66,24 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.user_choice_page = UserChoicePage(config)
         self.user_choice_page.sys_load_requested.connect(self.sys_load)
-        # self.user_choice_page.change_passwd_requested.connect()
+        self.user_choice_page.user_passwd_change_requested.connect(lambda: self.set_page(self.user_passwd_change_page))
+
+        self.user_passwd_change_page = UserPasswdChangePage(config)
+        self.user_passwd_change_page.userPasswdChangeCompleted.connect(self.set_ibutton_data)
+        self.user_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.user_choice_page))
 
         self.board_settings_page = BoardSettingsPage(config)
         self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
         self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
+        self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
 
         self.admin_registration_wizard = AdminRegistrationWizard(config)
         self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
         self.admin_registration_wizard.adminRegistrationСanceled.connect(self.cancel_admin_registration)
+
+        self.admin_passwd_change_page = AdminPasswdChangePage(config)
+        self.admin_passwd_change_page.adminPasswdChangeCompleted.connect(self.set_ibutton_data)
+        self.admin_passwd_change_page.adminPasswdChangeCanceled.connect(lambda: self.set_page(self.board_settings_page))
 
         self.user_registration_wizard = UserRegistrationWizard(config)
         self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
@@ -80,7 +93,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stack.addWidget(self.id_wait_page)
         self.stack.addWidget(self.passwd_wait_page)
         self.stack.addWidget(self.admin_choice_page)
+        self.stack.addWidget(self.admin_passwd_change_page)
         self.stack.addWidget(self.user_choice_page)
+        self.stack.addWidget(self.user_passwd_change_page)
         self.stack.addWidget(self.board_settings_page)
         self.stack.addWidget(self.admin_registration_wizard)
         self.stack.addWidget(self.user_registration_wizard)
@@ -116,6 +131,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except configparser.NoOptionError as e:
             logging.warning(e)
         except configparser.NoSectionError as e:
+            # Здесь при необходимости можно создать отсутствующую секцию конфига
             logging.error(e)
 
         try:
@@ -166,8 +182,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 return
             # Проверить принадлежность предъявленного id пользователю
             if index is not None:
-                # TODO Проверить, что пользователь не заблокирован (user_status!=0)
-                pass
+                # Если пользователь заблокирован вывести сообщение и перейти на начальную страницу
+                if self.users[index]["user_status"]:
+                    dialog = SobolDialog("Ошибка", "Вход в систему запрещен администратором", parent=self)
+                    dialog.exec_()
+                    self.set_page(self.id_wait_page)
+                    return
                 # TODO Показать статистику, только если установлен соответствующий параметр (self.common_parms_panel.show_stats_check_box=True)
                 pass
                 # Добавить в журнал запись об успешном входе пользователя (key="5")
@@ -178,6 +198,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.users[index]["failed_logins"] = 0
                 self.users[index]["total_logins"] += 1
                 self.users[index]["last_login_datetime"] = datetime.now().strftime("%H:%M %Y/%m/%d")
+                # Запомнить измененные параметры учетной записи
+                self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
+
                 self.set_page(self.user_choice_page)
                 return
         # Неправильный пароль или идентификатор отсутсвует в списках admins и users
@@ -186,12 +209,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config.set("general", "failed_logins", str(self.failed_logins))
         # Проверить принадлежность предъявленного id пользователю
         if index is not None:
-            # Добавить в журнал запись об неуспешном входе пользователя (key="5")
+            # Добавить в журнал запись об неуспешном входе пользователя (key="5") и увеличить счетчик неудачных попыток входа
             self.board_settings_page.events_journal_panel.add_event([self.message["user_name"], self.message["id"], "5", "0"])
-
             self.users[index]["failed_logins"] += 1
-            # TODO Заблокировать пользователя, если превышено максимальное число неверных попыток входа
-            pass
+            # Заблокировать пользователя, если превышено максимальное число неверных попыток входа
+            try:
+                if self.users[index]["failed_logins"] > int(self.config.get("common_parms_panel", "max_failed_logons_line_edit", fallback="0")):
+                    self.users[index]["user_status"] = 1
+                    logging.debug(f"Пользователь {self.users[index]['user_name']} заблокирован")
+            except (configparser.NoOptionError, NoSectionError) as e:
+                logging.debug(e)
+            # Запомнить измененные параметры учетной записи
+            self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
         # Проверить принадлежность предъявленного id администратору
         elif self.message["id"] in self.admins:
             # Добавить в журнал запись о неуспешном входе администратора (key="4")
@@ -200,7 +229,6 @@ class MainWindow(QtWidgets.QMainWindow):
         dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
         dialog.exec_()
         self.set_page(self.id_wait_page)
-        # TODO Видимо нужно добавить сохранение self.users в конфиге
 
     def show_user_registration_wizard(self):
         """Запустить мастер регистрации пользователя"""
@@ -240,6 +268,14 @@ class MainWindow(QtWidgets.QMainWindow):
         """Отменить регистрацию администратора"""
         self.board_init_page.show_init_panel(constants.ADMIN_REGISTRATION_PANEL)
         self.set_page(self.board_init_page)
+
+    def set_ibutton_data(self, user_name, passwd, message):
+        """Записать в iButton новый пароль пользователя (администратора)"""
+        service_object.SetIButtonData({
+            "id": self.message["id"],
+            "user_name": user_name,
+            "passwd": passwd
+        })
 
     def sys_load(self):
         """Завершить работу имитатора"""
