@@ -70,7 +70,6 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
     def check_passwd(self):
         """Проверить совпадение пароля в обоих полях ввода и его соответствие требованиям сложности"""
         if self.passwd_line_edit.text() != self.passwd_confirm_line_edit.text():
-            # QtWidgets.QMessageBox.warning(self, "Ошибка", "Введенные пароли не совпадают, повторите ввод!", QtWidgets.QMessageBox.Ok)
             dialog = SobolDialog("Ошибка", "Введенные пароли не совпадают, повторите ввод!")
             dialog.exec_()
             return
@@ -117,5 +116,7 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
     def showEvent(self, event: QShowEvent):
         self.stacked_widget.setCurrentIndex(0)
         # TODO Далее нужно очистить все элементы ввода от предыдущих итераций
+        self.passwd_line_edit.setText("")
+        self.passwd_confirm_line_edit.setText("")
         # Вызывать базовый класс, чтобы не нарушить цепочку Qt
         super().showEvent(event)

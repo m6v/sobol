@@ -24,14 +24,6 @@ VIR_DOMAIN_STATE_MAPPING = {
 
 KB_to_MB_FACTOR = 0.0009765625
 
-# Нумерация панелей на странице инициализации платы
-SYS_LOAD_PANEL = 0
-COMMON_PARMS_PANEL = 1
-JOURNAL_PARMS_PANEL = 2
-PASSWD_PARMS_PANEL = 3
-ADMIN_REGISTRATION_PANEL = 4
-INTEGRITY_CONTROL_PANEL = 5
-
 # Типы событий, регистрируемых в журнале
 EVENTS_TYPE = {
     0: "Автоматический расчет КС",

@@ -50,15 +50,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.board_init_page = BoardInitPage(config)
         self.board_init_page.adminRegistrationRequested[bool].connect(self.show_admin_registration_wizard)
+        self.board_init_page.boardInitCompleted.connect(self.close)
 
         self.id_wait_page = IdWaitPage(config)
         self.id_wait_page.ibuttonPresented.connect(lambda: self.set_page(self.passwd_wait_page))
         
         self.passwd_wait_page = PasswdWaitPage(config, self)
         self.passwd_wait_page.passwdEntered[str].connect(self.authenticate_credentials)
-        # self.passwd_wait_page.adminAuthenticated.connect(lambda: set_page(self.admin_choice_page))
-        # self.passwd_wait_page.userAuthenticated.connect(lambda: set_page(self.user_choice_page))
-        # self.passwd_wait_page.authenticationFailed.connect(lambda: set_page(self.self.id_wait_page))
 
         self.admin_choice_page = AdminChoicePage(config)
         self.admin_choice_page.sys_load_requested.connect(self.sys_load)
@@ -266,7 +264,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def cancel_admin_registration(self):
         """Отменить регистрацию администратора"""
-        self.board_init_page.show_init_panel(constants.ADMIN_REGISTRATION_PANEL)
+        self.board_init_page.show_init_panel()
         self.set_page(self.board_init_page)
 
     def set_ibutton_data(self, user_name, passwd, message):
@@ -293,5 +291,5 @@ class MainWindow(QtWidgets.QMainWindow):
         # Преобразовать элементы кортежа в строки и разделить символом ;
         self.config.set("window", "geometry", ";".join(map(str, geometry)))
         self.config.set("window", "state", str(int(self.windowState())))
-
+        # Сохранить журнал событий
         self.board_settings_page.events_journal_panel.model.save()

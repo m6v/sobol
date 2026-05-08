@@ -4,9 +4,9 @@ import logging
 
 from PySide2 import QtCore, QtWidgets
 
-import constants
 from Toggle import Toggle
 from UiLoader import UiLoader
+from SobolDialog import SobolDialog
 
 from AdminRegistrationPanel import AdminRegistrationPanel
 from BoardDiagnosticPanel import BoardDiagnosticPanel
@@ -17,10 +17,20 @@ from PasswdParmsPanel import PasswdParmsPanel
 from ServiceOperationsPanel import ServiceOperationsPanel
 from SysLoadPanel import SysLoadPanel
 
+SYS_LOAD_PANEL = 0
+COMMON_PARMS_PANEL = 1
+JOURNAL_PARMS_PANEL = 2
+PASSWD_PARMS_PANEL = 3
+ADMIN_REGISTRATION_PANEL = 4
+INTEGRITY_CONTROL_PANEL = 5
+BOARD_DIAGNOSTIC_PANEL = 6
+SEVICE_OPERATIONS_PANEL = 7
+
 
 class BoardInitPage(QtWidgets.QWidget):
     """Страница инициализации платы"""
     adminRegistrationRequested = QtCore.Signal(bool)
+    boardInitCompleted = QtCore.Signal()
 
     def __init__(self, config, parent=None):
         super().__init__(parent)
@@ -30,42 +40,44 @@ class BoardInitPage(QtWidgets.QWidget):
 
         self.sys_load_panel = SysLoadPanel(config)
         self.sys_load_panel.save_push_button.setText("Вперед")
-        self.sys_load_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(constants.COMMON_PARMS_PANEL))
+        self.sys_load_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(COMMON_PARMS_PANEL))
         self.sys_load_panel.sys_load_push_button.hide()
         self.stacked_widget.addWidget(self.sys_load_panel)
 
         self.common_parms_panel = CommonParmsPanel(config)
         self.common_parms_panel.save_push_button.setText("Вперед")
         self.common_parms_panel.cancel_push_button.setText("Назад")
-        self.common_parms_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(constants.JOURNAL_PARMS_PANEL))
-        self.common_parms_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(constants.SYS_LOAD_PANEL))
+        self.common_parms_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(JOURNAL_PARMS_PANEL))
+        self.common_parms_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(SYS_LOAD_PANEL))
         self.stacked_widget.addWidget(self.common_parms_panel)
 
         self.journal_parms_panel = JournalParmsPanel(config)
         self.journal_parms_panel.save_push_button.setText("Вперед")
         self.journal_parms_panel.cancel_push_button.setText("Назад")
-        self.journal_parms_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(constants.PASSWD_PARMS_PANEL))
-        self.journal_parms_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(constants.COMMON_PARMS_PANEL))
+        self.journal_parms_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(PASSWD_PARMS_PANEL))
+        self.journal_parms_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(COMMON_PARMS_PANEL))
         self.stacked_widget.addWidget(self.journal_parms_panel)
 
         self.passwd_parms_panel = PasswdParmsPanel(config)
         self.passwd_parms_panel.save_push_button.setText("Вперед")
         self.passwd_parms_panel.cancel_push_button.setText("Назад")
-        self.passwd_parms_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(constants.ADMIN_REGISTRATION_PANEL))
-        self.passwd_parms_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(constants.JOURNAL_PARMS_PANEL))
+        self.passwd_parms_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(ADMIN_REGISTRATION_PANEL))
+        self.passwd_parms_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(JOURNAL_PARMS_PANEL))
         self.stacked_widget.addWidget(self.passwd_parms_panel)
 
         self.admin_registration_panel = AdminRegistrationPanel(config)
-        # Запрос первичной или вторичной регистрации администратора
+        # Запрос первичной регистрации администратора
         self.admin_registration_panel.yes_push_button.clicked.connect(lambda: self.request_admin_registration(True))
+        # Запрос вторичной регистрации администратора
         self.admin_registration_panel.no_push_button.clicked.connect(lambda: self.request_admin_registration(False))
-        self.admin_registration_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(constants.PASSWD_PARMS_PANEL))
-
+        # Отмена регистрации администратора
+        self.admin_registration_panel.cancel_push_button.clicked.connect(lambda: self.show_init_panel(PASSWD_PARMS_PANEL))
         self.stacked_widget.addWidget(self.admin_registration_panel)
 
         self.integrity_control_panel = IntegrityControlPanel(config)
         self.integrity_control_panel.save_push_button.setText("Вперед")
         self.integrity_control_panel.cancel_push_button.hide()
+        self.integrity_control_panel.save_push_button.clicked.connect(self.complete_board_init)
         self.stacked_widget.addWidget(self.integrity_control_panel)
 
         self.board_diagnostic_panel = BoardDiagnosticPanel(config)
@@ -74,10 +86,11 @@ class BoardInitPage(QtWidgets.QWidget):
         self.service_operations_panel = ServiceOperationsPanel(config)
         self.stacked_widget.addWidget(self.service_operations_panel)
 
-        # Перебрать все кнопки в боковой панели и назначить единый обработчик события clicked,
-        # передавая ему значение динамического свойства "id"
-        for button in self.side_bar_widget.findChildren(QtWidgets.QPushButton):
-            button.clicked.connect(functools.partial(self.show_panel, int(button.property("id"))))
+        self.board_init_push_button.clicked.connect(lambda: self.show_panel(SYS_LOAD_PANEL))
+        self.board_diagnostic_push_button.clicked.connect(lambda: self.show_panel(BOARD_DIAGNOSTIC_PANEL))
+        self.service_operations_push_button.clicked.connect(lambda: self.show_panel(SEVICE_OPERATIONS_PANEL))
+
+        self.show_panel(0)
 
     def show_panel(self, index=0):
         self.stacked_widget.setCurrentIndex(index)
@@ -86,9 +99,10 @@ class BoardInitPage(QtWidgets.QWidget):
             self.labels_widget.hide()
         else:
             self.labels_widget.show()
+            self.show_init_panel(0)
         self.updateGeometry()
 
-    def show_init_panel(self, index: int):
+    def show_init_panel(self, index=0):
         """Показать выбранную панель инициализации с сохраненными настройками"""
         # Подсветить метку, соответствующую текущему шагу (index) инициализации
         for i in range(self.horizontal_layout.count()):
@@ -107,13 +121,13 @@ class BoardInitPage(QtWidgets.QWidget):
         self.stacked_widget.setCurrentIndex(0)
         self.stacked_widget.setCurrentIndex(index)
 
-        # TODO следующие команды переместить в MainWidget
-        # Уточнить в поле с временем и датой необходимо выполнять динамическое обновление
-        # или достаточно выставить текущее время при открытии панели
-        # if not index:
-        #     self.sys_parms_panel.sys_datetime_line_edit.setText(datetime.now().strftime("%H:%M %d/%m/%Y"))
-
     def request_admin_registration(self, is_primary_admin_registration):
         """Запросить вызов мастера регистрации администратора"""
-        self.show_init_panel(constants.INTEGRITY_CONTROL_PANEL)
+        self.show_init_panel(INTEGRITY_CONTROL_PANEL)
         self.adminRegistrationRequested.emit(is_primary_admin_registration)
+
+    def complete_board_init(self):
+        """Завершить инициализацию платы"""
+        dialog = SobolDialog("Внимание", "Инициализация платы завершена. Переведите плату в рабочий режим.")
+        dialog.exec_()
+        self.boardInitCompleted.emit()
