@@ -20,6 +20,7 @@ service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus
 class UsersListPanel(QtWidgets.QWidget):
     """Панель со списком и настройками учетных записей пользователей"""
     userRegistrationRequested = QtCore.Signal()
+    forcePasswdChangeRequested = QtCore.Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -33,6 +34,7 @@ class UsersListPanel(QtWidgets.QWidget):
 
         self.add_user_push_button.clicked.connect(self.userRegistrationRequested.emit)
         self.del_user_push_button.clicked.connect(self.del_user)
+        self.change_passwd_push_button.clicked.connect(self.change_passwd)
         self.save_push_button.clicked.connect(self.save_user_parms)
         
     def show_user_parms(self):
@@ -115,6 +117,11 @@ class UsersListPanel(QtWidgets.QWidget):
         """Удалить всех пользователей"""
         config.users.clear()
         self.update_user_list_panel()
+
+    def change_passwd(self):
+        """Отправить сигнал о принудительной смене пароля выбранным пользователем"""
+        index = self.user_list_widget.currentRow()
+        self.forcePasswdChangeRequested.emit(config.users[index]['user_name'])
 
     def showEvent(self, event: QShowEvent):
         self.update_user_list_panel()

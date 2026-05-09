@@ -12,6 +12,7 @@ from SobolDialog import SobolDialog
 from AdminChoicePage import AdminChoicePage
 from BoardInitPage import BoardInitPage
 from BoardSettingsPage import BoardSettingsPage
+from ForcePasswdChangePage import ForcePasswdChangePage
 from IdWaitPage import IdWaitPage
 from PasswdWaitPage import PasswdWaitPage
 from UserChoicePage import UserChoicePage
@@ -71,9 +72,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.user_choice_page))
         self.stack.addWidget(self.user_passwd_change_page)
 
+        self.force_passwd_change_page = ForcePasswdChangePage()
+        self.force_passwd_change_page.userPasswdChangeCompleted.connect(self.set_ibutton_data)
+        self.force_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.board_settings_page))
+        self.stack.addWidget(self.force_passwd_change_page)
+
         self.board_settings_page = BoardSettingsPage()
         self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
         self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
+        self.board_settings_page.users_list_panel.forcePasswdChangeRequested[str].connect(self.show_force_passwd_change_wizard)
         self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
         self.board_settings_page.service_operations_panel.boardInitRequested.connect(self.init_board)
         self.stack.addWidget(self.board_settings_page)
@@ -101,19 +108,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.set_page(self.board_init_page)
 
         # Восстановление настроек окна
-        try:
-            self.setWindowTitle(config.get("window", "title", fallback='ПАК "Соболь"'))
-            # Разбить строку на элементы, преобразовать их в целые числа и получить QRect с геометрией главного окна
-            geometry = QtCore.QRect(*map(int, config.get("window", "geometry", fallback="0;0;1200;800").split(";")))
-            # Восстановить геометрию и состояние главного окна
-            self.setGeometry(geometry)
-            state = int(config.get("window", "state", fallback="0"))
-            self.restoreState(bytearray(state))
-        except configparser.NoOptionError as e:
-            logging.warning(e)
-        except configparser.NoSectionError as e:
-            # Здесь при необходимости можно создать отсутствующую секцию конфига
-            logging.error(e)
+        self.setWindowTitle(config.window_title)
+        self.setGeometry(config.window_geometry)
+        self.restoreState(bytearray(config.window_state))
 
         try:
             # Установить функцию обратного вызова для обработки сигнала ibutton2dbus
@@ -217,6 +214,10 @@ class MainWindow(QtWidgets.QMainWindow):
         """Запустить мастер регистрации пользователя"""
         self.set_page(self.user_registration_wizard)
 
+    def show_force_passwd_change_wizard(self, user_name):
+        self.force_passwd_change_page.set_user_name(user_name)
+        self.set_page(self.force_passwd_change_page)
+
     def complete_user_registration(self, user_name, passwd, message):
         """Завершить регистрацию пользователя"""
         # Методы по управлению пользователями реализованы в self.board_settings_page.users_list_panel
@@ -280,10 +281,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if not config.has_section(section):
                 config.add_section(section)
 
-        # Получить кортеж с элементами QRect геометрии главного окна
-        geometry = self.geometry().getRect()
-        # Преобразовать элементы кортежа в строки и разделить символом ;
-        config.set("window", "geometry", ";".join(map(str, geometry)))
-        config.set("window", "state", str(int(self.windowState())))
+        config.window_geometry = self.geometry().getRect()
+        config.window_state = int(self.windowState())
+      
         # Сохранить журнал событий
         self.board_settings_page.events_journal_panel.model.save()
