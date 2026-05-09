@@ -74,6 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
         self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
         self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
+        self.board_settings_page.service_operations_panel.boardInitRequested.connect(self.init_board)
 
         self.admin_registration_wizard = AdminRegistrationWizard(config)
         self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
@@ -274,6 +275,14 @@ class MainWindow(QtWidgets.QMainWindow):
             "user_name": user_name,
             "passwd": passwd
         })
+
+    def init_board(self):
+        """Программная инициализация платы"""
+        self.admins = []
+        self.users = []
+        self.config.set("general", "admins", json.dumps(self.admins, ensure_ascii=False))
+        self.config.set("general", "users", json.dumps(self.users, ensure_ascii=False))
+        self.set_page(self.board_init_page)
 
     def sys_load(self):
         """Завершить работу имитатора"""

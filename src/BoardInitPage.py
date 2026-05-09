@@ -38,6 +38,8 @@ class BoardInitPage(QtWidgets.QWidget):
         self.loader = UiLoader()
         self.loader.loadUi("../ui/BoardInitPage.ui", self, Toggle)
 
+        # Это панель инициализации платы, но использует тот класс,
+        # что и панель с параметрами загрузки ОС в режиме "Работа"
         self.sys_load_panel = SysLoadPanel(config)
         self.sys_load_panel.save_push_button.setText("Вперед")
         self.sys_load_panel.save_push_button.clicked.connect(lambda: self.show_init_panel(COMMON_PARMS_PANEL))
@@ -128,6 +130,6 @@ class BoardInitPage(QtWidgets.QWidget):
 
     def complete_board_init(self):
         """Завершить инициализацию платы"""
-        dialog = SobolDialog("Внимание", "Инициализация платы завершена. Переведите плату в рабочий режим.")
+        dialog = SobolDialog("Внимание", "Инициализация платы завершена. Компьютер будет перезагружен")
         dialog.exec_()
         self.boardInitCompleted.emit()

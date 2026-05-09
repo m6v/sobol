@@ -1,7 +1,7 @@
 import functools
 import logging
 
-from PySide2 import QtWidgets
+from PySide2 import QtCore, QtWidgets
 
 from Toggle import Toggle
 from UiLoader import UiLoader
@@ -19,6 +19,7 @@ from EventsJournalPanel import EventsJournalPanel
 
 
 class BoardSettingsPage(QtWidgets.QWidget):
+    boardInitRequested = QtCore.Signal()
     """Страница настроек"""
     def __init__(self, config, parent=None):
         super().__init__(parent)
