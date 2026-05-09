@@ -11,7 +11,7 @@ class IdWaitPage(QtWidgets.QWidget):
     """Страница ожидания предъявления ibutton"""
     ibuttonPresented = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setAutoFillBackground(True)
 

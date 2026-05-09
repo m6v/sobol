@@ -8,6 +8,7 @@ from pathlib import Path
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtWidgets import QWidget, QLineEdit, QTextEdit, QPlainTextEdit, QCheckBox, QSpinBox, QComboBox
 
+from config import config
 from Toggle import Toggle
 from UiLoader import UiLoader
 
@@ -27,11 +28,8 @@ class EventsJournalPanel(QtWidgets.QWidget):
     # Сигнал завершения работы мастера
     close = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__()
-
-        self.parent = parent
-        self.config = config
 
         self.loader = UiLoader()
         # Загружаем интерфейс и регистрируем кастомный класс Toggle
@@ -42,14 +40,14 @@ class EventsJournalPanel(QtWidgets.QWidget):
         for item in EVENTS_TYPE.values():
             self.events_type_list_widget.addItem(item)
 
-        self.widget_state_manager = WidgetStateManager(self.config)
+        self.widget_state_manager = WidgetStateManager()
         self.widget_state_manager.load_state(self)
         # Установить состояние списка событий в зависимости от переключателя "Поик по типу событий"
         self.events_type_list_widget.setEnabled(self.events_type_search_check_box.isChecked())
 
         # Если файла журнала нет, то создать его
-        Path.touch(self.config.journal_file)
-        self.model = JournalTableModel(self.config.journal_file)
+        Path.touch(config.journal_file)
+        self.model = JournalTableModel(config.journal_file)
 
         self.proxy_model = JournalProxyModel()
         self.proxy_model.setSourceModel(self.model)

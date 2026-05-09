@@ -11,7 +11,7 @@ class UserRegistrationWizard(QtWidgets.QWidget):
     userRegistrationСompleted = QtCore.Signal(str, str, dict)
     userRegistrationСanceled = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()

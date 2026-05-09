@@ -6,8 +6,8 @@ from UiLoader import UiLoader
 
 
 class AdminRegistrationPanel(QtWidgets.QWidget):
-    """Страница регистрации пользователя"""
-    def __init__(self, config, parent=None):
+    """Страница регистрации администратора"""
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()

@@ -1,6 +1,8 @@
 import logging
 from PySide2.QtWidgets import QLineEdit, QCheckBox, QComboBox, QListWidget, QWidget
 
+from config import config
+
 
 def str2bool(s):
     """Преобразовать строковое представление истины в boolean с очисткой пробелов"""
@@ -9,23 +11,17 @@ def str2bool(s):
 
 class WidgetStateManager:
     """Класс, обеспечивающий сохранение и восстановление состояния виджетов"""
-    def __init__(self, config):
-        """
-        :param config: экземпляр configparser.ConfigParser()
-        """
-        self.config = config
-
     def save_state(self, container):
         """
-        Считать значения из виджетов внутри контейнера и сохранить в self.config
+        Считать значения из виджетов внутри контейнера и сохранить в config
         """
         # Использовать для названия секции objectName контейнераили имя его класса
         section = container.objectName() or container.__class__.__name__
         logging.debug(f"Save state of the {section}")
 
-        if not self.config.has_section(section):
+        if not config.has_section(section):
             logging.debug(f"Section {section} is created")
-            self.config.add_section(section)
+            config.add_section(section)
 
         supported_types = [QLineEdit, QCheckBox, QComboBox, QListWidget]
         widgets = []
@@ -53,18 +49,18 @@ class WidgetStateManager:
             else:
                 continue
 
-            self.config.set(section, name, str(value))
+            config.set(section, name, str(value))
 
     def load_state(self, container):
-        """Загрузить значения из self.config и применить их к виджетам внутри контейнера"""
+        """Загрузить значения из config и применить их к виджетам внутри контейнера"""
         section = container.objectName() or container.__class__.__name__
 
-        if not self.config.has_section(section):
+        if not config.has_section(section):
             logging.debug(f"Section {section} not found")
             return
 
         logging.debug(f"Load state of the {section}")
-        for name, value in self.config.items(section):
+        for name, value in config.items(section):
             widget = container.findChild(QWidget, name)
             if not widget:
                 continue

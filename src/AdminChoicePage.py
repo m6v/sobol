@@ -1,25 +1,21 @@
-import configparser
 from datetime import datetime
-import json
-import functools
 import logging
 
 from PySide2.QtCore import Qt
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QPalette, QImage, QBrush, QShowEvent
 
+from config import config
 from UiLoader import UiLoader
 
 
 class AdminChoicePage(QtWidgets.QWidget):
-    """Страница настроек"""
+    """Страница выбора действий администратора (Загрузка ОС или Настройки)"""
     sys_load_requested = QtCore.Signal()
     show_settings_requested = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        
-        self.config = config
         
         self.setAutoFillBackground(True)
 
@@ -33,16 +29,6 @@ class AdminChoicePage(QtWidgets.QWidget):
 
         self.sys_load_push_button.clicked.connect(self.sys_load_requested.emit)
         self.show_settings_push_button.clicked.connect(self.show_settings_requested.emit)
-
-        try:
-            # Список из идентификаторов iButton зарегистрированных пользователей
-            self.users = json.loads(self.config.get("general", "users", fallback="[]"))
-            # Суммарное кол-во неудачных попыток входа (с момента инициализации)
-            self.failed_logins = int(self.config.get("general", "failed_logins", fallback="0"))
-        except configparser.NoOptionError as e:
-            logging.warning(e)
-        except configparser.NoSectionError as e:
-            logging.error(e)
 
     def resizeEvent(self, event):
         palette = QPalette()
@@ -58,10 +44,10 @@ class AdminChoicePage(QtWidgets.QWidget):
 
     def showEvent(self, event: QShowEvent):
         # Если ни один пользователь не зарегистрирован, пропустить вывод сведений о последнем входе в систему
-        if self.users:
+        if config.users:
             # Найти пользователя входившего в систему последним
-            last_user = self.users[0]
-            for user in self.users:
+            last_user = config.users[0]
+            for user in config.users:
                 if datetime.strptime(user["last_login_datetime"], "%H:%M %Y/%m/%d") > datetime.strptime(last_user["last_login_datetime"], "%H:%M %Y/%m/%d"):
                     last_user = user
 
@@ -69,6 +55,6 @@ class AdminChoicePage(QtWidgets.QWidget):
             self.last_user_id_value.setText(last_user["id"])
             self.last_user_datetime_value.setText(last_user["last_login_datetime"])
 
-        self.failed_logins_value.setText(str(self.failed_logins))
+        self.failed_logins_value.setText(str(config.failed_logins))
         self.admin_datetime_value.setText(datetime.now().strftime("%H:%M %Y/%m/%d"))
         super().showEvent(event)

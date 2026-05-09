@@ -17,7 +17,7 @@ class AdminPasswdChangePage(QtWidgets.QWidget):
     adminPasswdChangeCompleted = QtCore.Signal(str, str, dict)
     adminPasswdChangeCanceled = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()

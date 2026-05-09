@@ -11,7 +11,7 @@ from WidgetStateManager import WidgetStateManager
 class SysLoadPanel(QtWidgets.QWidget):
     sys_load_requested = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()
@@ -19,7 +19,7 @@ class SysLoadPanel(QtWidgets.QWidget):
         self.loader.loadUi("../ui/SysLoadPanel.ui", self, Toggle)
 
         self.setObjectName("sysload_panel")
-        self.widget_state_manager = WidgetStateManager(config)
+        self.widget_state_manager = WidgetStateManager()
 
         self.sys_load_push_button.clicked.connect(self.sys_load_requested.emit)
         self.save_push_button.clicked.connect(functools.partial(self.widget_state_manager.save_state, self))

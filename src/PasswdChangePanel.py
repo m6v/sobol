@@ -7,7 +7,7 @@ class PasswdChangePanel(QtWidgets.QWidget):
     """Панель с кнопкой вызова мастера смены пароля администратора"""
     adminPasswdChangeRequested = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()

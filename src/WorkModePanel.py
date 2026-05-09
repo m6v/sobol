@@ -6,7 +6,7 @@ from UiLoader import UiLoader
 
 class WorkModePanel(QtWidgets.QWidget):
     """Панель изменения режима работы"""
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()

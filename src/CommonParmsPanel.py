@@ -10,7 +10,7 @@ from WidgetStateManager import WidgetStateManager
 
 class CommonParmsPanel(QtWidgets.QWidget):
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()
@@ -18,7 +18,7 @@ class CommonParmsPanel(QtWidgets.QWidget):
         self.loader.loadUi("../ui/CommonParmsPanel.ui", self, Toggle)
 
         self.setObjectName("common_parms_panel")
-        self.widget_state_manager = WidgetStateManager(config)
+        self.widget_state_manager = WidgetStateManager()
 
         self.save_push_button.clicked.connect(functools.partial(self.widget_state_manager.save_state, self))
         self.cancel_push_button.clicked.connect(functools.partial(self.widget_state_manager.load_state, self))

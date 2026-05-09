@@ -1,4 +1,3 @@
-import configparser
 import json
 import logging
 import secrets
@@ -44,10 +43,8 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
     adminRegistrationСompleted = QtCore.Signal(str, str, dict)
     adminRegistrationСanceled = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.config = config
 
         self.loader = UiLoader()
         self.loader.loadUi("../ui/AdminRegistrationWizard.ui", self)

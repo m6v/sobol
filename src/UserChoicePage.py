@@ -13,7 +13,7 @@ class UserChoicePage(QtWidgets.QWidget):
     sys_load_requested = QtCore.Signal()
     user_passwd_change_requested = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
         self.setAutoFillBackground(True)
 

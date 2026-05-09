@@ -5,7 +5,7 @@ from UiLoader import UiLoader
 
 class AuthenticatorChangePanel(QtWidgets.QWidget):
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()

@@ -1,8 +1,7 @@
-import logging
-
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QShowEvent
 
+from config import config
 from UiLoader import UiLoader
 from SobolDialog import SobolDialog
 
@@ -17,7 +16,7 @@ class UserPasswdChangePage(QtWidgets.QWidget):
     userPasswdChangeCompleted = QtCore.Signal(str, str, dict)
     userPasswdChangeCanceled = QtCore.Signal()
 
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()
@@ -56,14 +55,11 @@ class UserPasswdChangePage(QtWidgets.QWidget):
 
     def on_ibutton_presented(self, message):
         # Сохранить идентификатор предъявленной ibutton
-        self.message = message
-        logging.debug(message)
-        # Проверить правильность старого пароля
         if self.old_passwd_line_edit.text() != message["passwd"]:
             dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль!")
             dialog.exec_()
             return
-        self.userPasswdChangeCompleted.emit(self.message["user_name"], self.new_passwd_line_edit.text(), self.message)
+        self.userPasswdChangeCompleted.emit(message["user_name"], self.new_passwd_line_edit.text(), message)
         self.stacked_widget.setCurrentIndex(COMPLETION_PAGE)
         self.finish_push_button_4.setEnabled(True)
 

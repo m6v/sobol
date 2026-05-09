@@ -16,7 +16,7 @@ message = """
 
 class ServiceOperationsPanel(QtWidgets.QWidget):
     boardInitRequested = QtCore.Signal()
-    def __init__(self, config, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.loader = UiLoader()

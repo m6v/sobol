@@ -231,6 +231,9 @@
            <property name="text">
             <string>Загрузка ОС</string>
            </property>
+           <property name="default">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
          <item>
@@ -255,6 +258,9 @@
            </property>
            <property name="text">
             <string>Настройки</string>
+           </property>
+           <property name="default">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
