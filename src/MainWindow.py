@@ -6,7 +6,6 @@ import dbus.mainloop.glib
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
-import constants
 from config import config
 from SobolDialog import SobolDialog
 from AdminChoicePage import AdminChoicePage
@@ -180,8 +179,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 config.users[index]["failed_logins"] = 0
                 config.users[index]["total_logins"] += 1
                 config.users[index]["last_login_datetime"] = datetime.now().strftime("%H:%M %Y/%m/%d")
-                # Запомнить измененные параметры учетной записи
-                config.set("general", "users", json.dumps(config.users, ensure_ascii=False))
 
                 self.set_page(self.user_choice_page)
                 return
@@ -199,8 +196,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     logging.debug(f"User {config.users[index]['user_name']} was blocked")
             except (configparser.NoOptionError, NoSectionError) as e:
                 logging.debug(e)
-            # Запомнить измененные параметры учетной записи
-            config.set("general", "users", json.dumps(config.users, ensure_ascii=False))
         # Проверить принадлежность предъявленного id администратору
         elif self.message["id"] in config.admins:
             # Добавить в журнал запись о неуспешном входе администратора (key="4")
@@ -238,7 +233,6 @@ class MainWindow(QtWidgets.QMainWindow):
     def complete_admin_registration(self, user_name, passwd, message):
         """Зарегистрировать администратора"""
         config.admins.append(message["id"])
-        config.set("general", "admins", json.dumps(config.admins, ensure_ascii=False))
         # Вызвать метод SetIButtonData, зарегистрированный в dbus
         # для записи в предъявленную ibutton имени и пароля администратора
         service_object.SetIButtonData({
@@ -265,9 +259,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """Программная инициализация платы"""
         config.admins = []
         config.users = []
-        # TODO После перехода на общий конфиг сохранение админов и пользователей делать в перед закрытием программы!
-        config.set("general", "admins", json.dumps(config.admins, ensure_ascii=False))
-        config.set("general", "users", json.dumps(config.users, ensure_ascii=False))
         self.set_page(self.board_init_page)
 
     def sys_load(self):

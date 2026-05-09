@@ -6,6 +6,13 @@ from PySide2.QtGui import QShowEvent
 from UiLoader import UiLoader
 
 
+USER_NAME_PANEL = 0
+REGISTRATION_TYPE_PANEL = 1
+PASSWD_CONFIRM_PANEL = 2
+ID_PRESENT_PANEL = 3
+USER_REGISTERED_PANEL = 4
+
+
 class UserRegistrationWizard(QtWidgets.QWidget):
     """Мастер регистрации пользователя"""
     userRegistrationСompleted = QtCore.Signal(str, str, dict)
@@ -19,22 +26,24 @@ class UserRegistrationWizard(QtWidgets.QWidget):
 
         self.user_name.textChanged[str].connect(self.user_name_changed)
         self.cancel_push_button_1.clicked.connect(self.cancel_user_registration)
-        self.next_push_button_1.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(1))
+        self.next_push_button_1.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(REGISTRATION_TYPE_PANEL))
 
-        self.cancel_push_button_2.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
-        self.yes_push_button_2.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(2))
+        self.cancel_push_button_2.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(USER_NAME_PANEL))
+        self.yes_push_button_2.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(PASSWD_CONFIRM_PANEL))
 
-        self.cancel_push_button_3.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(1))
-        self.next_push_button_3.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(3))
+        self.cancel_push_button_3.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(REGISTRATION_TYPE_PANEL))
+        self.next_push_button_3.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(ID_PRESENT_PANEL))
         self.passwd_line_edit.textChanged[str].connect(self.passwd_changed)
         self.passwd_confirm_line_edit.textChanged[str].connect(self.passwd_changed)
         
-        self.cancel_push_button_4.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(2))
-        self.finish_push_button_4.clicked.connect(self.complete_user_registration)
+        self.cancel_push_button_4.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(PASSWD_CONFIRM_PANEL))
+
+        self.finish_push_button_5.clicked.connect(self.complete_user_registration)
 
     def on_ibutton_presented(self, message):
         self.message = message
-        self.finish_push_button_4.setEnabled(True)
+        self.stacked_widget.setCurrentIndex(USER_REGISTERED_PANEL)
+        self.finish_push_button_5.setEnabled(True)
 
     def complete_user_registration(self):
         """Добавить пользователя"""

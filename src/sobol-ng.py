@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+
+__author__ = "Sergey Maksimov"
+__mail__ = "m6v@mail.ru"
+__version__ = '2.3'
+__date__ = "2026-05-09"
+__copyright__ = "Copyright © 2026 Sergey Maksimov"
+__licence__ = "GNU Public Licence (GPL) v3"
+__application__ = "sobol4"
+__description__ = 'Эмулятор ПАК "Соболь"'
+
 import argparse
 import configparser
 import json
@@ -19,7 +29,7 @@ from MainWindow import MainWindow
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-    parser = argparse.ArgumentParser(description='Эмулятор ПАК "Соболь"')
+    parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument("config", nargs="?", help="Конфигурационный файл")
     args = parser.parse_args()
 
