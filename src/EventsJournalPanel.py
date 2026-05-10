@@ -1,12 +1,8 @@
-import functools
-import logging
-import os
-
 from datetime import datetime
+import logging
 from pathlib import Path
 
 from PySide2 import QtCore, QtGui, QtWidgets
-from PySide2.QtWidgets import QWidget, QLineEdit, QTextEdit, QPlainTextEdit, QCheckBox, QSpinBox, QComboBox
 
 from config import config
 from Toggle import Toggle
@@ -67,10 +63,10 @@ class EventsJournalPanel(QtWidgets.QWidget):
         validator = QtGui.QRegExpValidator(journal_size_regex)
         self.journal_max_size_line_edit.setValidator(validator)
 
-        self.view_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, VIEW_JOURNAL_PAGE))
-        self.export_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, EXPORT_JOURNAL_PAGE))
-        self.parms_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, PARMS_JOURNAL_PAGE))
-        self.search_journal_push_button.clicked.connect(functools.partial(self.show_journal_panel, SEARCH_JOURNAL_PAGE))
+        self.view_journal_push_button.clicked.connect(lambda: self.show_journal_panel(VIEW_JOURNAL_PAGE))
+        self.export_journal_push_button.clicked.connect(lambda: self.show_journal_panel(EXPORT_JOURNAL_PAGE))
+        self.parms_journal_push_button.clicked.connect(lambda: self.show_journal_panel(PARMS_JOURNAL_PAGE))
+        self.search_journal_push_button.clicked.connect(lambda: self.show_journal_panel(SEARCH_JOURNAL_PAGE))
         self.select_parms_push_button.clicked.connect(self.apply_event_filter)
         self.cancel_parms_push_button.clicked.connect(self.cancel_event_filter)
         self.select_all_push_button.clicked.connect(self.events_type_list_widget.selectAll)
@@ -83,14 +79,14 @@ class EventsJournalPanel(QtWidgets.QWidget):
 
     def clear_all_inputs(self):
         """Очистить содержимое всех виджетов ввода"""
-        for widget in self.findChildren(QWidget):
-            if isinstance(widget, (QLineEdit, QTextEdit, QPlainTextEdit)):
+        for widget in self.findChildren(QtWidgets.QWidget):
+            if isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QTextEdit, QtWidgets.QPlainTextEdit)):
                 widget.clear()
-            elif isinstance(widget, QCheckBox):
+            elif isinstance(widget, QtWidgets.QCheckBox):
                 widget.setChecked(False)
-            elif isinstance(widget, QSpinBox):
+            elif isinstance(widget, QtWidgets.QSpinBox):
                 widget.setValue(widget.minimum())
-            elif isinstance(widget, QComboBox):
+            elif isinstance(widget, QtWidgets.QComboBox):
                 widget.setCurrentIndex(0)
 
     def show_journal_panel(self, index):

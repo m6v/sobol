@@ -1,5 +1,3 @@
-import functools
-
 from PySide2 import QtWidgets
 from PySide2.QtGui import QShowEvent
 
@@ -20,8 +18,8 @@ class JournalParmsPanel(QtWidgets.QWidget):
         self.setObjectName("journal_parms_panel")
         self.widget_state_manager = WidgetStateManager()
 
-        # self.save_push_button.clicked.connect(functools.partial(self.widget_state_manager.save_state, self))
-        # self.cancel_push_button.clicked.connect(functools.partial(self.widget_state_manager.load_state, self))
+        self.save_push_button.clicked.connect(lambda: self.widget_state_manager.save_state(self))
+        self.cancel_push_button.clicked.connect(lambda: self.widget_state_manager.load_state(self))
 
     def showEvent(self, event: QShowEvent):
         """Используем обработчик события отображения виджета, чтобы восстановить его настройки.

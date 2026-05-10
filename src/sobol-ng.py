@@ -69,7 +69,7 @@ if __name__ == "__main__":
     except configparser.NoOptionError as e:
         logging.warning(e)
     except configparser.NoSectionError as e:
-        logging.error(e)    
+        logging.error(e)
 
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()

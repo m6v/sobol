@@ -1,10 +1,7 @@
-import logging
-
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QShowEvent
 
 from UiLoader import UiLoader
-
 
 USER_NAME_PANEL = 0
 REGISTRATION_TYPE_PANEL = 1
@@ -35,7 +32,7 @@ class UserRegistrationWizard(QtWidgets.QWidget):
         self.next_push_button_3.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(ID_PRESENT_PANEL))
         self.passwd_line_edit.textChanged[str].connect(self.passwd_changed)
         self.passwd_confirm_line_edit.textChanged[str].connect(self.passwd_changed)
-        
+
         self.cancel_push_button_4.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(PASSWD_CONFIRM_PANEL))
 
         self.finish_push_button_5.clicked.connect(self.complete_user_registration)
@@ -48,7 +45,7 @@ class UserRegistrationWizard(QtWidgets.QWidget):
     def complete_user_registration(self):
         """Добавить пользователя"""
         self.userRegistrationСompleted.emit(self.user_name.text(), self.passwd_line_edit.text(), self.message)
-    
+
     def cancel_user_registration(self):
         """Отменить регистрацию пользователя"""
         self.userRegistrationСanceled.emit()

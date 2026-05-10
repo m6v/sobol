@@ -1,5 +1,3 @@
-import logging
-
 from PySide2 import QtCore, QtWidgets
 
 from UiLoader import UiLoader
@@ -14,8 +12,10 @@ message = """
 Продолжить?
 """
 
+
 class ServiceOperationsPanel(QtWidgets.QWidget):
     boardInitRequested = QtCore.Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
 

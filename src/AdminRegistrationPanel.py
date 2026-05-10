@@ -1,5 +1,3 @@
-import logging
-
 from PySide2 import QtWidgets
 
 from UiLoader import UiLoader

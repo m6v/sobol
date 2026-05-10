@@ -3,7 +3,6 @@ import logging
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QShowEvent
 
-from config import config
 from UiLoader import UiLoader
 from SobolDialog import SobolDialog
 
@@ -32,8 +31,6 @@ class ForcePasswdChangePage(QtWidgets.QWidget):
         self.cancel_push_button_2.clicked.connect(self.userPasswdChangeCanceled.emit)
         self.cancel_push_button_3.clicked.connect(self.userPasswdChangeCanceled.emit)
         self.finish_push_button_4.clicked.connect(self.userPasswdChangeCanceled.emit)
-        
-        self.user_name = None
 
     def set_user_name(self, user_name):
         """Запомнить имя пользователя для которого будет выполняться принудительная смена пароля.

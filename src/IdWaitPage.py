@@ -1,5 +1,3 @@
-import logging
-
 from PySide2.QtCore import Qt
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QPalette, QImage, QBrush

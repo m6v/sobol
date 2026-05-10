@@ -16,7 +16,7 @@ class AdminChoicePage(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        
+
         self.setAutoFillBackground(True)
 
         self.loader = UiLoader()

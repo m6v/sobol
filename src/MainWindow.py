@@ -1,8 +1,8 @@
 from datetime import datetime
-import json
 import logging
 import dbus
 import dbus.mainloop.glib
+import sys
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -32,7 +32,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
-        
+
         self.setWindowIcon(QtGui.QIcon("../img/sobol.png"))
         self.central_widget = QtWidgets.QWidget()
         self.setCentralWidget(self.central_widget)
@@ -190,17 +190,14 @@ class MainWindow(QtWidgets.QMainWindow):
             self.board_settings_page.events_journal_panel.add_event([self.message["user_name"], self.message["id"], "5", "0"])
             config.users[index]["failed_logins"] += 1
             # Заблокировать пользователя, если превышено максимальное число неверных попыток входа
-            try:
-                if config.users[index]["failed_logins"] > int(config.get("common_parms_panel", "max_failed_logons_line_edit", fallback="0")):
-                    config.users[index]["user_status"] = 1
-                    logging.debug(f"User {config.users[index]['user_name']} was blocked")
-            except (configparser.NoOptionError, NoSectionError) as e:
-                logging.debug(e)
+            if config.users[index]["failed_logins"] > int(config.get("common_parms_panel", "max_failed_logons_line_edit", fallback="0")):
+                config.users[index]["user_status"] = 1
+                logging.debug(f"User {config.users[index]['user_name']} was blocked")
         # Проверить принадлежность предъявленного id администратору
         elif self.message["id"] in config.admins:
             # Добавить в журнал запись о неуспешном входе администратора (key="4")
             self.board_settings_page.events_journal_panel.add_event(["Администратор", self.message["id"], "4", "0"])
-            
+
         dialog = SobolDialog("Ошибка", "Неверный идентификатор или пароль", parent=self)
         dialog.exec_()
         self.set_page(self.id_wait_page)
@@ -274,6 +271,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         config.window_geometry = self.geometry().getRect()
         config.window_state = int(self.windowState())
-      
+
         # Сохранить журнал событий
         self.board_settings_page.events_journal_panel.model.save()

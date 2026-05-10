@@ -16,7 +16,7 @@ class PasswdWaitPage(QtWidgets.QWidget):
 
         self.loader = UiLoader()
         self.loader.loadUi("../ui/PasswdWaitPage.ui", self)
-        
+
         self.setStyleSheet("""
             QPushButton { border: 2px solid white; color: white; }
             QLabel { color: white; }

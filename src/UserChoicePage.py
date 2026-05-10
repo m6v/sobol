@@ -1,6 +1,3 @@
-import functools
-import logging
-
 from PySide2.QtCore import Qt
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QPalette, QImage, QBrush
@@ -36,7 +33,3 @@ class UserChoicePage(QtWidgets.QWidget):
         scaled = img.scaled(self.size(), Qt.IgnoreAspectRatio)
         palette.setBrush(QPalette.Window, QBrush(scaled))
         self.setPalette(palette)
-
-    def on_ibutton_present(self, message):
-        logging.debug(message)
-

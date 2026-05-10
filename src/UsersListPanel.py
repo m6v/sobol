@@ -1,5 +1,4 @@
 from datetime import datetime
-import json
 import logging
 
 import dbus
@@ -36,7 +35,7 @@ class UsersListPanel(QtWidgets.QWidget):
         self.del_user_push_button.clicked.connect(self.del_user)
         self.change_passwd_push_button.clicked.connect(self.change_passwd)
         self.save_push_button.clicked.connect(self.save_user_parms)
-        
+
     def show_user_parms(self):
         """Показать настройки выбранного в списке пользователя"""
         index = self.user_list_widget.currentRow()
@@ -76,7 +75,7 @@ class UsersListPanel(QtWidgets.QWidget):
         self.change_passwd_push_button.setEnabled(bool(config.users))
         # Если зарегистрированных пользователей нет, то выйти
         if not config.users:
-            # TODO Установить дефолтные настройки пользователя и отключить панель настроек 
+            # TODO Установить дефолтные настройки пользователя и отключить панель настроек
             return
         for user in config.users:
             self.user_list_widget.addItem(user["user_name"])

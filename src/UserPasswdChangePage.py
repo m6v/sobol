@@ -1,7 +1,6 @@
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QShowEvent
 
-from config import config
 from UiLoader import UiLoader
 from SobolDialog import SobolDialog
 

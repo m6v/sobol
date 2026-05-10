@@ -1,16 +1,12 @@
-import json
-import logging
 import secrets
 import string
-
-import dbus
-import dbus.mainloop.glib
 
 from PySide2 import QtCore, QtWidgets
 from PySide2.QtGui import QShowEvent
 
 from UiLoader import UiLoader
 from SobolDialog import SobolDialog
+
 
 def gen_password(length=8):
     """Сгенерировать пароль заданной длины"""
@@ -48,7 +44,7 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
 
         self.loader = UiLoader()
         self.loader.loadUi("../ui/AdminRegistrationWizard.ui", self)
-        
+
         self.passwd_line_edit.textChanged[str].connect(self.on_passwd_changed)
         self.passwd_confirm_line_edit.textChanged[str].connect(self.on_passwd_changed)
         self.cancel_push_button_1.clicked.connect(self.adminRegistrationСanceled.emit)

@@ -1,13 +1,12 @@
-import sys
 import csv
 from datetime import datetime
 import logging
 
-from PySide2.QtWidgets import QApplication, QMainWindow, QTableView
 from PySide2.QtCore import Qt, QAbstractTableModel, QSortFilterProxyModel, QModelIndex
 from PySide2.QtGui import QColor
 
 from constants import EVENTS_TYPE
+
 
 class JournalTableModel(QAbstractTableModel):
     def __init__(self, journal_file):
@@ -30,7 +29,7 @@ class JournalTableModel(QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return None
-         
+
         value = self._data[index.row()][index.column()]
 
         if role == Qt.DisplayRole:
@@ -59,7 +58,7 @@ class JournalTableModel(QAbstractTableModel):
             return self._headers[section]
         else:
             return str(section + 1)
-            
+
     def add_event(self, event):
         """Добавить событие в журнал"""
         row = len(self._data)
@@ -67,7 +66,7 @@ class JournalTableModel(QAbstractTableModel):
         # Первым элементом всегда добавляем текущее время
         self._data.append([datetime.now().strftime("%H:%M %d/%m/%Y")] + event)
         self.endInsertRows()
-        
+
     def save(self):
         logging.debug(f"Save journal to {self._journal_file}")
         with open(self._journal_file, "w", newline="", encoding="utf-8") as f:

@@ -1,10 +1,5 @@
-from datetime import datetime
-import functools
-import logging
-
 from PySide2 import QtCore, QtWidgets
 
-from config import config
 from Toggle import Toggle
 from UiLoader import UiLoader
 from SobolDialog import SobolDialog
