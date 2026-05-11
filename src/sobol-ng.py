@@ -11,14 +11,30 @@ __description__ = 'Эмулятор ПАК "Соболь"'
 
 import argparse
 import configparser
+import dbus
+import dbus.mainloop.glib
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
 # Модуль для вывода сообщений о segfaults
 import faulthandler
 faulthandler.enable()
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+bus = dbus.SessionBus()
+if not bus.name_has_owner("ru.navis.ibutton2dbus"):
+    logging.error("Имитатор ibutton не запущен")
+    os.system("notify-send 'Ошибка! Имитатор ibutton не запущен'")
+    sys.exit(2)
 
 from PySide2 import QtCore, QtWidgets
 
@@ -27,8 +43,6 @@ from MainWindow import MainWindow
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG, format="%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-
     parser = argparse.ArgumentParser(description=__description__)
     parser.add_argument("config", nargs="?", help="Конфигурационный файл")
     args = parser.parse_args()

@@ -11,7 +11,6 @@ from SobolDialog import SobolDialog
 from AdminChoicePage import AdminChoicePage
 from BoardInitPage import BoardInitPage
 from BoardSettingsPage import BoardSettingsPage
-from ForcePasswdChangePage import ForcePasswdChangePage
 from IdWaitPage import IdWaitPage
 from PasswdWaitPage import PasswdWaitPage
 from UserChoicePage import UserChoicePage
@@ -19,7 +18,6 @@ from AdminPasswdChangePage import AdminPasswdChangePage
 from UserPasswdChangePage import UserPasswdChangePage
 from AdminRegistrationWizard import AdminRegistrationWizard
 from UserRegistrationWizard import UserRegistrationWizard
-
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
@@ -63,18 +61,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.user_choice_page = UserChoicePage()
         self.user_choice_page.sys_load_requested.connect(self.sys_load)
-        self.user_choice_page.user_passwd_change_requested.connect(lambda: self.set_page(self.user_passwd_change_page))
+        self.user_choice_page.user_passwd_change_requested[str].connect(self.show_user_passwd_change_wizard)
         self.stack.addWidget(self.user_choice_page)
 
         self.user_passwd_change_page = UserPasswdChangePage()
         self.user_passwd_change_page.userPasswdChangeCompleted.connect(self.set_ibutton_data)
-        self.user_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.user_choice_page))
+        self.user_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.previous_page))
         self.stack.addWidget(self.user_passwd_change_page)
-
-        self.force_passwd_change_page = ForcePasswdChangePage()
-        self.force_passwd_change_page.userPasswdChangeCompleted.connect(self.set_ibutton_data)
-        self.force_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.force_passwd_change_page)
 
         self.board_settings_page = BoardSettingsPage()
         self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
@@ -100,7 +93,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stack.addWidget(self.user_registration_wizard)
 
         # В зависимости от того инициализирован комплекс или нет,
-        # показать страницу инициализации или ожидания iButton
+        # показать страницу инициализации или страницу ожидания iButton
         if config.admins:
             self.set_page(self.id_wait_page)
         else:
@@ -132,13 +125,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.message = message
         self.ibuttonPresented.emit(message)
 
-    def set_page(self, widget):
+    def set_page(self, widget, **kwargs):
         """Отобразить страницу widget"""
-        # Отключить сигнал у предыдущего виджета
+        # Запомнить текущий виджет, чтобы возвращиться к нему после работы мастеров
+        self.previous_page = self.stack.currentWidget()
+        # Отключить сигнал у текущего виджета
         try:
             self.ibuttonPresented[dict].disconnect(self.stack.currentWidget().on_ibutton_presented)
         except (AttributeError, RuntimeError) as e:
             logging.debug(e)
+
+        # Установить у widget атрибуты, заданные в kwargs
+        if kwargs:
+            logging.debug(f"Set attributes {kwargs} for {widget.objectName()}")
+        for key in kwargs:
+            setattr(widget, key, kwargs[key])
+
         # Сделать текщим widget и установить сигнал
         self.stack.setCurrentWidget(widget)
         try:
@@ -180,7 +182,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 config.users[index]["total_logins"] += 1
                 config.users[index]["last_login_datetime"] = datetime.now().strftime("%H:%M %Y/%m/%d")
 
-                self.set_page(self.user_choice_page)
+                self.set_page(self.user_choice_page, user_name=config.users[index]["user_name"])
                 return
         # Неправильный пароль или идентификатор отсутсвует в списках admins и users
         config.failed_logins += 1
@@ -206,9 +208,19 @@ class MainWindow(QtWidgets.QMainWindow):
         """Запустить мастер регистрации пользователя"""
         self.set_page(self.user_registration_wizard)
 
+    def show_user_passwd_change_wizard(self, user_name):
+        """Смена пароля для пользователя"""
+        self.set_page(self.user_passwd_change_page, user_name=user_name, is_forced_passwd_change=False)
+
     def show_force_passwd_change_wizard(self, user_name):
-        self.force_passwd_change_page.set_user_name(user_name)
-        self.set_page(self.force_passwd_change_page)
+        """Принудительная смена пароля для пользователя user_name"""
+        self.set_page(self.user_passwd_change_page, user_name=user_name, is_forced_passwd_change=True)
+
+    def on_userPasswdChangeCanceled(self, is_forced_passwd_change):
+        if is_forced_passwd_change:
+            self.set_page(self.set_page(self.board_settings_page))
+        else:
+            self.set_page(self.user_choice_page)
 
     def complete_user_registration(self, user_name, passwd, message):
         """Завершить регистрацию пользователя"""

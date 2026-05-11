@@ -6,9 +6,10 @@ from UiLoader import UiLoader
 
 
 class UserChoicePage(QtWidgets.QWidget):
-    """Страница настроек"""
+    """Страница выбора действий пользователя.
+    При открытии в атрибут self.user_name записывается имя пользователя"""
     sys_load_requested = QtCore.Signal()
-    user_passwd_change_requested = QtCore.Signal()
+    user_passwd_change_requested = QtCore.Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -23,7 +24,7 @@ class UserChoicePage(QtWidgets.QWidget):
             """)
 
         self.sys_load_push_button.clicked.connect(self.sys_load_requested.emit)
-        self.change_passwd_push_button.clicked.connect(self.user_passwd_change_requested.emit)
+        self.change_passwd_push_button.clicked.connect(lambda: self.user_passwd_change_requested.emit(self.user_name))
 
     def resizeEvent(self, event):
         palette = QPalette()

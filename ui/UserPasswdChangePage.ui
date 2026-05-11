@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>UserPasswdChangePage</class>
+ <widget class="QWidget" name="UserPasswdChangePage">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -108,8 +108,87 @@
    <item>
     <widget class="QStackedWidget" name="stacked_widget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>0</number>
      </property>
+     <widget class="QWidget" name="page_0">
+      <layout class="QVBoxLayout" name="verticalLayout_7">
+       <item>
+        <widget class="QLabel" name="step_label_3">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Смена пароля</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="warning_label">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Внимание:&lt;br&gt;смена пароля Администратором сделает&lt;br&gt;невозможным доступ пользователя к другим&lt;br&gt;компьютерам. После смены пароля потребуется произвести&lt;br&gt;повторную регистрацию пользователя на других компьютерах.&lt;br&gt;Продолжить?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>487</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>6</number>
+         </property>
+         <property name="bottomMargin">
+          <number>6</number>
+         </property>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="no_push_button_1">
+           <property name="text">
+            <string>Нет</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="yes_push_button_1">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Да</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="page_1">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
