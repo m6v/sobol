@@ -7,17 +7,18 @@ import sys
 from PySide2 import QtCore, QtGui, QtWidgets
 
 from config import config
-from SobolDialog import SobolDialog
 from AdminChoicePage import AdminChoicePage
+from AdminPasswdChangePage import AdminPasswdChangePage
+from AdminRegistrationWizard import AdminRegistrationWizard
 from BoardInitPage import BoardInitPage
 from BoardSettingsPage import BoardSettingsPage
 from IdWaitPage import IdWaitPage
 from PasswdWaitPage import PasswdWaitPage
 from UserChoicePage import UserChoicePage
-from AdminPasswdChangePage import AdminPasswdChangePage
 from UserPasswdChangePage import UserPasswdChangePage
-from AdminRegistrationWizard import AdminRegistrationWizard
 from UserRegistrationWizard import UserRegistrationWizard
+from SobolDialog import SobolDialog
+
 
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 bus = dbus.SessionBus()
@@ -89,7 +90,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.user_registration_wizard = UserRegistrationWizard()
         self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
-        self.user_registration_wizard.userRegistrationСanceled.connect(self.cancel_user_registration)
+        self.user_registration_wizard.userRegistrationСanceled.connect(lambda: self.set_page(self.board_settings_page))
         self.stack.addWidget(self.user_registration_wizard)
 
         # В зависимости от того инициализирован комплекс или нет,
@@ -226,10 +227,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """Завершить регистрацию пользователя"""
         # Методы по управлению пользователями реализованы в self.board_settings_page.users_list_panel
         self.board_settings_page.users_list_panel.add_user(user_name, passwd, message)
-        self.set_page(self.board_settings_page)
-
-    def cancel_user_registration(self):
-        """Отменить регистрацию пользователя"""
         self.set_page(self.board_settings_page)
 
     def show_admin_registration_wizard(self, is_primary_admin_registration):
