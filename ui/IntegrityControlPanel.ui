@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>IntegrityControlWidget</class>
- <widget class="QWidget" name="IntegrityControlWidget">
+ <class>IntegrityControlPanel</class>
+ <widget class="QWidget" name="IntegrityControlPanel">
   <property name="geometry">
    <rect>
     <x>0</x>

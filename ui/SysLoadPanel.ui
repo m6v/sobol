@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SysLoadWidget</class>
- <widget class="QWidget" name="SysLoadWidget">
+ <class>SysLoadPanel</class>
+ <widget class="QWidget" name="SysLoadPanel">
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -73,7 +73,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board_settings_page = BoardSettingsPage()
         self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
         self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
-        self.board_settings_page.users_list_panel.forcePasswdChangeRequested[str].connect(self.show_force_passwd_change_wizard)
+        self.board_settings_page.users_list_panel.userPasswdChangeRequested[str].connect(self.show_force_passwd_change_wizard)
         self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
         self.board_settings_page.service_operations_panel.boardInitRequested.connect(self.init_board)
         self.stack.addWidget(self.board_settings_page)
@@ -93,11 +93,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_registration_wizard.userRegistrationСanceled.connect(lambda: self.set_page(self.board_settings_page))
         self.stack.addWidget(self.user_registration_wizard)
 
-        # В зависимости от того инициализирован комплекс или нет,
-        # показать страницу инициализации или страницу ожидания iButton
         if config.admins:
+            # Если администратор зарегистрирован, показать страницу ожидания iButton
             self.set_page(self.id_wait_page)
         else:
+            # Если администратор не зарегистрирован, показать страницу инициализации
             self.set_page(self.board_init_page)
 
         # Восстановление настроек окна
@@ -115,7 +115,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Получить объект шины
             self.service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus')
         except dbus.exceptions.DBusException as e:
-            # Если имитатор считывателя iButton не запущен обработать исключения и завершить программу
+            # Если имитатор считывателя iButton не запущен обработать исключение и завершить программу
             logging.error(e)
             sys.exit()
 
@@ -145,13 +145,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # Сделать текщим widget и установить сигнал
         self.stack.setCurrentWidget(widget)
         try:
-            # Соединяить сигнал предъявления ibutton с методом нового виджета
-            # Если обработчика нет, игнорируем исключение
+            # Соединить сигнал предъявления ibutton с методом on_ibutton_presented нового виджета
             self.ibuttonPresented[dict].connect(widget.on_ibutton_presented)
         except AttributeError as e:
             logging.debug(e)
 
     def authenticate_credentials(self, passwd):
+        """Аутентифицировать пользователя (администратора). Введенный пароль в passwd"""
         # Получить индекс элемента с предъявленным идентификатором в списке users или None, если не найден
         index = next((i for i, user in enumerate(config.users) if user.get("id") == self.message["id"]), None)
         # Проверить, что введенный и записанный в ibutton пароли совпадают
@@ -209,32 +209,18 @@ class MainWindow(QtWidgets.QMainWindow):
         """Запустить мастер регистрации пользователя"""
         self.set_page(self.user_registration_wizard)
 
-    def show_user_passwd_change_wizard(self, user_name):
-        """Смена пароля для пользователя"""
-        self.set_page(self.user_passwd_change_page, user_name=user_name, is_forced_passwd_change=False)
-
-    def show_force_passwd_change_wizard(self, user_name):
-        """Принудительная смена пароля для пользователя user_name"""
-        self.set_page(self.user_passwd_change_page, user_name=user_name, is_forced_passwd_change=True)
-
-    def on_userPasswdChangeCanceled(self, is_forced_passwd_change):
-        if is_forced_passwd_change:
-            self.set_page(self.set_page(self.board_settings_page))
-        else:
-            self.set_page(self.user_choice_page)
-
-    def complete_user_registration(self, user_name, passwd, message):
-        """Завершить регистрацию пользователя"""
-        # Методы по управлению пользователями реализованы в self.board_settings_page.users_list_panel
-        self.board_settings_page.users_list_panel.add_user(user_name, passwd, message)
-        self.set_page(self.board_settings_page)
-
     def show_admin_registration_wizard(self, is_primary_admin_registration):
         """Запустить мастер регистрации администратора"""
         # TODO В зависимости от is_primary_admin_registration разные действия
         # при первичной регистрации запрашивается и записывается новый пароль,
         # при повторной регистрации запрашивается и проверяется записанный пароль
         self.set_page(self.admin_registration_wizard)
+
+    def complete_user_registration(self, user_name, passwd, message):
+        """Завершить регистрацию пользователя"""
+        # Методы по управлению пользователями реализованы в self.board_settings_page.users_list_panel
+        self.board_settings_page.users_list_panel.add_user(user_name, passwd, message)
+        self.set_page(self.board_settings_page)
 
     def complete_admin_registration(self, user_name, passwd, message):
         """Зарегистрировать администратора"""
@@ -252,6 +238,14 @@ class MainWindow(QtWidgets.QMainWindow):
         """Отменить регистрацию администратора"""
         self.board_init_page.show_init_panel()
         self.set_page(self.board_init_page)
+
+    def show_force_passwd_change_wizard(self, user_name):
+        """Принудительная смена пароля для пользователя user_name"""
+        self.set_page(self.user_passwd_change_page, user_name=user_name, is_forced_passwd_change=True)
+
+    def show_user_passwd_change_wizard(self, user_name):
+        """Смена пароля для пользователя"""
+        self.set_page(self.user_passwd_change_page, user_name=user_name, is_forced_passwd_change=False)
 
     def set_ibutton_data(self, user_name, passwd, message):
         """Записать в iButton новый пароль пользователя (администратора)"""

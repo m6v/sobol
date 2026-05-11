@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AdminChoiceWidget</class>
- <widget class="QWidget" name="AdminChoiceWidget">
+ <class>AdminChoicePage</class>
+ <widget class="QWidget" name="AdminChoicePage">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -311,6 +311,10 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>show_settings_push_button</tabstop>
+  <tabstop>sys_load_push_button</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

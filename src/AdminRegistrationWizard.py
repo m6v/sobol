@@ -108,8 +108,7 @@ class AdminRegistrationWizard(QtWidgets.QWidget):
 
     def showEvent(self, event: QShowEvent):
         self.stacked_widget.setCurrentIndex(0)
-        # TODO Далее нужно очистить все элементы ввода от предыдущих итераций
         self.passwd_line_edit.setText("")
         self.passwd_confirm_line_edit.setText("")
-        # Вызывать базовый класс, чтобы не нарушить цепочку Qt
+        # Вызвать базовый класс, чтобы не нарушить цепочку Qt
         super().showEvent(event)

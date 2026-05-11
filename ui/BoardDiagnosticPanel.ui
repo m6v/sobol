@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BoardDiagnosticWidget</class>
- <widget class="QWidget" name="BoardDiagnosticWidget">
+ <class>BoardDiagnosticPanel</class>
+ <widget class="QWidget" name="BoardDiagnosticPanel">
   <property name="geometry">
    <rect>
     <x>0</x>

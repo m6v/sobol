@@ -39,9 +39,6 @@ class AdminChoicePage(QtWidgets.QWidget):
         palette.setBrush(QPalette.Window, QBrush(scaled))
         self.setPalette(palette)
 
-    def on_ibutton_present(self, message):
-        logging.debug(message)
-
     def showEvent(self, event: QShowEvent):
         # Если ни один пользователь не зарегистрирован, пропустить вывод сведений о последнем входе в систему
         if config.users:

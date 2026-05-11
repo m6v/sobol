@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>BoardSettingsWidget</class>
- <widget class="QWidget" name="BoardSettingsWidget">
+ <class>BoardSettingsPage</class>
+ <widget class="QWidget" name="BoardSettingsPage">
   <property name="geometry">
    <rect>
     <x>0</x>

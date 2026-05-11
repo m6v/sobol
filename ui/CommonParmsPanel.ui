@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CommonParmsWidget</class>
- <widget class="QWidget" name="CommonParmsWidget">
+ <class>CommonParmsPanel</class>
+ <widget class="QWidget" name="CommonParmsPanel">
   <property name="geometry">
    <rect>
     <x>0</x>

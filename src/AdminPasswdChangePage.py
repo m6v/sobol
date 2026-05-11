@@ -69,7 +69,7 @@ class AdminPasswdChangePage(QtWidgets.QWidget):
 
     def continue_admin_passwd_change(self):
         """Продолжить смену пароля для резервной копии идентификатора"""
-        pass
+        # TODO Уточнить последовательность смены пароля и реализовать
         self.stacked_widget.setCurrentIndex(WAIT_ID_PAGE)
 
     def showEvent(self, event: QShowEvent):
