@@ -2,11 +2,13 @@ from datetime import datetime
 import logging
 import dbus
 import dbus.mainloop.glib
+import subprocess
 import sys
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
 from config import config
+from AdminAuthenticatorChangePage import AdminAuthenticatorChangePage
 from AdminChoicePage import AdminChoicePage
 from AdminPasswdChangePage import AdminPasswdChangePage
 from AdminRegistrationWizard import AdminRegistrationWizard
@@ -75,6 +77,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
         self.board_settings_page.users_list_panel.userPasswdChangeRequested[str].connect(self.show_force_passwd_change_wizard)
         self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
+        self.board_settings_page.authenticator_change_panel.adminAutenticatorChangeRequested.connect(lambda: self.set_page(self.admin_authenticator_change_page))
         self.board_settings_page.service_operations_panel.boardInitRequested.connect(self.init_board)
         self.stack.addWidget(self.board_settings_page)
 
@@ -88,6 +91,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.admin_passwd_change_page.adminPasswdChangeCanceled.connect(lambda: self.set_page(self.board_settings_page))
         self.stack.addWidget(self.admin_passwd_change_page)
 
+        self.admin_authenticator_change_page = AdminAuthenticatorChangePage()
+        self.admin_authenticator_change_page.adminAuthenticatorChangeCompleted.connect(lambda: self.set_page(self.board_settings_page))
+        self.stack.addWidget(self.admin_authenticator_change_page)
+
         self.user_registration_wizard = UserRegistrationWizard()
         self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
         self.user_registration_wizard.userRegistrationСanceled.connect(lambda: self.set_page(self.board_settings_page))
@@ -98,6 +105,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.set_page(self.id_wait_page)
         else:
             # Если администратор не зарегистрирован, показать страницу инициализации
+
             self.set_page(self.board_init_page)
 
         # Восстановление настроек окна
@@ -225,8 +233,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def complete_admin_registration(self, user_name, passwd, message):
         """Зарегистрировать администратора"""
         config.admins.append(message["id"])
-        # Вызвать метод SetIButtonData, зарегистрированный в dbus
-        # для записи в предъявленную ibutton имени и пароля администратора
+        # Записать в предъявленную ibutton именя и пароль администратора
         service_object.SetIButtonData({
             "id": self.message["id"],
             "user_name": user_name,
@@ -263,6 +270,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def sys_load(self):
         """Завершить работу имитатора"""
+        # При необходимости здесь можно выполнить доп. действия
+        # (запустить виртуальную машину, проверить правильность настроек и т.п.)
+        if config.domain_name:
+            subprocess.Popen(["virt-manager", "--connect", "qemu:///system", "--show-domain-console", self.domain_name])
         self.close()
 
     def closeEvent(self, event):

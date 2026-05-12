@@ -48,6 +48,12 @@ class EventsJournalPanel(QtWidgets.QWidget):
         self.proxy_model = JournalProxyModel()
         self.proxy_model.setSourceModel(self.model)
         self.journal_table_view.setModel(self.proxy_model)
+        # Скрыть номера строк в таблице
+        self.journal_table_view.verticalHeader().setVisible(False)
+        # Растянуть все столбцы по содержимому
+        self.journal_table_view.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        # Растянуть третий столбец до ширины таблицы
+        self.journal_table_view.horizontalHeader().setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
 
         datetime_regex = QtCore.QRegExp(
             r"([01][0-9]|2[0-3]):([0-5][0-9])\s"
@@ -91,6 +97,10 @@ class EventsJournalPanel(QtWidgets.QWidget):
 
     def show_journal_panel(self, index):
         """Показать выбранную панель журнала событий"""
+        self.widget_state_manager.load_state(self)
+        # Принудительно вызвать QShowEvent(), чтобы пересчитать процент заполнения,
+        # на случай, если он изменен на вкладке с настройками журнала
+        self.showEvent(QtGui.QShowEvent())
         self.journal_stacked_widget.setCurrentIndex(index)
 
     def apply_event_filter(self):
@@ -137,3 +147,9 @@ class EventsJournalPanel(QtWidgets.QWidget):
 
     def save_panel_settings(self):
         self.widget_state_manager.save_state(self)
+
+    def showEvent(self, event: QtGui.QShowEvent):
+        journal_fill_percent = self.model.rowCount() * 100 / int(self.journal_max_size_line_edit.text())
+        self.fill_journal_label.setText(f"Заполнен на {journal_fill_percent:.2f}% {self.model.rowCount()}/{self.journal_max_size_line_edit.text()}")
+        # Вызвать базовый класс, чтобы не нарушить цепочку Qt
+        super().showEvent(event)
