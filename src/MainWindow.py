@@ -2,11 +2,13 @@ from datetime import datetime
 import logging
 import dbus
 import dbus.mainloop.glib
+import subprocess
 import sys
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
 from config import config
+from AdminAuthenticatorChangePage import AdminAuthenticatorChangePage
 from AdminChoicePage import AdminChoicePage
 from AdminPasswdChangePage import AdminPasswdChangePage
 from AdminRegistrationWizard import AdminRegistrationWizard
@@ -42,62 +44,67 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stack = QtWidgets.QStackedWidget()
         self.layout.addWidget(self.stack)
 
-        self.board_init_page = BoardInitPage()
-        self.board_init_page.adminRegistrationRequested[bool].connect(self.show_admin_registration_wizard)
-        self.board_init_page.boardInitCompleted.connect(self.close)
-        self.stack.addWidget(self.board_init_page)
-
-        self.id_wait_page = IdWaitPage()
-        self.id_wait_page.ibuttonPresented.connect(lambda: self.set_page(self.passwd_wait_page))
-        self.stack.addWidget(self.id_wait_page)
-
-        self.passwd_wait_page = PasswdWaitPage()
-        self.passwd_wait_page.passwdEntered[str].connect(self.authenticate_credentials)
-        self.stack.addWidget(self.passwd_wait_page)
-
-        self.admin_choice_page = AdminChoicePage()
-        self.admin_choice_page.sys_load_requested.connect(self.sys_load)
-        self.admin_choice_page.show_settings_requested.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.admin_choice_page)
-
-        self.user_choice_page = UserChoicePage()
-        self.user_choice_page.sys_load_requested.connect(self.sys_load)
-        self.user_choice_page.user_passwd_change_requested[str].connect(self.show_user_passwd_change_wizard)
-        self.stack.addWidget(self.user_choice_page)
-
-        self.user_passwd_change_page = UserPasswdChangePage()
-        self.user_passwd_change_page.userPasswdChangeCompleted.connect(self.set_ibutton_data)
-        self.user_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.previous_page))
-        self.stack.addWidget(self.user_passwd_change_page)
-
-        self.board_settings_page = BoardSettingsPage()
-        self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
-        self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
-        self.board_settings_page.users_list_panel.userPasswdChangeRequested[str].connect(self.show_force_passwd_change_wizard)
-        self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
-        self.board_settings_page.service_operations_panel.boardInitRequested.connect(self.init_board)
-        self.stack.addWidget(self.board_settings_page)
-
-        self.admin_registration_wizard = AdminRegistrationWizard()
-        self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
-        self.admin_registration_wizard.adminRegistrationСanceled.connect(self.cancel_admin_registration)
-        self.stack.addWidget(self.admin_registration_wizard)
-
-        self.admin_passwd_change_page = AdminPasswdChangePage()
-        self.admin_passwd_change_page.adminPasswdChangeCompleted.connect(self.set_ibutton_data)
-        self.admin_passwd_change_page.adminPasswdChangeCanceled.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.admin_passwd_change_page)
-
-        self.user_registration_wizard = UserRegistrationWizard()
-        self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
-        self.user_registration_wizard.userRegistrationСanceled.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.user_registration_wizard)
-
         if config.admins:
-            # Если администратор зарегистрирован, показать страницу ожидания iButton
+            # Если администратор зарегистрирован, загрузить необходимые страницы и показать страницу ожидания iButton
+            self.id_wait_page = IdWaitPage()
+            self.id_wait_page.ibuttonPresented.connect(lambda: self.set_page(self.passwd_wait_page))
+            self.stack.addWidget(self.id_wait_page)
+
+            self.passwd_wait_page = PasswdWaitPage()
+            self.passwd_wait_page.passwdEntered[str].connect(self.authenticate_credentials)
+            self.stack.addWidget(self.passwd_wait_page)
+
+            self.admin_choice_page = AdminChoicePage()
+            self.admin_choice_page.sys_load_requested.connect(self.sys_load)
+            self.admin_choice_page.show_settings_requested.connect(lambda: self.set_page(self.board_settings_page))
+            self.stack.addWidget(self.admin_choice_page)
+
+            self.user_choice_page = UserChoicePage()
+            self.user_choice_page.sys_load_requested.connect(self.sys_load)
+            self.user_choice_page.user_passwd_change_requested[str].connect(self.show_user_passwd_change_wizard)
+            self.stack.addWidget(self.user_choice_page)
+
+            self.user_passwd_change_page = UserPasswdChangePage()
+            self.user_passwd_change_page.userPasswdChangeCompleted.connect(self.set_ibutton_data)
+            self.user_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.previous_page))
+            self.stack.addWidget(self.user_passwd_change_page)
+
+            self.board_settings_page = BoardSettingsPage()
+            self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
+            self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
+            self.board_settings_page.users_list_panel.userPasswdChangeRequested[str].connect(self.show_force_passwd_change_wizard)
+            self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
+            self.board_settings_page.authenticator_change_panel.adminAutenticatorChangeRequested.connect(lambda: self.set_page(self.admin_authenticator_change_page))
+            self.board_settings_page.service_operations_panel.boardInitRequested.connect(self.init_board)
+            self.stack.addWidget(self.board_settings_page)
+
+            self.admin_passwd_change_page = AdminPasswdChangePage()
+            self.admin_passwd_change_page.adminPasswdChangeCompleted.connect(self.set_ibutton_data)
+            self.admin_passwd_change_page.adminPasswdChangeCanceled.connect(lambda: self.set_page(self.board_settings_page))
+            self.stack.addWidget(self.admin_passwd_change_page)
+
+            self.admin_authenticator_change_page = AdminAuthenticatorChangePage()
+            self.admin_authenticator_change_page.adminAuthenticatorChangeCompleted.connect(lambda: self.set_page(self.board_settings_page))
+            self.stack.addWidget(self.admin_authenticator_change_page)
+
+            self.user_registration_wizard = UserRegistrationWizard()
+            self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
+            self.user_registration_wizard.userRegistrationСanceled.connect(lambda: self.set_page(self.board_settings_page))
+            self.stack.addWidget(self.user_registration_wizard)
+
             self.set_page(self.id_wait_page)
         else:
-            # Если администратор не зарегистрирован, показать страницу инициализации
+            # Если администратор не зарегистрирован, загрузить необходимые страницы и показать страницу инициализации
+            self.board_init_page = BoardInitPage()
+            self.board_init_page.adminRegistrationRequested[bool].connect(self.show_admin_registration_wizard)
+            self.board_init_page.boardInitCompleted.connect(self.close)
+            self.stack.addWidget(self.board_init_page)
+
+            self.admin_registration_wizard = AdminRegistrationWizard()
+            self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
+            self.admin_registration_wizard.adminRegistrationСanceled.connect(self.cancel_admin_registration)
+            self.stack.addWidget(self.admin_registration_wizard)
+
             self.set_page(self.board_init_page)
 
         # Восстановление настроек окна
@@ -214,7 +221,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # TODO В зависимости от is_primary_admin_registration разные действия
         # при первичной регистрации запрашивается и записывается новый пароль,
         # при повторной регистрации запрашивается и проверяется записанный пароль
-        self.set_page(self.admin_registration_wizard)
+        self.set_page(self.admin_registration_wizard, is_primary_admin_registration=is_primary_admin_registration)
 
     def complete_user_registration(self, user_name, passwd, message):
         """Завершить регистрацию пользователя"""
@@ -225,8 +232,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def complete_admin_registration(self, user_name, passwd, message):
         """Зарегистрировать администратора"""
         config.admins.append(message["id"])
-        # Вызвать метод SetIButtonData, зарегистрированный в dbus
-        # для записи в предъявленную ibutton имени и пароля администратора
+        # Записать в предъявленную ibutton именя и пароль администратора
         service_object.SetIButtonData({
             "id": self.message["id"],
             "user_name": user_name,
@@ -263,6 +269,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def sys_load(self):
         """Завершить работу имитатора"""
+        # При необходимости здесь можно выполнить доп. действия
+        # (запустить виртуальную машину, проверить правильность настроек и т.п.)
+        if config.domain_name:
+            subprocess.Popen(["virt-manager", "--connect", "qemu:///system", "--show-domain-console", self.domain_name])
         self.close()
 
     def closeEvent(self, event):

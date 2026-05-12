@@ -108,7 +108,7 @@
    <item>
     <widget class="QStackedWidget" name="stacked_widget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page_1">
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -147,7 +147,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontal_layout_1">
          <item>
-          <widget class="QLineEdit" name="passwd_line_edit">
+          <widget class="QLineEdit" name="new_passwd_line_edit">
            <property name="minimumSize">
             <size>
              <width>240</width>
@@ -202,7 +202,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="passwd_confirm_line_edit">
+        <widget class="QLineEdit" name="confirm_passwd_line_edit">
          <property name="minimumSize">
           <size>
            <width>240</width>
@@ -265,7 +265,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="next_push_button">
+          <widget class="QPushButton" name="next_push_button_1">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -279,7 +279,10 @@
       </layout>
      </widget>
      <widget class="QWidget" name="page_2">
-      <layout class="QVBoxLayout" name="verticalLayout_6">
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <property name="spacing">
+        <number>6</number>
+       </property>
        <property name="leftMargin">
         <number>12</number>
        </property>
@@ -294,6 +297,117 @@
        </property>
        <item>
         <widget class="QLabel" name="step_label_2">
+         <property name="font">
+          <font>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Регистрация Администратора. Шаг 1
+</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="confirm_passwd_label_2">
+         <property name="text">
+          <string>Введите пароль:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="old_passwd_line_edit">
+         <property name="minimumSize">
+          <size>
+           <width>240</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>240</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="vertical_spacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>565</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontal_layout_4">
+         <property name="rightMargin">
+          <number>8</number>
+         </property>
+         <property name="bottomMargin">
+          <number>8</number>
+         </property>
+         <item>
+          <spacer name="horizontal_spacer_4">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="cancel_push_button_2">
+           <property name="text">
+            <string>Отмена</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="next_push_button_2">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string>Вперед</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_3">
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="step_label_4">
          <property name="font">
           <font>
            <pointsize>12</pointsize>
@@ -359,7 +473,7 @@
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="cancel_push_button_2">
+          <widget class="QPushButton" name="cancel_push_button_3">
            <property name="enabled">
             <bool>true</bool>
            </property>
@@ -369,7 +483,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="finish_push_button">
+          <widget class="QPushButton" name="finish_push_button_3">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -409,14 +523,14 @@
  </widget>
  <tabstops>
   <tabstop>passwd_gen_push_button</tabstop>
-  <tabstop>passwd_line_edit</tabstop>
-  <tabstop>passwd_confirm_line_edit</tabstop>
+  <tabstop>new_passwd_line_edit</tabstop>
+  <tabstop>confirm_passwd_line_edit</tabstop>
   <tabstop>show_passwd_radio_button</tabstop>
-  <tabstop>next_push_button</tabstop>
+  <tabstop>next_push_button_1</tabstop>
   <tabstop>cancel_push_button_1</tabstop>
   <tabstop>table_widget</tabstop>
-  <tabstop>cancel_push_button_2</tabstop>
-  <tabstop>finish_push_button</tabstop>
+  <tabstop>cancel_push_button_3</tabstop>
+  <tabstop>finish_push_button_3</tabstop>
  </tabstops>
  <resources/>
  <connections/>

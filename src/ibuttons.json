@@ -24,19 +24,19 @@
         "passwd": "12345678"
     },
     "iButton_6": {
-        "user_name": "maksimov",
-        "passwd": "12345678"
+        "user_name": "",
+        "passwd": ""
     },
     "iButton_7": {
-        "user_name": "туц",
-        "passwd": "11111111"
+        "user_name": "",
+        "passwd": ""
     },
     "iButton_8": {
-        "user_name": "name",
+        "user_name": "Администратор",
         "passwd": "22222222"
     },
     "iButton_9": {
-        "user_name": "Администратор",
-        "passwd": "99999999"
+        "user_name": "",
+        "passwd": ""
     }
 }

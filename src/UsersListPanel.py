@@ -81,6 +81,7 @@ class UsersListPanel(QtWidgets.QWidget):
         for user in config.users:
             self.user_list_widget.addItem(user["user_name"])
         self.user_list_widget.setCurrentRow(0)
+        self.user_count_label.setText(str(len(config.users)))
         self.show_user_parms()
 
     def add_user(self, user_name, passwd, message):
@@ -125,5 +126,5 @@ class UsersListPanel(QtWidgets.QWidget):
 
     def showEvent(self, event: QShowEvent):
         self.update_user_list_panel()
-        # Вызывать базовый класс, чтобы не нарушить цепочку Qt
+        # Вызвать базовый класс, чтобы не нарушить цепочку Qt
         super().showEvent(event)

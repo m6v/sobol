@@ -72,6 +72,8 @@ if __name__ == "__main__":
         config.window_geometry = QtCore.QRect(*map(int, config.get("window", "geometry", fallback="0;0;1200;800").split(";")))
         # Состояние окна
         config.window_state = int(config.get("window", "state", fallback="0"))
+        # Имя виртуальной машины для которой имитируется применение ПАК "Соболь"
+        config.domain_name = config.get("general", "domain_name", fallback="")
         # Список из идентификаторов iButton зарегистрированных администраторов
         config.admins = json.loads(config.get("general", "admins", fallback="[]"))
         # Список из словарей с настройками зарегистрированных пользователей

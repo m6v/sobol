@@ -15,7 +15,8 @@ class JournalParmsPanel(QtWidgets.QWidget):
         # Загружаем интерфейс и регистрируем кастомный класс Toggle
         self.loader.loadUi("../ui/JournalParmsPanel.ui", self, Toggle)
 
-        self.setObjectName("journal_parms_panel")
+        # Имя такое же как в панели настроек, чтобы параметры сохранялись в одной секции
+        self.setObjectName("events_journal_panel")
         self.widget_state_manager = WidgetStateManager()
 
         self.save_push_button.clicked.connect(lambda: self.widget_state_manager.save_state(self))
