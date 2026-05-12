@@ -44,65 +44,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stack = QtWidgets.QStackedWidget()
         self.layout.addWidget(self.stack)
 
-<<<<<<< HEAD
-=======
-        self.board_init_page = BoardInitPage()
-        self.board_init_page.adminRegistrationRequested[bool].connect(self.show_admin_registration_wizard)
-        self.board_init_page.boardInitCompleted.connect(self.close)
-        self.stack.addWidget(self.board_init_page)
-
-        self.id_wait_page = IdWaitPage()
-        self.id_wait_page.ibuttonPresented.connect(lambda: self.set_page(self.passwd_wait_page))
-        self.stack.addWidget(self.id_wait_page)
-
-        self.passwd_wait_page = PasswdWaitPage()
-        self.passwd_wait_page.passwdEntered[str].connect(self.authenticate_credentials)
-        self.stack.addWidget(self.passwd_wait_page)
-
-        self.admin_choice_page = AdminChoicePage()
-        self.admin_choice_page.sys_load_requested.connect(self.sys_load)
-        self.admin_choice_page.show_settings_requested.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.admin_choice_page)
-
-        self.user_choice_page = UserChoicePage()
-        self.user_choice_page.sys_load_requested.connect(self.sys_load)
-        self.user_choice_page.user_passwd_change_requested[str].connect(self.show_user_passwd_change_wizard)
-        self.stack.addWidget(self.user_choice_page)
-
-        self.user_passwd_change_page = UserPasswdChangePage()
-        self.user_passwd_change_page.userPasswdChangeCompleted.connect(self.set_ibutton_data)
-        self.user_passwd_change_page.userPasswdChangeCanceled.connect(lambda: self.set_page(self.previous_page))
-        self.stack.addWidget(self.user_passwd_change_page)
-
-        self.board_settings_page = BoardSettingsPage()
-        self.board_settings_page.sys_load_panel.sys_load_requested.connect(self.sys_load)
-        self.board_settings_page.users_list_panel.userRegistrationRequested.connect(self.show_user_registration_wizard)
-        self.board_settings_page.users_list_panel.userPasswdChangeRequested[str].connect(self.show_force_passwd_change_wizard)
-        self.board_settings_page.passwd_change_panel.adminPasswdChangeRequested.connect(lambda: self.set_page(self.admin_passwd_change_page))
-        self.board_settings_page.authenticator_change_panel.adminAutenticatorChangeRequested.connect(lambda: self.set_page(self.admin_authenticator_change_page))
-        self.board_settings_page.service_operations_panel.boardInitRequested.connect(self.init_board)
-        self.stack.addWidget(self.board_settings_page)
-
-        self.admin_registration_wizard = AdminRegistrationWizard()
-        self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
-        self.admin_registration_wizard.adminRegistrationСanceled.connect(self.cancel_admin_registration)
-        self.stack.addWidget(self.admin_registration_wizard)
-
-        self.admin_passwd_change_page = AdminPasswdChangePage()
-        self.admin_passwd_change_page.adminPasswdChangeCompleted.connect(self.set_ibutton_data)
-        self.admin_passwd_change_page.adminPasswdChangeCanceled.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.admin_passwd_change_page)
-
-        self.admin_authenticator_change_page = AdminAuthenticatorChangePage()
-        self.admin_authenticator_change_page.adminAuthenticatorChangeCompleted.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.admin_authenticator_change_page)
-
-        self.user_registration_wizard = UserRegistrationWizard()
-        self.user_registration_wizard.userRegistrationСompleted[str, str, dict].connect(self.complete_user_registration)
-        self.user_registration_wizard.userRegistrationСanceled.connect(lambda: self.set_page(self.board_settings_page))
-        self.stack.addWidget(self.user_registration_wizard)
-
->>>>>>> 5a1c85af1e57f852ac23fb2e6fd7d6349d33ca34
         if config.admins:
             # Если администратор зарегистрирован, загрузить необходимые страницы и показать страницу ожидания iButton
             self.id_wait_page = IdWaitPage()
@@ -153,7 +94,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             self.set_page(self.id_wait_page)
         else:
-<<<<<<< HEAD
             # Если администратор не зарегистрирован, загрузить необходимые страницы и показать страницу инициализации
             self.board_init_page = BoardInitPage()
             self.board_init_page.adminRegistrationRequested[bool].connect(self.show_admin_registration_wizard)
@@ -164,9 +104,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.admin_registration_wizard.adminRegistrationСompleted[str, str, dict].connect(self.complete_admin_registration)
             self.admin_registration_wizard.adminRegistrationСanceled.connect(self.cancel_admin_registration)
             self.stack.addWidget(self.admin_registration_wizard)
-=======
-            # Если администратор не зарегистрирован, показать страницу инициализации
->>>>>>> 5a1c85af1e57f852ac23fb2e6fd7d6349d33ca34
 
             self.set_page(self.board_init_page)
 
