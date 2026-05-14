@@ -1,0 +1,9 @@
+Package: sobol4emu
+Version: 2.1
+Provides: sobol4emu
+Architecture: amd64
+Section: admin
+Description: Имитатор ПАК "Соболь" версия 4
+Depends: python3-pyside2.qtwidgets, python3-pyside2.qtuitools
+Priority: optional
+Maintainer: КБ "НАВИС" <support@navis.ru>

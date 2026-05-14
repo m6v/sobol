@@ -16,6 +16,9 @@ venv/
 # Archive files
 *.tar.gz
 
+# Deb packages
+*.deb
+
 # pyinstaller
 build/
 dist/

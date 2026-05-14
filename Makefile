@@ -1,27 +1,33 @@
-TARGET = sobol4
-PKGNAME = sobol4-1.1.deb
-DISTPATH = sobol4/opt/sobol4/
+TARGET = sobol4emu
+PKGNAME = sobol4emu-2.2.deb
 RESOURCES = src/resources.py
+BUILDPATH = /tmp/sobol4emu
+TARGETPATH = /opt/sodol4emu
 
-srcdir = src
+all: dpkg
 
 compile: $(RESOURCES)
 
-dpkg: compile src/*.py src/*.ui
-	cp -r src img panels $(DISTPATH)
-	dpkg-deb --build sobol4 $(PKGNAME)
-
-
-onefile: compile src/*.py src/*.ui
-	pyinstaller --onefile --windowed --add-data="src/*.ui:." --name $(TARGET) src/sobol4.py
+dpkg:
+	rm -rf src/__pycache
+	mkdir -p $(BUILDPATH)$(TARGETPATH) $(BUILDPATH)/DEBIAN
+	cp control $(BUILDPATH)/DEBIAN
+	cp -r src img ui $(BUILDPATH)$(TARGETPATH)
+	find . -type f -name "*.log" -exec truncate -s 0 {} +
+	fakeroot sh -c "\
+            chown -R root:root $(BUILDPATH) && \
+            dpkg-deb --build $(BUILDPATH) $(PKGNAME) \
+        "
+	@echo "Пакет успешно собран: $(PKGNAME)"
 
 # $@ - имя цели ($(RESOURCES))
 # $< - имя первого переквизита (prerequisite, зависимость) (src/resources.qrc)
 # $^ - список всех пререквизитов (разделенных пробелами)
-$(RESOURCES): src/resources.qrc src/*.ui img/*.png
+$(RESOURCES): src/resources.qrc ui/*.ui img/*.png
 	pyrcc5 src/resources.qrc -o $@
 
 clean:
-	rm -rf $(TARGET).spec build dist $(DISTPATH)*
+	rm -rf $(BUILDPATH)
 	rm -rf src/__pycache__
 	rm -f $(RESOURCES) $(PKGNAME)
+	find . -type f -name "*.log" -exec truncate -s 0 {} +
