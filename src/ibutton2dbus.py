@@ -40,6 +40,7 @@ basepath, appname = Path(__file__).parent.parents[0], Path(__file__).stem
 # Логирование в файл logfile
 logfile =  Path.home().joinpath(".cache", appname + ".log")
 logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+
 logging.info(f"{appname} started by {get_current_user()}")
 
 class IButtonApp(dbus.service.Object):
@@ -47,7 +48,7 @@ class IButtonApp(dbus.service.Object):
         super().__init__(bus_name, object_path)
         self.config_file = Path.home().joinpath(".config", "sobol4emu", appname + ".json")
         if not self.config_file.is_file():
-            # Создать родительские каталоги для конфига, если отсутствуют
+            # Если конфиг отсутствует, скопировать его шаблон
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(basepath.joinpath("ibuttons.json"), self.config_file)
 
