@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 __author__ = 'Sergey Maksimov'
 __mail__ = 'm6v@mail.ru'
-__version__ = '0.3'
-__date__ = '2026-04-18'
+__version__ = '1.3'
+__date__ = '2026-05-14'
 __copyright__ = 'Copyright © 2026 Sergey Maksimov'
 __licence__ = 'GNU Public Licence (GPL) v3'
+__description__ = 'Имитатор iButtons'
 
 import functools
 import logging
@@ -12,6 +13,8 @@ import json
 import os
 from pathlib import Path
 import signal
+import pwd
+import shutil
 import sys
 import dbus
 import dbus.service
@@ -20,28 +23,42 @@ from dbus.mainloop.glib import DBusGMainLoop
 from PySide2 import QtGui
 from PySide2.QtWidgets import QApplication, QAction, QMenu, QSystemTrayIcon
 
-# Получить имя скрипта без расширения
-appname = os.path.splitext(os.path.basename(__file__))[0]
+def get_current_user():
+    """Получить имя пользователя из окружения"""
+    user = os.environ.get('USER') or os.environ.get('LOGNAME')
+    
+    # Если окружение пустое, получить имя пользователя через UID процесса
+    if not user:
+        try:
+            user = pwd.getpwuid(os.getuid()).pw_name
+        except KeyError:
+            user = "unknown"
+    return user
+
+# Путь к каталогу проекта и имя скрипта без расширения
+basepath, appname = Path(__file__).parent.parents[0], Path(__file__).stem
+# Логирование в файл logfile
 logfile =  Path.home().joinpath(".cache", appname + ".log")
-
-# Если требуется логирование в файл добавить аргумент filename=logfile
 logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-logging.info("%s started" % appname)
-
+logging.info(f"{appname} started by {get_current_user()}")
 
 class IButtonApp(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         super().__init__(bus_name, object_path)
-        self.config_path = "ibuttons.json"
+        self.config_file = Path.home().joinpath(".config", "sobol4emu", appname + ".json")
+        if not self.config_file.is_file():
+            # Создать родительские каталоги для конфига, если отсутствуют
+            self.config_file.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(basepath.joinpath("ibuttons.json"), self.config_file)
 
-        # Load data once
+        # Загрузить словарь ibuttons 
         self.ibuttons = self.load_data()
 
-        # Tray setup
-        self.tray_icon = QSystemTrayIcon(QtGui.QIcon("../img/ibutton.png"))
+        # Создать меню в системном лотке
+        self.tray_icon = QSystemTrayIcon(QtGui.QIcon(str(basepath.joinpath("img/ibutton.png"))))
         self.tray_menu = QMenu()
 
-        # Create static buttons
+        # Создать элементы меню
         for item_id in self.ibuttons:
             action = QAction(str(item_id), self.tray_menu)
             action.triggered.connect(functools.partial(self.send_signal, item_id))
@@ -56,11 +73,11 @@ class IButtonApp(dbus.service.Object):
         self.tray_icon.show()
 
         QApplication.instance().aboutToQuit.connect(self.cleanup)
-        logging.info("Application initialized successfully.")
+        logging.info(f"{appname} initialized successfully")
 
     def load_data(self):
         try:
-            with open(self.config_path, "r", encoding="utf-8") as f:
+            with open(self.config_file, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             logging.error(f"Failed to load JSON config: {e}")
@@ -84,7 +101,7 @@ class IButtonApp(dbus.service.Object):
                 "passwd": str(data.get("passwd", ""))
             }
             try:
-                with open(self.config_path, "w", encoding="utf-8") as f:
+                with open(self.config_file, "w", encoding="utf-8") as f:
                     json.dump(self.ibuttons, f, ensure_ascii=False, indent=4)
                 logging.info(f"iButton data for '{item_id}' updated successfully")
                 return True
@@ -95,7 +112,7 @@ class IButtonApp(dbus.service.Object):
         return False
 
     def cleanup(self):
-        logging.info("Application session ended")
+        logging.info(f"{appname} ended")
 
 
 if __name__ == "__main__":
