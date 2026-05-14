@@ -10,6 +10,7 @@ import functools
 import logging
 import json
 import os
+from pathlib import Path
 import signal
 import sys
 import dbus
@@ -21,7 +22,7 @@ from PySide2.QtWidgets import QApplication, QAction, QMenu, QSystemTrayIcon
 
 # Получить имя скрипта без расширения
 appname = os.path.splitext(os.path.basename(__file__))[0]
-logfile = appname + ".log"
+logfile =  Path.home().joinpath(".cache", appname + ".log")
 
 # Если требуется логирование в файл добавить аргумент filename=logfile
 logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
