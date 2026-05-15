@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
-from PySide2 import QtCore, QtUiTools
-from PySide2.QtWidgets import (QWidget, QLineEdit, QCheckBox, QPushButton, QRadioButton,
-                               QSpinBox, QDoubleSpinBox, QComboBox, QTextEdit)
+from PySide2 import QtCore, QtUiTools, QtWidgets
+
 
 class UiLoader(QtUiTools.QUiLoader):
     """Класс, позволяющий загружать пользовательский интерфейс в виджет
@@ -59,19 +58,19 @@ class UiLoader(QtUiTools.QUiLoader):
 
         # Принудительно сбросить все элементы до базового состояния Qt
         for widget in self._baseinstance.findChildren(QtCore.QObject):
-            if isinstance(widget, QWidget):
+            if isinstance(widget, QtWidgets.QWidget):
                 widget.setEnabled(True)
 
-            if isinstance(widget, (QLineEdit, QTextEdit)):
+            if isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QTextEdit)):
                 widget.clear()
-            elif isinstance(widget, (QCheckBox, QRadioButton)):
+            elif isinstance(widget, (QtWidgets.QCheckBox, QtWidgets.QRadioButton)):
                 widget.setChecked(False)
-            elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
+            elif isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
                 if hasattr(widget, 'setMinimum'):
                     widget.setValue(widget.minimum())
                 else:
                     widget.setValue(0)
-            elif isinstance(widget, QComboBox):
+            elif isinstance(widget, QtWidgets.QComboBox):
                 if widget.count() > 0:
                     widget.setCurrentIndex(0)
         
@@ -85,9 +84,9 @@ class UiLoader(QtUiTools.QUiLoader):
             if not child_widget:
                 continue
                 
-            for prop in widget_node.findall("./property"):
-                prop_name = prop.get("name")
-                self._apply_property(child_widget, prop_name, prop)
+            for prop_node in widget_node.findall("./property"):
+                prop_name = prop_node.get("name")
+                self._apply_property(child_widget, prop_name, prop_node)
 
     def _apply_property(self, widget, prop_name, prop_node):
         """Маппить свойства XML на методы PySide2"""
@@ -98,7 +97,7 @@ class UiLoader(QtUiTools.QUiLoader):
 
         elif prop_name == "text":
             # Исключить переименование QPushButton
-            if isinstance(widget, QPushButton):
+            if isinstance(widget, QtWidgets.QPushButton):
                 return
             node = prop_node.find("string")
             if node is not None and hasattr(widget, "setText"):
