@@ -23,25 +23,14 @@ from dbus.mainloop.glib import DBusGMainLoop
 from PySide2 import QtGui
 from PySide2.QtWidgets import QApplication, QAction, QMenu, QSystemTrayIcon
 
-def get_current_user():
-    """Получить имя пользователя из окружения"""
-    user = os.environ.get('USER') or os.environ.get('LOGNAME')
-    
-    # Если окружение пустое, получить имя пользователя через UID процесса
-    if not user:
-        try:
-            user = pwd.getpwuid(os.getuid()).pw_name
-        except KeyError:
-            user = "unknown"
-    return user
 
 # Путь к каталогу проекта и имя скрипта без расширения
-basepath, appname = Path(__file__).parent.parents[0], Path(__file__).stem
+basepath, appname = Path(__file__).resolve().parent.parents[0], Path(__file__).stem
 # Логирование в файл logfile
 logfile =  Path.home().joinpath(".cache", appname + ".log")
 logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-logging.info(f"{appname} started by {get_current_user()}")
+logging.info(f"{appname} started...")
 
 class IButtonApp(dbus.service.Object):
     def __init__(self, bus_name, object_path):
