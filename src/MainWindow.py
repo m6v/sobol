@@ -285,5 +285,8 @@ class MainWindow(QtWidgets.QMainWindow):
         config.window_geometry = self.geometry().getRect()
         config.window_state = int(self.windowState())
 
-        # Сохранить журнал событий
-        self.board_settings_page.events_journal_panel.model.save()
+        # Сохранить журнал событий, если это рабочий режим
+        try:
+            self.board_settings_page.events_journal_panel.model.save()
+        except AttributeError as e:
+            pass

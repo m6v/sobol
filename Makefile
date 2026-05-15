@@ -8,14 +8,14 @@ all: dpkg
 
 compile: $(RESOURCES)
 
-dpkg:
+dpkg: clean
 	rm -rf src/__pycache
 	mkdir -p $(BUILDPATH)$(TARGETPATH) $(BUILDPATH)/etc/xdg/autostart $(BUILDPATH)/DEBIAN
 	cp control $(BUILDPATH)/DEBIAN
 	cp -r src img ui $(BUILDPATH)$(TARGETPATH)
 	cp ibutton2dbus.desktop $(BUILDPATH)/etc/xdg/autostart
 	fakeroot sh -c "chown -R root:root $(BUILDPATH) && dpkg-deb --build $(BUILDPATH) $(PKGNAME)"
-@echo "Пакет успешно собран: $(PKGNAME)"
+	@echo "Пакет успешно собран: $(PKGNAME)"
 
 # $@ - имя цели ($(RESOURCES))
 # $< - имя первого переквизита (prerequisite, зависимость) (src/resources.qrc)

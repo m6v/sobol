@@ -121,9 +121,8 @@ class BoardInitPage(QtWidgets.QWidget):
 
     def request_admin_registration(self, is_primary_admin_registration):
         """Запросить вызов мастера регистрации администратора"""
-        # TODO Реализовать логику вторичной регистрации администратора
-        self.show_init_panel(INTEGRITY_CONTROL_PANEL)
         self.adminRegistrationRequested.emit(is_primary_admin_registration)
+        self.show_init_panel(INTEGRITY_CONTROL_PANEL)
 
     def complete_board_init(self):
         """Завершить инициализацию платы"""

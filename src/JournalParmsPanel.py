@@ -19,8 +19,13 @@ class JournalParmsPanel(QtWidgets.QWidget):
         self.setObjectName("events_journal_panel")
         self.widget_state_manager = WidgetStateManager()
 
+        self.default_push_button.clicked.connect(self.set_default_settings)
         self.save_push_button.clicked.connect(lambda: self.widget_state_manager.save_state(self))
         self.cancel_push_button.clicked.connect(lambda: self.widget_state_manager.load_state(self))
+
+    def set_default_settings(self):
+        """Установить настройки по умолчанию"""
+        self._ui_loader.restore_defaults()
 
     def showEvent(self, event: QShowEvent):
         """Используем обработчик события отображения виджета, чтобы восстановить его настройки.
