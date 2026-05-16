@@ -1,3 +1,2 @@
-python3-pyside2.qtcore
-python3-pyside2.qtuitools
 python3-pyside2.qtwidgets
+python3-pyside2.qtuitools

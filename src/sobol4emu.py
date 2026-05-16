@@ -47,17 +47,18 @@ if __name__ == "__main__":
     parser.add_argument("config", nargs="?", help="Конфигурационный файл")
     args = parser.parse_args()
 
-    # Если конфиг не задан, используем $HOME/.config/$program_name/default.conf
-    program_name = Path(sys.argv[0]).stem
+    # Путь к каталогу проекта и имя скрипта без расширения
+    base_path, program_name = Path(__file__).resolve().parent.parents[0], Path(__file__).stem
+
     if not args.config:
+        # Если конфиг не задан, используем ~/.config/$program_name/default.conf
         config_file = Path.home().joinpath(".config", program_name, "default.conf")
         config_file.parent.mkdir(parents=True, exist_ok=True)
         config_file.touch()
         logging.warning(f"Configuration file not specified, using '{config_file}'")
     else:
         config_file = Path(args.config)
-        # Если путь к конфигу не задан (только имя),
-        # ищем файл args.config в каталоге $HOME/.config/$program_name
+        # Если путь к конфигу не задан (только имя), ищем файл args.config в каталоге ~/.config/$program_name
         if len(config_file.parts) == 1:
             config_file = Path.home().joinpath(".config", program_name, args.config)
 

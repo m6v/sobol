@@ -32,14 +32,14 @@
       <number>12</number>
      </property>
      <item>
-      <widget class="QLabel" name="copy_id_label">
+      <widget class="QLabel" name="id_copy_label">
        <property name="text">
         <string>Копирование идентификатора Администратора</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="copy_id_push_button">
+      <widget class="QPushButton" name="id_copy_push_button">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -58,14 +58,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="format_id_label">
+      <widget class="QLabel" name="id_format_label">
        <property name="text">
         <string>Форматирование идентификатора</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="format_id_push_button">
+      <widget class="QPushButton" name="id_format_push_button">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -110,14 +110,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="set_datetime_label">
+      <widget class="QLabel" name="datetime_set_label">
        <property name="text">
         <string>Установка системного времени и даты</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="set_datetime_push_button">
+      <widget class="QPushButton" name="datetime_set_push_button">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -136,14 +136,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="save_bios_label">
+      <widget class="QLabel" name="bios_save_label">
        <property name="text">
         <string>Сохранение кода расширения UEFI/BIOS</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="save_bios_push_button">
+      <widget class="QPushButton" name="bios_save_push_button">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -162,14 +162,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="update_bios_label">
+      <widget class="QLabel" name="bios_update_label">
        <property name="text">
         <string>Обновление кода расширения UEFI/BIOS</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="update_bios_push_button">
+      <widget class="QPushButton" name="bios_update_push_button">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>

@@ -2,15 +2,23 @@
 
 ## Установка
 ```
-sudo usermod -aG libvirt $USER;
+sudo usermod -aG libvirt $USER
 echo "export LIBVIRT_DEFAULT_URI='qemu:///system'" >> ~/.bashrc
 source ~/.bashrc
 sudo cp ibutton2dbus.desktop /etc/xdg/autostart
 ```
 
+## Конфигурационные файлы
+Конфигурационный файлы имитатора ibutton находится в `~/.config/ibuttons.json`.
+Если при запуске имитатора файл не обнаружет, создается пустой конфиг.
+
+Конфигурационный файл имитатора ПАК "Соболь" указывается в аргументе команды при запуске.
+Если файл не указан, создается пустой конфиг `~/.config/sobol4emu/default.conf`
+Имя файла с журналом событий совпадает с именем конфигурационного файла, но имеет расширение `.log`.
+
 ## Особенности версии с novnc
-1. установить пакеты `novnc` и `python3-websockify`
-2. в настройках виртуальной машины добавить Display VNC с портом, например, 5901
+1. требует пакетов `novnc` и `python3-websockify`
+2. в настройках виртуальной машины необходимо добавить `Display VNC` с портом, например, `5901`
 2. сделать автозапуск
 ```
 websockify 6080 127.0.0.1:5901 --web /usr/share/novnc

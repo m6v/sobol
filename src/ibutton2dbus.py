@@ -20,50 +20,49 @@ import dbus
 import dbus.service
 from dbus.mainloop.glib import DBusGMainLoop
 
-from PySide2 import QtGui
-from PySide2.QtWidgets import QApplication, QAction, QMenu, QSystemTrayIcon
+from PySide2 import QtGui, QtWidgets
 
 
 # Путь к каталогу проекта и имя скрипта без расширения
-basepath, appname = Path(__file__).resolve().parent.parents[0], Path(__file__).stem
+base_path, program_name = Path(__file__).resolve().parent.parents[0], Path(__file__).stem
 # Логирование в файл logfile
-logfile =  Path.home().joinpath(".cache", appname + ".log")
+logfile =  Path.home().joinpath(".cache", program_name + ".log")
 logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-logging.info(f"{appname} started...")
+logging.info(f"{program_name} started...")
 
 class IButtonApp(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         super().__init__(bus_name, object_path)
-        self.config_file = Path.home().joinpath(".config", "sobol4emu", appname + ".json")
+        self.config_file = Path.home().joinpath(".config", program_name + ".json")
         if not self.config_file.is_file():
-            # Если конфиг отсутствует, скопировать его шаблон
+            # Если конфиг отсутствует, создать его, скопировав шаблон
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(basepath.joinpath("ibuttons.json"), self.config_file)
+            shutil.copy2(base_path.joinpath("ibuttons.json"), self.config_file)
 
-        # Загрузить словарь ibuttons 
+        # Загрузить словарь ibuttons
         self.ibuttons = self.load_data()
 
         # Создать меню в системном лотке
-        self.tray_icon = QSystemTrayIcon(QtGui.QIcon(str(basepath.joinpath("img/ibutton.png"))))
-        self.tray_menu = QMenu()
+        self.tray_icon = QtWidgets.QSystemTrayIcon(QtGui.QIcon(str(base_path.joinpath("img/ibutton.png"))))
+        self.tray_menu = QtWidgets.QMenu()
 
         # Создать элементы меню
         for item_id in self.ibuttons:
-            action = QAction(str(item_id), self.tray_menu)
+            action = QtWidgets.QAction(str(item_id), self.tray_menu)
             action.triggered.connect(functools.partial(self.send_signal, item_id))
             self.tray_menu.addAction(action)
 
         self.tray_menu.addSeparator()
-        exit_action = QAction("Выход", self.tray_menu)
-        exit_action.triggered.connect(QApplication.instance().quit)
+        exit_action = QtWidgets.QAction("Выход", self.tray_menu)
+        exit_action.triggered.connect(QtWidgets.QApplication.instance().quit)
         self.tray_menu.addAction(exit_action)
 
         self.tray_icon.setContextMenu(self.tray_menu)
         self.tray_icon.show()
 
         QApplication.instance().aboutToQuit.connect(self.cleanup)
-        logging.info(f"{appname} initialized successfully")
+        logging.info(f"{program_name} initialized successfully")
 
     def load_data(self):
         try:
@@ -102,7 +101,7 @@ class IButtonApp(dbus.service.Object):
         return False
 
     def cleanup(self):
-        logging.info(f"{appname} ended")
+        logging.info(f"{program_name} ended")
 
 
 if __name__ == "__main__":
