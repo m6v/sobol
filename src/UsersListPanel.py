@@ -75,6 +75,9 @@ class UsersListPanel(QtWidgets.QWidget):
         self.del_all_users_push_button.setEnabled(bool(config.users))
         self.change_passwd_push_button.setEnabled(bool(config.users))
         self.user_count_label.setText(str(len(config.users)))
+        
+        self.frame.setEnabled(bool(config.users))
+        self.save_push_button.setEnabled(bool(config.users))
         # Если зарегистрированных пользователей нет, то выйти
         if not config.users:
             # TODO Установить дефолтные настройки пользователя и отключить панель настроек

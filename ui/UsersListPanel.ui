@@ -209,6 +209,9 @@ QPushButton:hover {
      </item>
      <item>
       <widget class="QFrame" name="frame">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
        </property>
@@ -611,6 +614,9 @@ QPushButton:hover {
            </item>
            <item>
             <widget class="QPushButton" name="save_push_button">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Сохранить</string>
              </property>

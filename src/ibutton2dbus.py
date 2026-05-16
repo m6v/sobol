@@ -22,10 +22,9 @@ from dbus.mainloop.glib import DBusGMainLoop
 
 from PySide2 import QtGui, QtWidgets
 
-
 # Путь к каталогу проекта и имя скрипта без расширения
 base_path, program_name = Path(__file__).resolve().parent.parents[0], Path(__file__).stem
-# Логирование в файл logfile
+
 logfile =  Path.home().joinpath(".cache", program_name + ".log")
 logging.basicConfig(level=logging.INFO, filename=logfile, format="%(asctime)s %(levelname)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
@@ -34,6 +33,7 @@ logging.info(f"{program_name} started...")
 class IButtonApp(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         super().__init__(bus_name, object_path)
+        
         self.config_file = Path.home().joinpath(".config", program_name + ".json")
         if not self.config_file.is_file():
             # Если конфиг отсутствует, создать его, скопировав шаблон
@@ -41,7 +41,11 @@ class IButtonApp(dbus.service.Object):
             shutil.copy2(base_path.joinpath("ibuttons.json"), self.config_file)
 
         # Загрузить словарь ibuttons
-        self.ibuttons = self.load_data()
+        try:
+            with open(self.config_file, "r", encoding="utf-8") as f:
+                self.ibuttons = json.load(f)
+        except Exception as e:
+            logging.error(f"Failed to load JSON config: {e}")
 
         # Создать меню в системном лотке
         self.tray_icon = QtWidgets.QSystemTrayIcon(QtGui.QIcon(str(base_path.joinpath("img/ibutton.png"))))
@@ -61,16 +65,8 @@ class IButtonApp(dbus.service.Object):
         self.tray_icon.setContextMenu(self.tray_menu)
         self.tray_icon.show()
 
-        QApplication.instance().aboutToQuit.connect(self.cleanup)
+        QtWidgets.QApplication.instance().aboutToQuit.connect(self.cleanup)
         logging.info(f"{program_name} initialized successfully")
-
-    def load_data(self):
-        try:
-            with open(self.config_file, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception as e:
-            logging.error(f"Failed to load JSON config: {e}")
-            return {}
 
     @dbus.service.signal("com.example.IButtonInterface", signature="a{sv}")
     def IButtonSignal(self, message):
@@ -107,7 +103,7 @@ class IButtonApp(dbus.service.Object):
 if __name__ == "__main__":
     DBusGMainLoop(set_as_default=True)
 
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
 
     # Явная обработка сигнала SIGINT с подключением его к механизму завершения работы приложения,
