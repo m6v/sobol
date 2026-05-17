@@ -25,6 +25,14 @@ class PasswdWaitPage(QtWidgets.QWidget):
         self.enter_push_button.clicked.connect(self.on_passwd_entered)
         self.passwd_line_edit.returnPressed.connect(self.on_passwd_entered)
 
+    def show_remaining_time(self, seconds):
+        minutes, seconds = divmod(seconds, 60)
+        if minutes:
+            remaining_time = f"{minutes} мин. {seconds} сек."
+        else:
+            remaining_time = f"{seconds} сек."
+        self.remaining_time_label.setText(f"До окончания входа в систему осталось: {remaining_time}")
+
     def on_passwd_entered(self):
         """Оправить сигнал, содержащий введенный пароль"""
         passwd = self.passwd_line_edit.text()

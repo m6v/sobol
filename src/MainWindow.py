@@ -30,6 +30,7 @@ service_object = bus.get_object('ru.navis.ibutton2dbus', '/ru/navis/ibutton2dbus
 class MainWindow(QtWidgets.QMainWindow):
     # Сигнал "предъявления" iButton
     ibuttonPresented = QtCore.Signal(dict)
+    remainingTimeChanged = QtCore.Signal(int)
 
     def __init__(self):
         super().__init__()
@@ -92,6 +93,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.user_registration_wizard.userRegistrationСanceled.connect(lambda: self.set_page(self.board_settings_page))
             self.stack.addWidget(self.user_registration_wizard)
 
+            self.timer = QtCore.QTimer()
+            # Время до входа в систему, отображаемое в первых двух окнах
+            try:
+                self.remaining_time = int(config.get("common_parms_panel", "time_limit_line_edit")) * 60
+            except configparser.NoSectionError:
+                self.remaining_time = 0
+            # Если 0, то не обрабатывать таймаут
+            if self.remaining_time:
+                self.timer.timeout.connect(self.decrease_remaining_time)
+            self.timer.start(1000)
+
             self.set_page(self.id_wait_page)
         else:
             # Если администратор не зарегистрирован, загрузить необходимые страницы и показать страницу инициализации
@@ -132,6 +144,20 @@ class MainWindow(QtWidgets.QMainWindow):
         # Запомнили последний предъявленный ibutton и оптравили сигнал
         self.message = message
         self.ibuttonPresented.emit(message)
+
+    def decrease_remaining_time(self):
+        """Уменьшить счетчик времени до входа в систему"""
+        self.remaining_time -= 1
+        if self.remaining_time == 0:
+            # TODO Вместо сброса счетчика, блокировать вход для все пользователей, кроме администратора
+            logging.info("The waiting time has expired")
+            self.remaining_time = int(config.get("common_parms_panel", "time_limit_line_edit")) * 60
+            self.set_page(self.id_wait_page)
+        else:
+            # Отправить сигнал о времени до входа в систему
+            self.remainingTimeChanged.emit(self.remaining_time)
+        self.id_wait_page.show_remaining_time(self.remaining_time)
+        self.passwd_wait_page.show_remaining_time(self.remaining_time)
 
     def set_page(self, widget, **kwargs):
         """Отобразить страницу widget"""

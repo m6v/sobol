@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>759</width>
-    <height>577</height>
+    <width>777</width>
+    <height>570</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,7 +27,7 @@
     <number>0</number>
    </property>
    <item row="0" column="1">
-    <spacer name="verticalSpacer">
+    <spacer name="verticalSpacer_1">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -40,7 +40,7 @@
     </spacer>
    </item>
    <item row="1" column="0">
-    <spacer name="horizontalSpacer">
+    <spacer name="horizontalSpacer_1">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -80,7 +80,7 @@
       </widget>
      </item>
      <item>
-      <spacer name="verticalSpacer_5">
+      <spacer name="verticalSpacer_2">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
@@ -98,9 +98,9 @@
      <item>
       <layout class="QHBoxLayout" name="wait_horizontal_layout">
        <item>
-        <widget class="QLabel" name="remaining_time_label_1">
+        <widget class="QLabel" name="remaining_time_label">
          <property name="text">
-          <string/>
+          <string>До окончания входа в систему осталось: 60 секунд</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
@@ -125,7 +125,7 @@
     </spacer>
    </item>
    <item row="2" column="1">
-    <spacer name="verticalSpacer_2">
+    <spacer name="verticalSpacer_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>

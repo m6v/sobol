@@ -21,6 +21,14 @@ class IdWaitPage(QtWidgets.QWidget):
             QLabel { color: white; }
             """)
 
+    def show_remaining_time(self, seconds):
+        minutes, seconds = divmod(seconds, 60)
+        if minutes:
+            remaining_time = f"{minutes} мин. {seconds} сек."
+        else:
+            remaining_time = f"{seconds} сек."
+        self.remaining_time_label.setText(f"До окончания входа в систему осталось: {remaining_time}")
+
     def resizeEvent(self, event):
         palette = QPalette()
         img = QImage("../img/background.png")
