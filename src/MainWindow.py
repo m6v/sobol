@@ -193,9 +193,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if self.message["id"] in config.admins:
                 # Добавить в журнал запись об успешном входе администратора (key="4")
                 self.board_settings_page.events_journal_panel.add_event(["Администратор", self.message["id"], "4", "1"])
-                self.admin_choice_page.admin_id_value.setText(self.message["id"])
                 # Перейти на страницу выбора действий, доступных администратору
-                self.set_page(self.admin_choice_page)
+                self.set_page(self.admin_choice_page, id=self.message["id"])
                 return
             # Проверить принадлежность предъявленного id пользователю
             if index is not None:
@@ -209,14 +208,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 pass
                 # Добавить в журнал запись об успешном входе пользователя (key="5")
                 self.board_settings_page.events_journal_panel.add_event([self.message["user_name"], self.message["id"], "5", "1"])
-
-                # Сбросить счетчик неудачных попыток входа, инкрементировать счетчик
-                # количества успешных попыток входа, изменить время последнего входа
-                config.users[index]["failed_logins"] = 0
-                config.users[index]["total_logins"] += 1
-                config.users[index]["last_login_datetime"] = datetime.now().strftime("%H:%M %Y/%m/%d")
-
-                self.set_page(self.user_choice_page, user_name=config.users[index]["user_name"])
+                # Открыть панель выбора действий пользователя, установив ее self.index залогиневшегося пользователя
+                self.set_page(self.user_choice_page, index=index)
                 return
         # Неправильный пароль или идентификатор отсутсвует в списках admins и users
         config.failed_logins += 1

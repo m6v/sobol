@@ -40,6 +40,8 @@ class AdminChoicePage(QtWidgets.QWidget):
         self.setPalette(palette)
 
     def showEvent(self, event: QShowEvent):
+        """Показать сведения об иденитикаторе администратора self.id которого передан при открытии панели,
+        сведения о последнем входе в систему"""
         # Если ни один пользователь не зарегистрирован, пропустить вывод сведений о последнем входе в систему
         if config.users:
             # Найти пользователя входившего в систему последним
@@ -52,6 +54,8 @@ class AdminChoicePage(QtWidgets.QWidget):
             self.last_user_id_value.setText(last_user["id"])
             self.last_user_datetime_value.setText(last_user["last_login_datetime"])
 
+        # self.id записывается при открытии панели
+        self.admin_id_value.setText(self.id)
         self.failed_logins_value.setText(str(config.failed_logins))
         self.admin_datetime_value.setText(datetime.now().strftime("%H:%M %Y/%m/%d"))
         super().showEvent(event)
