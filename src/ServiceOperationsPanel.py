@@ -40,7 +40,6 @@ class ServiceOperationsPanel(QtWidgets.QWidget):
 
     def id_format(self):
         dialog = SobolDialog("Внимание", id_format_message, QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.No)
-        dialog.exec_()
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             # TODO Уточнить, что болжно быть при подтверждении форматирования
             pass
