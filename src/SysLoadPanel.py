@@ -1,6 +1,7 @@
 import functools
 import json
 import logging
+import os
 import subprocess
 
 from PySide2 import QtCore, QtWidgets
@@ -9,6 +10,58 @@ from PySide2.QtGui import QShowEvent
 from Toggle import Toggle
 from UiLoader import UiLoader
 from WidgetStateManager import WidgetStateManager
+
+
+def get_boot_option() -> str:
+    """Возвращает наименование текущей опции загрузки на основе данных ОС."""
+    try:
+        with open("/etc/os-release", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("NAME="):
+                    return line.split("=")[1].strip().strip('"')
+    except (FileNotFoundError, PermissionError):
+        pass
+    return "Linux-система"
+
+
+def get_os_volume() -> str:
+    """Определяет имя устройства корневого тома операционной системы."""
+    try:
+        root_dev = subprocess.check_output(
+            ["findmnt", "-n", "-o", "SOURCE", "/"], 
+            text=True, 
+            stderr=subprocess.DEVNULL
+        ).strip()
+        if root_dev:
+            return root_dev
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    return "Не определено"
+
+
+def get_os_loader() -> str:
+    """Устанавливает путь к исполняемому файлу или тип загрузчика ОС."""
+    # Стандартные пути верификации исполняемых файлов EFI
+    efi_paths = [
+        "/boot/efi/EFI/astra/grubx64.efi",
+        "/boot/efi/EFI/ubuntu/grubx64.efi",
+        "/boot/efi/EFI/redhat/grubx64.efi",
+        "/boot/efi/EFI/altlinux/grubx64.efi",
+        "/boot/efi/EFI/BOOT/BOOTX64.EFI"
+    ]
+    
+    for path in efi_paths:
+        try:
+            if os.path.exists(path):
+                return path
+        except PermissionError:
+            continue
+            
+    # Проверка структуры каталогов для Legacy/MBR конфигураций
+    if os.path.exists("/boot/grub") or os.path.exists("/boot/grub2"):
+        return "Встроенный загрузчик GRUB"
+        
+    return "Неизвестный загрузчик"
 
 
 class SysLoadPanel(QtWidgets.QWidget):
@@ -27,6 +80,10 @@ class SysLoadPanel(QtWidgets.QWidget):
 
         self.sys_load_push_button.clicked.connect(self.sys_load_requested.emit)
         self.save_push_button.clicked.connect(functools.partial(self.widget_state_manager.save_state, self))
+
+        self.load_option_value.setText(get_boot_option())
+        self.sys_volume_value.setText(get_os_volume())
+        self.sys_loader_value.setText(get_os_loader())
 
         try:
             # Получить имя диска на который смотирован корень
@@ -51,5 +108,5 @@ class SysLoadPanel(QtWidgets.QWidget):
         Это необходимо выполнять каждый раз, чтобы без нажатия кнопки [Сохранить],
         после переключения панелей восстанавливались несохраненные настройки"""
         self.widget_state_manager.load_state(self)
-        # Обязательно вызываем базовый класс, чтобы не нарушить цепочку Qt
+        # Вызвать базовый класс, чтобы не нарушить цепочку Qt
         super().showEvent(event)

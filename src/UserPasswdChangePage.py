@@ -12,8 +12,8 @@ COMPLETION_PAGE = 4
 
 
 class UserPasswdChangePage(QtWidgets.QWidget):
-    """Страница смены пароля пользователя. Имя пользователя self.user_name и
-    признак принудительной смены пароля администратором self.is_forced_passwd_change
+    """Страница смены пароля пользователя. Имя пользователя user_name и
+    признак принудительной смены пароля администратором is_forced_passwd_change
     устанавливаются при открытии страницы"""
     userPasswdChangeCompleted = QtCore.Signal(str, str, dict)
     userPasswdChangeCanceled = QtCore.Signal()
