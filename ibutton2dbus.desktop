@@ -1,13 +1,13 @@
 [Desktop Entry]
-Categoties=Application;System;
-Exec=/opt/sodol4emu/src/ibutton2dbus.py
+Categories=Application;System;
+Exec=/opt/vlab/sobol4/src/ibutton2dbus.py
 Hidden=false
-Icon[ru_RU]=/opt/sodol4emu/img/ibutton.png
-Icon=/opt/sodol4emu/img/ibutton.png
+Icon[ru_RU]=/opt/vlab/sobol4/img/ibutton.png
+Icon=/opt/vlab/sobol4/img/ibutton.png
 Name[ru_RU]=Имитатор iButtons
 Name=Имитатор iButtons
 NoDisplay=false
-Path=/opt/sodol4emu/src/
+Path=/opt/vlab/sobol4/src/
 StartupNotify=false
 Terminal=false
 Type=Application

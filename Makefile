@@ -22,12 +22,13 @@ deb: clean
 	@cp control $(BUILD_PATH)/DEBIAN/control
 
 	@# cp postinst $(BUILD_PATH)/DEBIAN/postinst
-	@# cp prerm $(BUILD_PATH)/DEBIAN/prerm
 	@# chmod 755 $(BUILD_PATH)/DEBIAN/postinst
-	@# chmod 755 $(BUILD_PATH)/DEBIAN/prerm
+	@cp prerm $(BUILD_PATH)/DEBIAN/prerm
+	@chmod 755 $(BUILD_PATH)/DEBIAN/prerm
 
 	@mkdir -p $(BUILD_PATH)$(TARGET_PATH) $(BUILD_PATH)/etc/xdg/autostart
 	@cp -r src img ui $(BUILD_PATH)$(TARGET_PATH)
+	@cp ibuttons.json $(BUILD_PATH)$(TARGET_PATH)
 	@cp ibutton2dbus.desktop $(BUILD_PATH)/etc/xdg/autostart
 
 	@echo "Сборка deb-пакета..."

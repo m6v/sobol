@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        echo "Остановка ibutton2dbus для всех пользователей..."
+        # Завершаем процессы по полной строке запуска скрипта
+        pkill -f "/opt/vlab/sobol4/src/ibutton2dbus.py" || true
+    ;;
+
+    failed-upgrade)
+    ;;
+
+    *)
+        echo "prerm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

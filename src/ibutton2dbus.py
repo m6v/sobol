@@ -33,19 +33,22 @@ logging.info(f"{program_name} started...")
 class IButtonApp(dbus.service.Object):
     def __init__(self, bus_name, object_path):
         super().__init__(bus_name, object_path)
-        
+
         self.config_file = Path.home().joinpath(".config", program_name + ".json")
         if not self.config_file.is_file():
             # Если конфиг отсутствует, создать его, скопировав шаблон
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(base_path.joinpath("ibuttons.json"), self.config_file)
+            global_template = base_path.joinpath("ibuttons.json")
+            try:
+                shutil.copy2(global_template, self.config_file)
+                logging.info(f"Template config copied to {self.config_file}")
+            except Exception as e:
+                logging.critical(f"Failed to copy global template from {global_template}: {e}")
+                raise
 
-        # Загрузить словарь ibuttons
-        try:
-            with open(self.config_file, "r", encoding="utf-8") as f:
-                self.ibuttons = json.load(f)
-        except Exception as e:
-            logging.error(f"Failed to load JSON config: {e}")
+        # Загрузить словарь ibuttons (упадет с Traceback в лог, если JSON поврежден)
+        with open(self.config_file, "r", encoding="utf-8") as f:
+            self.ibuttons = json.load(f)
 
         # Создать меню в системном лотке
         self.tray_icon = QtWidgets.QSystemTrayIcon(QtGui.QIcon(str(base_path.joinpath("img/ibutton.png"))))
