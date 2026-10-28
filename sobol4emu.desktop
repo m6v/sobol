@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=Имитатор ПАК "Соболь"
+Name[ru_RU]=Имитатор ПАК "Соболь"
+Comment=Запуск имитатора ПАК "Соболь"
+Exec=/opt/vlab/sobol4/src/sobol4emu.py
+Icon=sobol
+Path=/opt/vlab/sobol4/src/
+Terminal=false
+Hidden=false
+NoDisplay=false
+StartupNotify=false
+Categories=Application;System;Development;

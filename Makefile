@@ -31,6 +31,13 @@ deb: clean
 	@cp ibuttons.json $(BUILD_PATH)$(TARGET_PATH)
 	@cp ibutton2dbus.desktop $(BUILD_PATH)/etc/xdg/autostart
 
+	# Глобальная иконка для меню приложений
+	@mkdir -p $(BUILD_PATH)/usr/share/pixmaps
+	@cp img/sobol.png $(BUILD_PATH)/usr/share/pixmaps/sobol.png
+	# Ярлык для запуска имитатора ПАК "Соболь" из главного меню
+	@mkdir -p $(BUILD_PATH)/usr/share/applications
+	@cp sobol4emu.desktop $(BUILD_PATH)/usr/share/applications/sobol4emu.desktop
+
 	@echo "Сборка deb-пакета..."
 	@dpkg-deb --build --root-owner-group $(BUILD_PATH) $(PKG_NAME)_$(PKG_VER)_$(PKG_ARCH).deb
 	@rm -rf $(BUILD_PATH)
